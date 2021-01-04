@@ -35,3 +35,8 @@ func (bid *BlockID) Equals(another *BlockID) bool {
 func (bid *BlockID) String() string {
 	return fmt.Sprintf("[file %s, block %d]", bid.filename, bid.blkNum)
 }
+
+// HashKey формирует строку с ключем для словарей
+func (bid *BlockID) HashKey() string {
+	return fmt.Sprintf("[%s][%d]", bid.filename, bid.blkNum)
+}

@@ -22,6 +22,7 @@ func (ts BlockIDTestSuite) TestCreateBlockID() {
 	ts.Assert().Equal(filename, blockID.Filename())
 	ts.Assert().Equal(blkNum, blockID.BlkNum())
 	ts.Assert().Equal("[file block_filename, block 12345]", fmt.Sprintf("%s", blockID))
+	ts.Assert().Equal("[block_filename][12345]", blockID.HashKey())
 }
 
 func (ts BlockIDTestSuite) TestBlockEquals() {
