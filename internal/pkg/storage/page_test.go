@@ -37,12 +37,24 @@ func (ts PageTestSuite) TestPutAndFetchBytes() {
 	)
 }
 
-func (ts PageTestSuite) TestGetAndSetInt() {
-	p := NewPage(20)
-	p.SetInt(0, 12345)
-	p.SetInt(8, -12345)
-	ts.Assert().Equal(int64(12345), p.GetInt(0))
-	ts.Assert().Equal(int64(-12345), p.GetInt(8))
+func (ts PageTestSuite) TestGetAndSetInt32() {
+	p := NewPage(24)
+	p.SetInt32(0, 12345)
+	p.SetInt32(4, -12345)
+	p.SetInt32(16, 0x7fffffff)
+	ts.Assert().Equal(int32(12345), p.GetInt32(0))
+	ts.Assert().Equal(int32(-12345), p.GetInt32(4))
+	ts.Assert().Equal(int32(0x7fffffff), p.GetInt32(16))
+}
+
+func (ts PageTestSuite) TestGetAndSetInt64() {
+	p := NewPage(24)
+	p.SetInt64(0, 12345)
+	p.SetInt64(8, -12345)
+	p.SetInt64(16, 0x7fffffffffffffff)
+	ts.Assert().Equal(int64(12345), p.GetInt64(0))
+	ts.Assert().Equal(int64(-12345), p.GetInt64(8))
+	ts.Assert().Equal(int64(0x7fffffffffffffff), p.GetInt64(16))
 }
 
 func (ts PageTestSuite) TestGetAndSetString() {
@@ -55,12 +67,33 @@ func (ts PageTestSuite) TestGetAndSetString() {
 	var offset int = 0
 	for _, s := range cases {
 		p.SetString(offset, s)
-		offset += len(s) + 8
+		offset += len(s) + 4
 	}
 
 	offset = 0
 	for _, s := range cases {
 		ts.Assert().Equal(s, p.GetString(offset))
-		offset += len(s) + 8
+		offset += len(s) + 4
 	}
+}
+
+func (ts PageTestSuite) TestGetAndSetFloat32() {
+	p := NewPage(24)
+	p.SetFloat32(0, 12345.245)
+	p.SetFloat32(4, -12345.245)
+	p.SetFloat32(16, 0x7fffffff)
+	ts.Assert().Equal(float32(12345.245), p.GetFloat32(0))
+	ts.Assert().Equal(float32(-12345.245), p.GetFloat32(4))
+	ts.Assert().Equal(float32(0x7fffffff), p.GetFloat32(16))
+}
+
+func (ts PageTestSuite) TestGetAndSetBool() {
+	p := NewPage(4)
+	p.SetBool(0, true)
+	p.SetBool(1, false)
+	p.SetBool(2, true)
+	ts.Assert().Equal(true, p.GetBool(0))
+	ts.Assert().Equal(false, p.GetBool(1))
+	ts.Assert().Equal(true, p.GetBool(2))
+	ts.Assert().Equal([]byte{boolTrueMark, boolFalseMark, boolTrueMark, 0x0}, p.Content())
 }
