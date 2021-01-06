@@ -10,7 +10,10 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-const tempFilesPrefix = "temp"
+const (
+	tempFilesPrefix        = "temp"
+	defaultfilePermissions = 0600
+)
 
 // ErrFileManagerIO вызываем при ошибках ввода вывода
 var ErrFileManagerIO error = eris.New("file manager io error")
@@ -35,7 +38,7 @@ func NewFileManager(path string, blockSize int) (*FileManager, error) {
 		openFiles: make(openFilesMap),
 	}
 
-	err = os.MkdirAll(path, 0755)
+	err = os.MkdirAll(path, defaultfilePermissions)
 	if err != nil {
 		return nil, eris.Wrapf(err, "file manager: cannot create data dir \"%s\"", path)
 	}
