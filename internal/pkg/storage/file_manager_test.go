@@ -158,6 +158,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	fm, err := NewFileManager(path, blockSize)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(fm)
+	defer fm.Close()
 
 	// Создаем блоки
 	blocks := make([]*BlockID, 10)
