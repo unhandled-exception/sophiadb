@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	tempFilesPrefix        = "temp"
-	defaultfilePermissions = 0600
+	// TempFilesPrefix — префикс для временных файлов
+	TempFilesPrefix = "temp"
+
+	defaultFilePermissions = 0600
 )
 
 // ErrFileManagerIO вызываем при ошибках ввода вывода
@@ -22,11 +24,11 @@ type openFilesMap map[string]*os.File
 
 // FileManager управляет чтением и записью блоков на диске
 type FileManager struct {
+	sync.Mutex
+
 	path      string
 	blockSize int
 	openFiles openFilesMap
-
-	mu sync.Mutex
 }
 
 // NewFileManager создает новый объект FileManager
@@ -38,7 +40,7 @@ func NewFileManager(path string, blockSize int) (*FileManager, error) {
 		openFiles: make(openFilesMap),
 	}
 
-	err = os.MkdirAll(path, defaultfilePermissions)
+	err = os.MkdirAll(path, defaultFilePermissions)
 	if err != nil {
 		return nil, eris.Wrapf(err, "file manager: cannot create data dir \"%s\"", path)
 	}
@@ -59,7 +61,7 @@ func (fm *FileManager) cleanTemporaryFiles() error {
 			if err != nil {
 				return err
 			}
-			if !info.IsDir() && strings.HasPrefix(info.Name(), tempFilesPrefix) {
+			if !info.IsDir() && strings.HasPrefix(info.Name(), TempFilesPrefix) {
 				err := os.Remove(path)
 				return err
 			}
@@ -99,8 +101,8 @@ func (fm *FileManager) Close() error {
 
 // Read читает блок из файла в страницу page
 func (fm *FileManager) Read(block *BlockID, page *Page) error {
-	fm.mu.Lock()
-	defer fm.mu.Unlock()
+	fm.Lock()
+	defer fm.Unlock()
 
 	file, err := fm.getFile(block.Filename())
 	if err != nil {
@@ -119,8 +121,8 @@ func (fm *FileManager) Read(block *BlockID, page *Page) error {
 
 // Write записывает блок в файл из страницы page
 func (fm *FileManager) Write(block *BlockID, page *Page) error {
-	fm.mu.Lock()
-	defer fm.mu.Unlock()
+	fm.Lock()
+	defer fm.Unlock()
 	file, err := fm.getFile(block.Filename())
 	if err != nil {
 		return err
@@ -138,8 +140,8 @@ func (fm *FileManager) Write(block *BlockID, page *Page) error {
 
 // Append добавляет новый блок в файл
 func (fm *FileManager) Append(filename string) (*BlockID, error) {
-	fm.mu.Lock()
-	defer fm.mu.Unlock()
+	fm.Lock()
+	defer fm.Unlock()
 
 	blkNum, err := fm.Length(filename)
 	if err != nil {

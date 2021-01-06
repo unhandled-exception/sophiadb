@@ -9,6 +9,8 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
 )
 
 type FileManagerTestSuite struct {
@@ -20,48 +22,21 @@ func TestFileManagerTestSuite(t *testing.T) {
 	suite.Run(t, new(FileManagerTestSuite))
 }
 
+func (ts *FileManagerTestSuite) SuiteDir() string {
+	return ts.suiteDir
+}
+
 func (ts *FileManagerTestSuite) SetupSuite() {
-	var err error
-	ts.suiteDir, err = ioutil.TempDir("", "file_manager_tests_")
-	if err != nil {
-		ts.FailNow("dont create temporary folder: %s", err.Error())
-	}
-	ts.T().Logf("create suite temporary directory: %s", ts.suiteDir)
+	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, "file_manager_tests_")
 }
 
 func (ts *FileManagerTestSuite) TearDownSuite() {
-	err := os.RemoveAll(ts.suiteDir)
-	if err != nil {
-		ts.FailNow("dont remove temporary folder: %s", err.Error())
-	}
-	ts.T().Logf("remove suite temporary directory: %s", ts.suiteDir)
-}
-
-func (ts *FileManagerTestSuite) createTestTemporaryDir(testName string) string {
-	path, err := ioutil.TempDir(ts.suiteDir, testName)
-	if err != nil {
-		ts.FailNowf("dont create test temporary dir: %s", err.Error())
-	}
-	ts.T().Logf("create test temporary directory: %s", path)
-	return path
-}
-
-func (ts *FileManagerTestSuite) createFile(name string, content []byte) {
-	file, err := os.Create(name)
-	if err != nil {
-		ts.FailNow("failed to create file \"%s\": %s", name, err)
-	}
-	defer file.Close()
-
-	_, err = file.Write(content)
-	if err != nil {
-		ts.FailNow("failed to write content to file \"%s\": %s", name, err)
-	}
+	test.RemoveSuiteTemporaryDir(ts)
 }
 
 func (ts *FileManagerTestSuite) TestCreateFileManager() {
 	path := filepath.Join(
-		ts.createTestTemporaryDir("TestCreateFileManager_"),
+		test.CreateTestTemporaryDir(ts, "TestCreateFileManager_"),
 		"data",
 	)
 	ts.Require().NoDirExists(path)
@@ -75,16 +50,16 @@ func (ts *FileManagerTestSuite) TestCreateFileManager() {
 }
 
 func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
-	path := filepath.Join(ts.createTestTemporaryDir("TestRemoveTemporaryFiles_"))
+	path := filepath.Join(test.CreateTestTemporaryDir(ts, "TestRemoveTemporaryFiles_"))
 
 	// Создаем временные файлы в папке с тестом
 	for i := 0; i < 5; i++ {
-		ts.createFile(filepath.Join(path, fmt.Sprintf("%s_%d.dat", tempFilesPrefix, i)), []byte{})
+		test.CreateFile(ts, filepath.Join(path, fmt.Sprintf("%s_%d.dat", TempFilesPrefix, i)), []byte{})
 	}
 	for i := 0; i < 5; i++ {
-		ts.createFile(filepath.Join(path, fmt.Sprintf("b_%d.dat", i)), []byte{})
+		test.CreateFile(ts, filepath.Join(path, fmt.Sprintf("b_%d.dat", i)), []byte{})
 	}
-	dir, err := filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", tempFilesPrefix)))
+	dir, err := filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", TempFilesPrefix)))
 	if err != nil {
 		ts.FailNow(err.Error())
 	}
@@ -95,7 +70,7 @@ func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
 	ts.Require().NotNil(fm)
 
 	// Проверяем, что файлы удалили в конструкторе
-	dir, err = filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", tempFilesPrefix)))
+	dir, err = filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", TempFilesPrefix)))
 	if err != nil {
 		ts.FailNow(err.Error())
 	}
@@ -110,7 +85,7 @@ func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
 }
 
 func (ts *FileManagerTestSuite) TestCloseAllFiles() {
-	path := filepath.Join(ts.createTestTemporaryDir("TestCloseAllFiles_"))
+	path := filepath.Join(test.CreateTestTemporaryDir(ts, "TestCloseAllFiles_"))
 
 	fm, err := NewFileManager(path, 400)
 	ts.Require().NoError(err)
@@ -119,7 +94,7 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 	// Создаем файлы с данными и записываем их в список файлов в менеджере
 	for i := 0; i < 5; i++ {
 		filePath := filepath.Join(path, fmt.Sprintf("%d.dat", i))
-		ts.createFile(filePath, []byte{})
+		test.CreateFile(ts, filePath, []byte{})
 		f, err := os.Open(filePath)
 		if err != nil {
 			ts.FailNow("failed to open file \"%s\": %s", filePath, err.Error())
@@ -135,7 +110,7 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 	// Создаем еще пару файлов и сразу закрываем их
 	for i := 0; i < 2; i++ {
 		filePath := filepath.Join(path, fmt.Sprintf("closed_%d.dat", i))
-		ts.createFile(filePath, []byte{})
+		test.CreateFile(ts, filePath, []byte{})
 		f, err := os.Open(filePath)
 		if err != nil {
 			ts.FailNow("failed to open file \"%s\": %s", filePath, err.Error())
@@ -152,7 +127,7 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 }
 
 func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
-	path := filepath.Join(ts.createTestTemporaryDir("TestReadAndWriteBlocks_"))
+	path := filepath.Join(test.CreateTestTemporaryDir(ts, "TestReadAndWriteBlocks_"))
 	blockSize := 100
 
 	fm, err := NewFileManager(path, blockSize)
