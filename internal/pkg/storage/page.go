@@ -17,7 +17,7 @@ type Page struct {
 }
 
 // NewPage создает новую страницу в памяти размером size байт
-func NewPage(size int64) *Page {
+func NewPage(size int) *Page {
 	return &Page{
 		bb:    make([]byte, size),
 		order: binary.LittleEndian,

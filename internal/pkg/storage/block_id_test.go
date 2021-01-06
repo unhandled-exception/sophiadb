@@ -19,10 +19,10 @@ func (ts BlockIDTestSuite) TestCreateBlockID() {
 	filename := "block_filename"
 	blkNum := uint64(12345)
 	blockID := NewBlockID(filename, blkNum)
-	ts.Assert().Equal(filename, blockID.Filename())
-	ts.Assert().Equal(blkNum, blockID.BlkNum())
-	ts.Assert().Equal("[file block_filename, block 12345]", fmt.Sprintf("%s", blockID))
-	ts.Assert().Equal("[block_filename][12345]", blockID.HashKey())
+	ts.Equal(filename, blockID.Filename())
+	ts.Equal(blkNum, blockID.BlkNum())
+	ts.Equal("[file block_filename, block 12345]", fmt.Sprintf("%s", blockID))
+	ts.Equal("[block_filename][12345]", blockID.HashKey())
 }
 
 func (ts BlockIDTestSuite) TestBlockEquals() {
@@ -31,8 +31,8 @@ func (ts BlockIDTestSuite) TestBlockEquals() {
 	block3 := NewBlockID("filename", 1)
 	block4 := NewBlockID("filename2", 1)
 
-	ts.Assert().True(block1.Equals(block1))
-	ts.Assert().False(block1.Equals(block2))
-	ts.Assert().True(block1.Equals(block3))
-	ts.Assert().False(block1.Equals(block4))
+	ts.True(block1.Equals(block1))
+	ts.False(block1.Equals(block2))
+	ts.True(block1.Equals(block3))
+	ts.False(block1.Equals(block4))
 }
