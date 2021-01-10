@@ -47,6 +47,14 @@ func (ts PageTestSuite) TestGetAndSetInt32() {
 	ts.Equal(int32(0x7fffffff), p.GetInt32(16))
 }
 
+func (ts PageTestSuite) TestGetAndSetUint32() {
+	p := NewPage(24)
+	p.SetUint32(0, 12345)
+	p.SetUint32(16, 0xffffffff)
+	ts.Equal(uint32(12345), p.GetUint32(0))
+	ts.Equal(uint32(0xffffffff), p.GetUint32(16))
+}
+
 func (ts PageTestSuite) TestGetAndSetInt64() {
 	p := NewPage(24)
 	p.SetInt64(0, 12345)
@@ -64,16 +72,17 @@ func (ts PageTestSuite) TestGetAndSetString() {
 		"Еще одна тестовая string",
 		"И снова тестовая строка",
 	}
-	var offset int = 0
+	var offset uint32
+	offset = 0
 	for _, s := range cases {
 		p.SetString(offset, s)
-		offset += len(s) + 4
+		offset += uint32(len(s) + 4)
 	}
 
 	offset = 0
 	for _, s := range cases {
 		ts.Equal(s, p.GetString(offset))
-		offset += len(s) + 4
+		offset += uint32(len(s) + 4)
 	}
 }
 

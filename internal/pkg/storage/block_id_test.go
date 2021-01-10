@@ -17,10 +17,10 @@ func TestBlockIDTestSuite(t *testing.T) {
 
 func (ts BlockIDTestSuite) TestCreateBlockID() {
 	filename := "block_filename"
-	blkNum := uint64(12345)
+	blkNum := uint32(12345)
 	blockID := NewBlockID(filename, blkNum)
 	ts.Equal(filename, blockID.Filename())
-	ts.Equal(blkNum, blockID.BlkNum())
+	ts.Equal(blkNum, blockID.Number())
 	ts.Equal("[file block_filename, block 12345]", fmt.Sprintf("%s", blockID))
 	ts.Equal("[block_filename][12345]", blockID.HashKey())
 }

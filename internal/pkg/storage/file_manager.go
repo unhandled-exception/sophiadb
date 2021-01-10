@@ -27,12 +27,12 @@ type FileManager struct {
 	sync.Mutex
 
 	path      string
-	blockSize int
+	blockSize uint32
 	openFiles openFilesMap
 }
 
 // NewFileManager создает новый объект FileManager
-func NewFileManager(path string, blockSize int) (*FileManager, error) {
+func NewFileManager(path string, blockSize uint32) (*FileManager, error) {
 	var err error
 	fm := &FileManager{
 		path:      path,
@@ -71,7 +71,7 @@ func (fm *FileManager) cleanTemporaryFiles() error {
 }
 
 // BlockSize возвращает размер блока
-func (fm *FileManager) BlockSize() int {
+func (fm *FileManager) BlockSize() uint32 {
 	return fm.blockSize
 }
 
@@ -108,7 +108,7 @@ func (fm *FileManager) Read(block *BlockID, page *Page) error {
 	if err != nil {
 		return err
 	}
-	_, err = file.Seek(int64(block.blkNum)*int64(fm.blockSize), io.SeekStart)
+	_, err = file.Seek(int64(block.number)*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
 		return eris.Wrap(err, ErrFileManagerIO.Error())
 	}
@@ -127,7 +127,7 @@ func (fm *FileManager) Write(block *BlockID, page *Page) error {
 	if err != nil {
 		return err
 	}
-	_, err = file.Seek(int64(block.blkNum)*int64(fm.blockSize), io.SeekStart)
+	_, err = file.Seek(int64(block.number)*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
 		return eris.Wrap(err, ErrFileManagerIO.Error())
 	}
@@ -169,7 +169,7 @@ func (fm *FileManager) Append(filename string) (*BlockID, error) {
 }
 
 // Length возвращает размер файла в блоках
-func (fm *FileManager) Length(filename string) (uint64, error) {
+func (fm *FileManager) Length(filename string) (uint32, error) {
 	file, err := fm.getFile(filename)
 	if err != nil {
 		return 0, err
@@ -178,7 +178,7 @@ func (fm *FileManager) Length(filename string) (uint64, error) {
 	if err != nil {
 		return 0, eris.Wrap(err, ErrFileManagerIO.Error())
 	}
-	return uint64(stat.Size() / int64(fm.blockSize)), nil
+	return uint32(stat.Size() / int64(fm.blockSize)), nil
 }
 
 // getFile возвращает файл из списка открытых или

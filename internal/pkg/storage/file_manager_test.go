@@ -45,7 +45,7 @@ func (ts *FileManagerTestSuite) TestCreateFileManager() {
 
 	ts.Require().NoError(err)
 	ts.Require().NotNil(fm)
-	ts.Equal(400, fm.BlockSize())
+	ts.Equal(uint32(400), fm.BlockSize())
 	ts.Equal(path, fm.Path())
 }
 
@@ -128,7 +128,7 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 
 func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	path := filepath.Join(test.CreateTestTemporaryDir(ts, "TestReadAndWriteBlocks_"))
-	blockSize := 100
+	var blockSize uint32 = 100
 
 	fm, err := NewFileManager(path, blockSize)
 	ts.Require().NoError(err)
@@ -184,7 +184,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	// Проверяем содержимое файла
 	fc, err := ioutil.ReadFile(filepath.Join(path, blocks[0].Filename()))
 	ts.Require().NoError(err)
-	ts.Require().Len(fc, 5*blockSize)
+	ts.Require().Len(fc, int(5*blockSize))
 	ts.Equal(p1.bb, fc[0:blockSize])
 	ts.Equal(p2.bb, fc[blockSize:2*blockSize])
 	ts.Equal(emptyPage.bb, fc[2*blockSize:3*blockSize])

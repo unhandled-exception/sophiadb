@@ -50,3 +50,11 @@ func CreateFile(ts suite, name string, content []byte) {
 		ts.FailNow("failed to write content to file \"%s\": %s", name, err)
 	}
 }
+
+func GetFileSize(ts suite, name string) int64 {
+	stat, err := os.Stat(name)
+	if err != nil {
+		ts.FailNow(err.Error())
+	}
+	return stat.Size()
+}
