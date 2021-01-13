@@ -66,6 +66,7 @@ func (lm *Manager) Flush(lsn uint32, force bool) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -75,10 +76,12 @@ func (lm *Manager) Iterator() (*Iterator, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	it, err := NewIterator(lm.fm, lm.currentBlock)
 	if err != nil {
 		return nil, err
 	}
+
 	return it, nil
 }
 
@@ -99,10 +102,12 @@ func (lm *Manager) Append(logRec []byte) (uint32, error) {
 		if err != nil {
 			return 0, eris.Wrap(err, ErrFailedToAppendNewRecord.Error())
 		}
+
 		lm.currentBlock, err = lm.appendNewBlock()
 		if err != nil {
 			return 0, eris.Wrap(err, ErrFailedToAppendNewRecord.Error())
 		}
+
 		boundary = lm.logPage.GetUint32(blockStart)
 	}
 
@@ -122,10 +127,13 @@ func (lm *Manager) appendNewBlock() (*storage.BlockID, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	lm.logPage.SetUint32(blockStart, lm.fm.BlockSize())
+
 	err = lm.fm.Write(blk, lm.logPage)
 	if err != nil {
 		return nil, err
 	}
+
 	return blk, nil
 }

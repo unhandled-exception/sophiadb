@@ -15,4 +15,5 @@
 # vendor/
 
 *.code-*
+.idea/
 /bin
