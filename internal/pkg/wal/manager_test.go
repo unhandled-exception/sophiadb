@@ -59,6 +59,7 @@ func (ts *ManagerTestSuite) TestCreateManagerExistsLogFile() {
 	path := test.CreateTestTemporaryDir(ts, testName)
 	walPath := filepath.Join(path, walFile)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
+	ts.Require().NoError(err)
 	defer fm.Close()
 
 	ts.Require().NoError(err)

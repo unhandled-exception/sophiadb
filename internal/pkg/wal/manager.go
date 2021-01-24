@@ -112,7 +112,7 @@ func (lm *Manager) Append(logRec []byte) (uint32, error) {
 	}
 
 	// Новую запись пишем в конец блока. Конец — это граница последней записи в логе
-	recPos := uint32(boundary - bytesNeeded)
+	recPos := boundary - bytesNeeded
 	lm.logPage.SetBytes(recPos, logRec)
 	lm.logPage.SetUint32(blockStart, recPos) // Устанавливаем новую границу
 
