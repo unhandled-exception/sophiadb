@@ -71,14 +71,19 @@ func TestWaitWithTimeout(t *testing.T) {
 	c.L.Lock()
 
 	hasData := false
+	ch := make(chan int)
 
 	go func() {
-		time.Sleep(200 * time.Millisecond)
+		ch <- 1
+		time.Sleep(250 * time.Millisecond)
 		hasData = true
 		c.Broadcast()
 	}()
 
-	c.WaitWithTimeout(100 * time.Millisecond)
+	// Синхроизируем запуск горутины и ожидания броадкаста
+	<-ch
+
+	c.WaitWithTimeout(50 * time.Millisecond)
 	assert.False(t, hasData)
 
 	c.WaitWithTimeout(1000 * time.Millisecond)
