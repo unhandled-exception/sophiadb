@@ -16,6 +16,7 @@ type ManagerTestSuite struct {
 }
 
 const (
+	testSuiteDir     = "wal_manager_tests"
 	walFile          = "wal_log.dat"
 	defaultBlockSize = 400
 )
@@ -29,15 +30,15 @@ func (ts *ManagerTestSuite) SuiteDir() string {
 }
 
 func (ts *ManagerTestSuite) SetupSuite() {
-	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, "file_manager_tests_")
+	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
 func (ts *ManagerTestSuite) TearDownSuite() {
 	test.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *ManagerTestSuite) createWALManager(testName string) *Manager {
-	path := test.CreateTestTemporaryDir(ts, testName)
+func (ts *ManagerTestSuite) createWALManager() *Manager {
+	path := test.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(fm)
@@ -49,14 +50,13 @@ func (ts *ManagerTestSuite) createWALManager(testName string) *Manager {
 }
 
 func (ts *ManagerTestSuite) TestCreateManagerUnexistsLogFile() {
-	m := ts.createWALManager("TestCreateManagerUnexistsLogFile_")
+	m := ts.createWALManager()
 	ts.Require().NotNil(m)
 	defer m.fm.Close()
 }
 
 func (ts *ManagerTestSuite) TestCreateManagerExistsLogFile() {
-	testName := "TestCreateManagerExistsLogFile_"
-	path := test.CreateTestTemporaryDir(ts, testName)
+	path := test.CreateTestTemporaryDir(ts)
 	walPath := filepath.Join(path, walFile)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
@@ -80,7 +80,7 @@ func (ts *ManagerTestSuite) TestCreateManagerExistsLogFile() {
 }
 
 func (ts *ManagerTestSuite) TestCreateRecords() {
-	m := ts.createWALManager("TestCreateRecords_")
+	m := ts.createWALManager()
 	ts.Require().NotNil(m)
 	defer m.fm.Close()
 

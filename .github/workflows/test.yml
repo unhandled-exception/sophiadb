@@ -1,6 +1,6 @@
 # Образец взял из https://github.com/mvdan/github-actions-golang
 
-on: [push, pull_request]
+on: [pull_request, push]
 name: Test
 jobs:
   test:

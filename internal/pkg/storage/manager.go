@@ -22,8 +22,8 @@ var ErrFileManagerIO error = eris.New("file manager io error")
 
 type openFilesMap map[string]*os.File
 
-// FileManager управляет чтением и записью блоков на диске
-type FileManager struct {
+// Manager управляет чтением и записью блоков на диске
+type Manager struct {
 	sync.Mutex
 
 	path      string
@@ -32,9 +32,9 @@ type FileManager struct {
 }
 
 // NewFileManager создает новый объект FileManager
-func NewFileManager(path string, blockSize uint32) (*FileManager, error) {
+func NewFileManager(path string, blockSize uint32) (*Manager, error) {
 	var err error
-	fm := &FileManager{
+	fm := &Manager{
 		path:      path,
 		blockSize: blockSize,
 		openFiles: make(openFilesMap),
@@ -54,7 +54,7 @@ func NewFileManager(path string, blockSize uint32) (*FileManager, error) {
 }
 
 // cleanTemporaryFiles
-func (fm *FileManager) cleanTemporaryFiles() error {
+func (fm *Manager) cleanTemporaryFiles() error {
 	return filepath.Walk(
 		fm.path,
 		func(path string, info os.FileInfo, err error) error {
@@ -71,17 +71,17 @@ func (fm *FileManager) cleanTemporaryFiles() error {
 }
 
 // BlockSize возвращает размер блока
-func (fm *FileManager) BlockSize() uint32 {
+func (fm *Manager) BlockSize() uint32 {
 	return fm.blockSize
 }
 
 // Path возвращает путь к папке с данными
-func (fm *FileManager) Path() string {
+func (fm *Manager) Path() string {
 	return fm.path
 }
 
 // Close pаскрывает файлы открытые менеджером
-func (fm *FileManager) Close() error {
+func (fm *Manager) Close() error {
 	errors := make([]error, 0, len(fm.openFiles))
 
 	var err error
@@ -100,7 +100,7 @@ func (fm *FileManager) Close() error {
 }
 
 // Read читает блок из файла в страницу page
-func (fm *FileManager) Read(block *BlockID, page *Page) error {
+func (fm *Manager) Read(block *BlockID, page *Page) error {
 	fm.Lock()
 	defer fm.Unlock()
 
@@ -120,7 +120,7 @@ func (fm *FileManager) Read(block *BlockID, page *Page) error {
 }
 
 // Write записывает блок в файл из страницы page
-func (fm *FileManager) Write(block *BlockID, page *Page) error {
+func (fm *Manager) Write(block *BlockID, page *Page) error {
 	fm.Lock()
 	defer fm.Unlock()
 	file, err := fm.getFile(block.Filename())
@@ -139,7 +139,7 @@ func (fm *FileManager) Write(block *BlockID, page *Page) error {
 }
 
 // Append добавляет новый блок в файл
-func (fm *FileManager) Append(filename string) (*BlockID, error) {
+func (fm *Manager) Append(filename string) (*BlockID, error) {
 	fm.Lock()
 	defer fm.Unlock()
 
@@ -169,7 +169,7 @@ func (fm *FileManager) Append(filename string) (*BlockID, error) {
 }
 
 // Length возвращает размер файла в блоках
-func (fm *FileManager) Length(filename string) (uint32, error) {
+func (fm *Manager) Length(filename string) (uint32, error) {
 	file, err := fm.getFile(filename)
 	if err != nil {
 		return 0, err
@@ -182,7 +182,7 @@ func (fm *FileManager) Length(filename string) (uint32, error) {
 }
 
 // getFile возвращает файл из списка открытых или
-func (fm *FileManager) getFile(filename string) (*os.File, error) {
+func (fm *Manager) getFile(filename string) (*os.File, error) {
 	file, ok := fm.openFiles[filename]
 	if !ok {
 		var err error

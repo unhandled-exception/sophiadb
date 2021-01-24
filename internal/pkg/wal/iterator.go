@@ -7,7 +7,7 @@ import (
 
 // Iterator — итератор по журналу
 type Iterator struct {
-	fm         *storage.FileManager
+	fm         *storage.Manager
 	blk        *storage.BlockID
 	p          *storage.Page
 	currentPos uint32
@@ -18,7 +18,7 @@ type Iterator struct {
 var ErrFailedToCreateNewIterator = eris.New("failed to create a new wal iterator")
 
 // NewIterator создает новый объект итератора по журналу
-func NewIterator(fm *storage.FileManager, blk *storage.BlockID) (*Iterator, error) {
+func NewIterator(fm *storage.Manager, blk *storage.BlockID) (*Iterator, error) {
 	it := &Iterator{
 		fm:  fm,
 		blk: blk,

@@ -13,6 +13,8 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
 )
 
+const testSuiteDir = "file_manager_tests"
+
 type FileManagerTestSuite struct {
 	suite.Suite
 	suiteDir string
@@ -27,7 +29,7 @@ func (ts *FileManagerTestSuite) SuiteDir() string {
 }
 
 func (ts *FileManagerTestSuite) SetupSuite() {
-	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, "file_manager_tests_")
+	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
 func (ts *FileManagerTestSuite) TearDownSuite() {
@@ -36,7 +38,7 @@ func (ts *FileManagerTestSuite) TearDownSuite() {
 
 func (ts *FileManagerTestSuite) TestCreateFileManager() {
 	path := filepath.Join(
-		test.CreateTestTemporaryDir(ts, "TestCreateFileManager_"),
+		test.CreateTestTemporaryDir(ts),
 		"data",
 	)
 	ts.Require().NoDirExists(path)
@@ -50,7 +52,7 @@ func (ts *FileManagerTestSuite) TestCreateFileManager() {
 }
 
 func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
-	path := filepath.Join(test.CreateTestTemporaryDir(ts, "TestRemoveTemporaryFiles_"))
+	path := filepath.Join(test.CreateTestTemporaryDir(ts))
 
 	// Создаем временные файлы в папке с тестом
 	for i := 0; i < 5; i++ {
@@ -85,7 +87,7 @@ func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
 }
 
 func (ts *FileManagerTestSuite) TestCloseAllFiles() {
-	path := filepath.Join(test.CreateTestTemporaryDir(ts, "TestCloseAllFiles_"))
+	path := filepath.Join(test.CreateTestTemporaryDir(ts))
 
 	fm, err := NewFileManager(path, 400)
 	ts.Require().NoError(err)
@@ -127,7 +129,7 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 }
 
 func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
-	path := filepath.Join(test.CreateTestTemporaryDir(ts, "TestReadAndWriteBlocks_"))
+	path := filepath.Join(test.CreateTestTemporaryDir(ts))
 	var blockSize uint32 = 100
 
 	fm, err := NewFileManager(path, blockSize)

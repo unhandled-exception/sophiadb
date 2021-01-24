@@ -3,6 +3,7 @@ package test
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ type suite interface {
 }
 
 func CreateSuiteTemporaryDir(ts suite, name string) string {
-	suiteDir, err := ioutil.TempDir("", name)
+	suiteDir, err := ioutil.TempDir("", name+"_")
 	if err != nil {
 		ts.FailNow("dont create temporary folder: %s", err.Error())
 	}
@@ -29,8 +30,8 @@ func RemoveSuiteTemporaryDir(ts suite) {
 	ts.T().Logf("remove suite temporary directory: %s", ts.SuiteDir())
 }
 
-func CreateTestTemporaryDir(ts suite, testName string) string {
-	path, err := ioutil.TempDir(ts.SuiteDir(), testName)
+func CreateTestTemporaryDir(ts suite) string {
+	path, err := ioutil.TempDir(ts.SuiteDir(), strings.ReplaceAll(ts.T().Name(), "/", "_")+"_")
 	if err != nil {
 		ts.FailNow("dont create test temporary dir: %s", err.Error())
 	}
@@ -49,6 +50,7 @@ func CreateFile(ts suite, name string, content []byte) {
 	if err != nil {
 		ts.FailNow("failed to write content to file \"%s\": %s", name, err)
 	}
+	ts.T().Logf("create file: %s, length: %d", name, len(content))
 }
 
 func GetFileSize(ts suite, name string) int64 {
