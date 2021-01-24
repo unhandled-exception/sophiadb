@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -21,7 +20,7 @@ func (ts BlockIDTestSuite) TestCreateBlockID() {
 	blockID := NewBlockID(filename, blkNum)
 	ts.Equal(filename, blockID.Filename())
 	ts.Equal(blkNum, blockID.Number())
-	ts.Equal("[file block_filename, block 12345]", fmt.Sprintf("%s", blockID))
+	ts.Equal("[file block_filename, block 12345]", blockID.String())
 	ts.Equal("[block_filename][12345]", blockID.HashKey())
 }
 

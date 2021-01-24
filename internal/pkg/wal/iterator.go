@@ -40,7 +40,10 @@ func (it *Iterator) HasNext() bool {
 func (it *Iterator) Next() ([]byte, error) {
 	if it.currentPos == it.fm.BlockSize() {
 		it.blk = storage.NewBlockID(it.blk.Filename(), it.blk.Number()-1)
-		it.moveToBlock(it.blk)
+		err := it.moveToBlock(it.blk)
+		if err != nil {
+			return nil, err
+		}
 	}
 	rec := it.p.GetBytes(it.currentPos)
 	it.currentPos += int32Size + uint32(len(rec))
