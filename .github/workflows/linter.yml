@@ -1,32 +1,23 @@
----
-## Linter GitHub Actions ##
-name: Lint Code Base
+# https://github.com/golangci/golangci-lint-action
 
-# Documentation:
-# https://help.github.com/en/articles/workflow-syntax-for-github-actions
-
+name: golangci-lint
 on:
-  # push:
-  #   branches-ignore: [master]
-    # Remove the line above to run when pushing to master
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
   pull_request:
-    branches: [master]
-
 jobs:
-  build:
-    name: Lint Code Base
+  golangci:
+    name: lint
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
-          fetch-depth: 0
-
-      - name: Lint Code Base
-        uses: github/super-linter@v3
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: master
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.35
+          args: --verbose
