@@ -16,12 +16,12 @@ const (
 type Manager struct {
 	sync.Mutex
 
-	fm           *storage.FileManager
+	fm           *storage.Manager
 	logFileName  string
 	logPage      *storage.Page
 	currentBlock *storage.BlockID
-	latestLSN    uint32
-	lastSavedLSN uint32
+	latestLSN    int64
+	lastSavedLSN int64
 }
 
 // ErrFailedToCreateNewManager — ошибка при создании нового менеджера
@@ -31,7 +31,7 @@ var ErrFailedToCreateNewManager = eris.New("failed to create a new wal manager")
 var ErrFailedToAppendNewRecord = eris.New("failed to add new record to wal log")
 
 // NewManager создает новый объект LogManager
-func NewManager(fm *storage.FileManager, logFileName string) (*Manager, error) {
+func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 	lm := &Manager{
 		fm:          fm,
 		logFileName: logFileName,
@@ -59,7 +59,7 @@ func NewManager(fm *storage.FileManager, logFileName string) (*Manager, error) {
 }
 
 // Flush сбрасывает журнал на диск
-func (lm *Manager) Flush(lsn uint32, force bool) error {
+func (lm *Manager) Flush(lsn int64, force bool) error {
 	if lsn >= lm.lastSavedLSN || force {
 		err := lm.fm.Write(lm.currentBlock, lm.logPage)
 		if err != nil {
@@ -86,7 +86,7 @@ func (lm *Manager) Iterator() (*Iterator, error) {
 }
 
 // Append добавляет в журнал новую запись
-func (lm *Manager) Append(logRec []byte) (uint32, error) {
+func (lm *Manager) Append(logRec []byte) (int64, error) {
 	lm.Lock()
 	defer lm.Unlock()
 
