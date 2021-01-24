@@ -1,8 +1,15 @@
-# Образец взял из https://github.com/mvdan/github-actions-golang
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
 
-on: [pull_request, push]
 name: Test
 jobs:
+  # Образец взял из https://github.com/mvdan/github-actions-golang
   test:
     strategy:
       matrix:
@@ -30,3 +37,16 @@ jobs:
         run: go test ./... -v -cover
       # - name: Run tests with race detector (temporary disabled)
       #   run: go test ./... -v -race
+
+  # https://github.com/golangci/golangci-lint-action
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.35
+          args: --verbose
