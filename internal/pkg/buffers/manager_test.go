@@ -17,12 +17,6 @@ type ManagerTestSuite struct {
 	suiteDir string
 }
 
-const (
-	testSuiteDir     = "buffers_manager_tests"
-	walFile          = "wal_log.dat"
-	defaultBlockSize = 400
-)
-
 func TestManagerTestSuite(t *testing.T) {
 	suite.Run(t, new(ManagerTestSuite))
 }
@@ -32,6 +26,7 @@ func (ts *ManagerTestSuite) SuiteDir() string {
 }
 
 func (ts *ManagerTestSuite) SetupSuite() {
+	testSuiteDir := "buffers_manager_tests"
 	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
@@ -40,6 +35,9 @@ func (ts *ManagerTestSuite) TearDownSuite() {
 }
 
 func (ts *ManagerTestSuite) createBuffersManager(len int) (*Manager, string) {
+	var defaultBlockSize uint32 = 400
+	var walFile string = "wal_log.dat"
+
 	path := test.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
@@ -61,7 +59,7 @@ func (ts *ManagerTestSuite) TestBuffersManager() {
 	bm, path := ts.createBuffersManager(3)
 	defer bm.fm.Close()
 
-	testFile := "testFile.dat"
+	testFile := "test_file.dat"
 	var buffers [7]*Buffer
 	var err error
 
