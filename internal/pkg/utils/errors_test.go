@@ -1,4 +1,4 @@
-package storage
+package utils
 
 import (
 	"os"
@@ -37,7 +37,7 @@ func Test_joinErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := joinErrors(tt.args.errors, tt.args.sep); got != tt.want {
+			if got := JoinErrors(tt.args.errors, tt.args.sep); got != tt.want {
 				t.Errorf("joinErrors() = %v, want %v", got, tt.want)
 			}
 		})

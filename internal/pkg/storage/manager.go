@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/rotisserie/eris"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 )
 
 const (
@@ -94,7 +95,7 @@ func (fm *Manager) Close() error {
 	}
 
 	if len(errors) > 0 {
-		return eris.Errorf("file manager: errors on close files: %s", joinErrors(errors, ", "))
+		return eris.Errorf("file manager: errors on close files: %s", utils.JoinErrors(errors, ", "))
 	}
 	return nil
 }
