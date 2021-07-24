@@ -1,3 +1,6 @@
+// +build !race
+// В тесте TestCond есть явный data-race, который нужен для тестирования мтода Broadcast
+
 package utils
 
 import (
