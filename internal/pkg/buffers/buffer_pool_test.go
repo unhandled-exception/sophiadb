@@ -34,7 +34,7 @@ func (ts *BuffersPoolTestSuite) TearDownSuite() {
 
 func (ts *BuffersPoolTestSuite) createBufferPool(len int) (*buffersPool, string, *storage.Manager) {
 	var defaultBlockSize uint32 = 400
-	var walFile string = "wal_log.dat"
+	var walFile = "wal_log.dat"
 
 	path := test.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
@@ -56,7 +56,7 @@ func (ts *BuffersPoolTestSuite) TestFindExistingBuffer() {
 	bp, path, fm := ts.createBufferPool(10)
 	defer fm.Close()
 
-	var defaultBlockSize int = 400
+	var defaultBlockSize = 400
 	testFile := "test_file_1.dat"
 	test.CreateFile(ts, filepath.Join(path, testFile), make([]byte, bp.len*defaultBlockSize))
 
@@ -84,7 +84,7 @@ func (ts *BuffersPoolTestSuite) TestChooseUnpinnedBuffer() {
 	bp, path, fm := ts.createBufferPool(5)
 	defer fm.Close()
 
-	var defaultBlockSize int = 400
+	var defaultBlockSize = 400
 	testFile := "test_file_2.dat"
 	test.CreateFile(ts, filepath.Join(path, testFile), make([]byte, bp.len*defaultBlockSize))
 

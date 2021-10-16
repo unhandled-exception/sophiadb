@@ -36,7 +36,7 @@ func (ts *ManagerTestSuite) TearDownSuite() {
 
 func (ts *ManagerTestSuite) createBuffersManager(len int) (*Manager, string) {
 	var defaultBlockSize uint32 = 400
-	var walFile string = "wal_log.dat"
+	var walFile = "wal_log.dat"
 
 	path := test.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
