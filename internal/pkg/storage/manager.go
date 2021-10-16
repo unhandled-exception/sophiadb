@@ -16,6 +16,7 @@ const (
 	TempFilesPrefix = "temp"
 
 	defaultFilePermissions = 0600
+	syncedFilePermissions  = 0755
 )
 
 // ErrFileManagerIO вызываем при ошибках ввода вывода
@@ -191,7 +192,7 @@ func (fm *Manager) getFile(filename string) (*os.File, error) {
 		file, err = os.OpenFile(
 			filepath.Join(fm.path, filename),
 			os.O_CREATE|os.O_RDWR|os.O_SYNC, // Открываем файл в режим O_SYNC, чтобы выполнялся автоматический флаш данных при чтении и записи
-			0755,
+			syncedFilePermissions,
 		)
 		if err != nil {
 			return nil, eris.Wrap(err, "file manager create new file errror")
