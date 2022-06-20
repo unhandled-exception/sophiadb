@@ -1,61 +1,52 @@
 linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: true
   enable:
     - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
-    - dupl
-    - errcheck
-    - exhaustive
-    - gochecknoinits
+    - containedctx
+    - contextcheck
+    - errname
+    - errorlint
+    - exportloopref
+    - forcetypeassert
     - goconst
-    - gocritic
-    - gocyclo
-    - gofmt
-    - goimports
+    - gofumpt
     - gomnd
-    - goprintffuncname
     - gosec
-    - gosimple
-    - govet
-    - ineffassign
-    - lll
-    - misspell
-    - nakedret
-    - noctx
+    - ifshort
+    - ireturn
+    - makezero
+    - nestif
+    - nilerr
+    - nilnil
+    - nlreturn
     - nolintlint
+    - predeclared
     - rowserrcheck
+    - sqlclosecheck
     - staticcheck
-    - structcheck
-    - stylecheck
-    - typecheck
+    - tagliatelle
+    - tenv
+    - testpackage
     - unconvert
-    - unparam
-    - unused
-    - varcheck
-    - whitespace
-  # don't enable:
-  # - scopelint
-  # - funlen
-  # - asciicheck
-  # - gochecknoglobals
-  # - gocognit
-  # - godot
-  # - godox
-  # - goerr113
-  # - maligned
-  # - nestif
-  # - prealloc
-  # - testpackage
-  # - wsl
+    - wastedassign
+    - wsl
 
 linters-settings:
-  lll:
-    # max line length, lines longer will be reported. Default is 120.
-    # '\t' is counted as 1 character by default, and can be changed with the tab-width option
-    line-length: 180
-    # tab width in spaces. Default to 1.
-    tab-width: 1
+  ireturn:
+    # ireturn allows using `allow` and `reject` settings at the same time.
+    # Both settings are lists of the keywords and regular expressions matched to interface or package names.
+    # keywords:
+    # - `empty` for `interface{}`
+    # - `error` for errors
+    # - `stdlib` for standard library
+    # - `anon` for anonymous interfaces
+
+    # By default, it allows using errors, empty interfaces, anonymous interfaces,
+    # and interfaces provided by the standard library.
+    allow:
+      - anon
+      - error
+      - empty
+      - stdlib
+      # You can specify idiomatic endings for interface
+      - (or|er)$
+      - Sqlmock
