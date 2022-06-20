@@ -58,13 +58,16 @@ func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
 	for i := 0; i < 5; i++ {
 		test.CreateFile(ts, filepath.Join(path, fmt.Sprintf("%s_%d.dat", TempFilesPrefix, i)), []byte{})
 	}
+
 	for i := 0; i < 5; i++ {
 		test.CreateFile(ts, filepath.Join(path, fmt.Sprintf("b_%d.dat", i)), []byte{})
 	}
+
 	dir, err := filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", TempFilesPrefix)))
 	if err != nil {
 		ts.FailNow(err.Error())
 	}
+
 	ts.Require().Len(dir, 5)
 
 	fm, err := NewFileManager(path, 400)
@@ -76,6 +79,7 @@ func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
 	if err != nil {
 		ts.FailNow(err.Error())
 	}
+
 	ts.Require().Empty(dir)
 
 	// Проверяем, что не удалили лишние файлы
@@ -83,6 +87,7 @@ func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
 	if err != nil {
 		ts.FailNow(err.Error())
 	}
+
 	ts.Require().Len(dir, 5)
 }
 
@@ -97,10 +102,12 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 	for i := 0; i < 5; i++ {
 		filePath := filepath.Join(path, fmt.Sprintf("%d.dat", i))
 		test.CreateFile(ts, filePath, []byte{})
+
 		f, err := os.Open(filePath)
 		if err != nil {
 			ts.FailNow("failed to open file \"%s\": %s", filePath, err.Error())
 		}
+
 		fm.openFiles[filepath.Base(filePath)] = f
 	}
 	ts.Require().Len(fm.openFiles, 5)
@@ -113,10 +120,12 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 	for i := 0; i < 2; i++ {
 		filePath := filepath.Join(path, fmt.Sprintf("closed_%d.dat", i))
 		test.CreateFile(ts, filePath, []byte{})
+
 		f, err := os.Open(filePath)
 		if err != nil {
 			ts.FailNow("failed to open file \"%s\": %s", filePath, err.Error())
 		}
+
 		fm.openFiles[filepath.Base(filePath)] = f
 		f.Close()
 	}
@@ -130,17 +139,22 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 
 func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	path := filepath.Join(test.CreateTestTemporaryDir(ts))
+
 	var blockSize uint32 = 100
 
 	fm, err := NewFileManager(path, blockSize)
 	ts.Require().NoError(err)
+
 	ts.Require().NotNil(fm)
+
 	defer fm.Close()
 
 	// Создаем блоки
 	blocks := make([]*BlockID, 10)
+
 	for i := 0; i < len(blocks); i++ {
 		filenum := i % 2
+
 		blocks[i], err = fm.Append(fmt.Sprintf("b_%d.dat", filenum))
 		if err != nil {
 			ts.FailNow(eris.ToString(err, true))

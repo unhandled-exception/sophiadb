@@ -6,10 +6,8 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
-var (
-	// FailedToAssignBlockToBuffer — ошибка при связывании буыера с блоком
-	FailedToAssignBlockToBuffer = eris.New("failed to assign a block to buffer")
-)
+// FailedToAssignBlockToBuffer — ошибка при связывании буыера с блоком
+var FailedToAssignBlockToBuffer = eris.New("failed to assign a block to buffer")
 
 // Buffer — страница в пуле буферов
 type Buffer struct {
@@ -32,6 +30,7 @@ func NewBuffer(fm *storage.Manager, lm *wal.Manager) *Buffer {
 		txnum:    -1,
 		lsn:      -1,
 	}
+
 	return buf
 }
 
@@ -79,11 +78,14 @@ func (buf *Buffer) AssignToBlock(block *storage.BlockID) error {
 	if err != nil {
 		return eris.Wrap(err, FailedToAssignBlockToBuffer.Error())
 	}
+
 	buf.block = block
+
 	err = buf.fm.Read(buf.block, buf.contents)
 	if err != nil {
 		return eris.Wrap(err, FailedToAssignBlockToBuffer.Error())
 	}
+
 	return nil
 }
 
@@ -94,11 +96,14 @@ func (buf *Buffer) Flush() error {
 		if err != nil {
 			return err
 		}
+
 		err = buf.fm.Write(buf.block, buf.contents)
 		if err != nil {
 			return err
 		}
+
 		buf.txnum = -1
 	}
+
 	return nil
 }

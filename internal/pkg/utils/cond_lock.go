@@ -22,6 +22,7 @@ func NewCond(l sync.Locker) *Cond {
 	c := &Cond{L: l}
 	n := make(chan struct{})
 	c.n = unsafe.Pointer(&n)
+
 	return c
 }
 
@@ -48,6 +49,7 @@ func (c *Cond) WaitWithTimeout(t time.Duration) {
 // NotifyChan returns a channel that can be used to wait for next Broadcast() call.
 func (c *Cond) NotifyChan() <-chan struct{} {
 	ptr := atomic.LoadPointer(&c.n)
+
 	return *((*chan struct{})(ptr))
 }
 

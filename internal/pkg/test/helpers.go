@@ -18,7 +18,9 @@ func CreateSuiteTemporaryDir(ts suite, name string) string {
 	if err != nil {
 		ts.FailNow("dont create temporary folder: %s", err.Error())
 	}
+
 	ts.T().Logf("create suite temporary directory: %s", suiteDir)
+
 	return suiteDir
 }
 
@@ -27,6 +29,7 @@ func RemoveSuiteTemporaryDir(ts suite) {
 	if err != nil {
 		ts.FailNow("dont remove temporary folder: %s", err.Error())
 	}
+
 	ts.T().Logf("remove suite temporary directory: %s", ts.SuiteDir())
 }
 
@@ -35,7 +38,9 @@ func CreateTestTemporaryDir(ts suite) string {
 	if err != nil {
 		ts.FailNow("dont create test temporary dir: %s", err.Error())
 	}
+
 	ts.T().Logf("create test temporary directory: %s", path)
+
 	return path
 }
 
@@ -44,12 +49,14 @@ func CreateFile(ts suite, name string, content []byte) {
 	if err != nil {
 		ts.FailNow("failed to create file \"%s\": %s", name, err)
 	}
+
 	defer file.Close()
 
 	_, err = file.Write(content)
 	if err != nil {
 		ts.FailNow("failed to write content to file \"%s\": %s", name, err)
 	}
+
 	ts.T().Logf("create file: %s, length: %d", name, len(content))
 }
 
@@ -58,5 +65,6 @@ func GetFileSize(ts suite, name string) int64 {
 	if err != nil {
 		ts.FailNow(err.Error())
 	}
+
 	return stat.Size()
 }

@@ -12,10 +12,8 @@ import (
 
 var defaultMaxPinTime time.Duration = 10 * time.Second
 
-var (
-	// NoAvailableBuffers — нет свободных буферов в памяти
-	NoAvailableBuffers = eris.New("no available buffers")
-)
+// NoAvailableBuffers — нет свободных буферов в памяти
+var NoAvailableBuffers = eris.New("no available buffers")
 
 // Manager менеджер буферов в памяти
 type Manager struct {
@@ -32,16 +30,16 @@ type Manager struct {
 }
 
 // NewManager создает новый менеджер пулов
-func NewManager(fm *storage.Manager, lm *wal.Manager, len int) *Manager {
+func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int) *Manager {
 	bm := &Manager{
 		fm:             fm,
 		lm:             lm,
-		len:            len,
-		available:      len,
+		len:            pLen,
+		available:      pLen,
 		maxPinLockTime: defaultMaxPinTime,
 		pinLock:        utils.NewCond(&sync.Mutex{}),
 	}
-	bm.pool = newBuffersPool(len, bm.newBuffer)
+	bm.pool = newBuffersPool(pLen, bm.newBuffer)
 
 	return bm
 }
@@ -71,6 +69,7 @@ func (bm *Manager) Unpin(buf *Buffer) {
 	defer bm.Unlock()
 
 	buf.Unpin()
+
 	if !buf.IsPinned() {
 		bm.available++
 		bm.pinLock.Broadcast()
@@ -83,22 +82,27 @@ func (bm *Manager) Pin(block *storage.BlockID) (*Buffer, error) {
 	if err != nil && !eris.Is(err, NoAvailableBuffers) {
 		return nil, err
 	}
+
 	if buf != nil {
 		bm.pinLock.L.Lock()
 		defer bm.pinLock.L.Unlock()
 
 		deadline := time.Now().Add(bm.maxPinLockTime)
+
 		for buf == nil && time.Now().Before(deadline) {
 			bm.pinLock.WaitWithTimeout(bm.maxPinLockTime)
+
 			buf, err = bm.tryToPin(block)
 			if err != nil && !eris.Is(err, NoAvailableBuffers) {
 				return nil, err
 			}
 		}
 	}
+
 	if buf == nil {
 		return nil, NoAvailableBuffers
 	}
+
 	return buf, nil
 }
 
@@ -109,14 +113,18 @@ func (bm *Manager) tryToPin(block *storage.BlockID) (*Buffer, error) {
 		if buf == nil {
 			return nil, NoAvailableBuffers
 		}
+
 		err := bm.pool.AssignBufferToBlock(buf, block)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	if !buf.IsPinned() {
 		bm.available--
 	}
+
 	buf.Pin()
+
 	return buf, nil
 }
