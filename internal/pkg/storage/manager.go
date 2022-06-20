@@ -15,8 +15,8 @@ const (
 	// TempFilesPrefix — префикс для временных файлов
 	TempFilesPrefix = "temp"
 
-	defaultFilePermissions = 0600
-	syncedFilePermissions  = 0755
+	defaultFilePermissions = 0o600
+	syncedFilePermissions  = 0o755
 )
 
 // ErrFileManagerIO вызываем при ошибках ввода вывода
@@ -36,6 +36,7 @@ type Manager struct {
 // NewFileManager создает новый объект FileManager
 func NewFileManager(path string, blockSize uint32) (*Manager, error) {
 	var err error
+
 	fm := &Manager{
 		path:      path,
 		blockSize: blockSize,
@@ -65,8 +66,10 @@ func (fm *Manager) cleanTemporaryFiles() error {
 			}
 			if !info.IsDir() && strings.HasPrefix(info.Name(), TempFilesPrefix) {
 				err := os.Remove(path)
+
 				return err
 			}
+
 			return nil
 		},
 	)
@@ -92,12 +95,14 @@ func (fm *Manager) Close() error {
 		if err != nil {
 			errors = append(errors, err)
 		}
+
 		delete(fm.openFiles, k)
 	}
 
 	if len(errors) > 0 {
 		return eris.Errorf("file manager: errors on close files: %s", utils.JoinErrors(errors, ", "))
 	}
+
 	return nil
 }
 
@@ -110,14 +115,17 @@ func (fm *Manager) Read(block *BlockID, page *Page) error {
 	if err != nil {
 		return err
 	}
+
 	_, err = file.Seek(int64(block.number)*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
 		return eris.Wrap(err, ErrFileManagerIO.Error())
 	}
+
 	_, err = file.Read(page.Content())
 	if err != nil {
 		return eris.Wrap(err, ErrFileManagerIO.Error())
 	}
+
 	return nil
 }
 
@@ -125,18 +133,22 @@ func (fm *Manager) Read(block *BlockID, page *Page) error {
 func (fm *Manager) Write(block *BlockID, page *Page) error {
 	fm.Lock()
 	defer fm.Unlock()
+
 	file, err := fm.getFile(block.Filename())
 	if err != nil {
 		return err
 	}
+
 	_, err = file.Seek(int64(block.number)*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
 		return eris.Wrap(err, ErrFileManagerIO.Error())
 	}
+
 	_, err = file.Write(page.Content())
 	if err != nil {
 		return eris.Wrap(err, ErrFileManagerIO.Error())
 	}
+
 	return nil
 }
 
@@ -162,6 +174,7 @@ func (fm *Manager) Append(filename string) (*BlockID, error) {
 	if err != nil {
 		return nil, eris.Wrap(err, ErrFileManagerIO.Error())
 	}
+
 	_, err = file.Write(blockData)
 	if err != nil {
 		return nil, eris.Wrap(err, ErrFileManagerIO.Error())
@@ -176,10 +189,12 @@ func (fm *Manager) Length(filename string) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	stat, err := file.Stat()
 	if err != nil {
 		return 0, eris.Wrap(err, ErrFileManagerIO.Error())
 	}
+
 	return uint32(stat.Size() / int64(fm.blockSize)), nil
 }
 
@@ -197,7 +212,9 @@ func (fm *Manager) getFile(filename string) (*os.File, error) {
 		if err != nil {
 			return nil, eris.Wrap(err, "file manager create new file errror")
 		}
+
 		fm.openFiles[filename] = file
 	}
+
 	return file, nil
 }

@@ -17,6 +17,7 @@ func TestPageTestSuite(t *testing.T) {
 func (ts PageTestSuite) TestCreatePage() {
 	p := NewPage(400)
 	ts.Len(p.bb, 400)
+
 	for i, b := range p.Content() {
 		ts.Equal(uint8(0x00), b, "Byte %d equals to %x", i, b)
 	}
@@ -72,8 +73,9 @@ func (ts PageTestSuite) TestGetAndSetString() {
 		"Еще одна тестовая string",
 		"И снова тестовая строка",
 	}
+
 	var offset uint32
-	offset = 0
+
 	for _, s := range cases {
 		p.SetString(offset, s)
 		offset += uint32(len(s) + 4)

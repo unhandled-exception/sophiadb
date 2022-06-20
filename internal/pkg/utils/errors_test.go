@@ -10,6 +10,7 @@ func Test_joinErrors(t *testing.T) {
 		errors []error
 		sep    string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -35,6 +36,7 @@ func Test_joinErrors(t *testing.T) {
 			want: `"file already closed", "file already exists"`,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := JoinErrors(tt.args.errors, tt.args.sep); got != tt.want {

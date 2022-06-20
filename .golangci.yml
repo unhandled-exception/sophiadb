@@ -25,7 +25,7 @@ linters:
     - staticcheck
     - tagliatelle
     - tenv
-    - testpackage
+    # - testpackage
     - unconvert
     - wastedassign
     - wsl

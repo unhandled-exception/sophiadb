@@ -32,20 +32,21 @@ func (ts *BuffersPoolTestSuite) TearDownSuite() {
 	test.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *BuffersPoolTestSuite) createBufferPool(len int) (*buffersPool, string, *storage.Manager) {
+func (ts *BuffersPoolTestSuite) createBufferPool(bLen int) (*buffersPool, string, *storage.Manager) {
 	var defaultBlockSize uint32 = 400
-	var walFile = "wal_log.dat"
+
+	walFile := "wal_log.dat"
 
 	path := test.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
-	ts.Require().NotNil(fm)
 
 	lm, err := wal.NewManager(fm, walFile)
 	ts.Require().NoError(err)
+
 	ts.Require().FileExists(filepath.Join(path, walFile))
 
-	bp := newBuffersPool(len, func() *Buffer {
+	bp := newBuffersPool(bLen, func() *Buffer {
 		return NewBuffer(fm, lm)
 	})
 
@@ -56,7 +57,7 @@ func (ts *BuffersPoolTestSuite) TestFindExistingBuffer() {
 	bp, path, fm := ts.createBufferPool(10)
 	defer fm.Close()
 
-	var defaultBlockSize = 400
+	defaultBlockSize := 400
 	testFile := "test_file_1.dat"
 	test.CreateFile(ts, filepath.Join(path, testFile), make([]byte, bp.len*defaultBlockSize))
 
@@ -84,32 +85,43 @@ func (ts *BuffersPoolTestSuite) TestChooseUnpinnedBuffer() {
 	bp, path, fm := ts.createBufferPool(5)
 	defer fm.Close()
 
-	var defaultBlockSize = 400
+	defaultBlockSize := 400
 	testFile := "test_file_2.dat"
 	test.CreateFile(ts, filepath.Join(path, testFile), make([]byte, bp.len*defaultBlockSize))
 
 	var buf *Buffer
+
 	for i := 0; i < bp.len; i++ {
 		if i%2 == 0 {
-			bp.ring.Value.(*Buffer).Pin()
+			v, _ := bp.ring.Value.(*Buffer)
+			v.Pin()
 		}
+
 		bp.ring = bp.ring.Next()
 	}
+
 	var pins [5]bool
+
 	for i := 0; i < bp.len; i++ {
-		pins[i] = bp.ring.Value.(*Buffer).IsPinned()
+		v, _ := bp.ring.Value.(*Buffer)
+		pins[i] = v.IsPinned()
 		bp.ring = bp.ring.Next()
 	}
+
 	ts.Require().Equal([5]bool{true, false, true, false, true}, pins)
 
 	buf = bp.ChooseUnpinnedBuffer()
 	ts.Require().NotNil(buf)
+
 	ts.Require().False(buf.IsPinned())
+
 	buf.Pin()
 
 	buf2 := bp.ChooseUnpinnedBuffer()
 	ts.Require().NotNil(buf2)
+
 	ts.Require().False(buf2.IsPinned())
+
 	buf2.Pin()
 
 	ts.Require().Nil(bp.ChooseUnpinnedBuffer())

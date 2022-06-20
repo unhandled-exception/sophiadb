@@ -46,20 +46,24 @@ func (ts *ManagerTestSuite) createWALManager() *Manager {
 	m, err := NewManager(fm, walFile)
 	ts.Require().NoError(err)
 	ts.Require().FileExists(filepath.Join(path, walFile))
+
 	return m
 }
 
 func (ts *ManagerTestSuite) TestCreateManagerUnexistsLogFile() {
 	m := ts.createWALManager()
 	ts.Require().NotNil(m)
+
 	defer m.fm.Close()
 }
 
 func (ts *ManagerTestSuite) TestCreateManagerExistsLogFile() {
 	path := test.CreateTestTemporaryDir(ts)
 	walPath := filepath.Join(path, walFile)
+
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
+
 	defer fm.Close()
 
 	ts.Require().NoError(err)
@@ -72,6 +76,7 @@ func (ts *ManagerTestSuite) TestCreateManagerExistsLogFile() {
 		_, err := fm.Append(walFile)
 		ts.Require().NoError(err)
 	}
+
 	ts.Require().Equal(int64(800), test.GetFileSize(ts, walPath))
 
 	nm, err := NewManager(fm, walFile)
@@ -82,6 +87,7 @@ func (ts *ManagerTestSuite) TestCreateManagerExistsLogFile() {
 func (ts *ManagerTestSuite) TestCreateRecords() {
 	m := ts.createWALManager()
 	ts.Require().NotNil(m)
+
 	defer m.fm.Close()
 
 	for i := 0; i < 100; i++ {
@@ -94,12 +100,15 @@ func (ts *ManagerTestSuite) TestCreateRecords() {
 
 	it, err := m.Iterator()
 	ts.Require().NoError(err)
+
 	i := 99
+
 	for it.HasNext() {
 		d, err := it.Next()
 		if err != nil {
 			ts.FailNow(err.Error())
 		}
+
 		ts.Equal(fmt.Sprintf("record %d", i), string(d))
 		i--
 	}

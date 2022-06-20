@@ -24,10 +24,11 @@ func NewIterator(fm *storage.Manager, blk *storage.BlockID) (*Iterator, error) {
 		blk: blk,
 		p:   storage.NewPage(fm.BlockSize()),
 	}
-	err := it.moveToBlock(blk)
-	if err != nil {
+
+	if err := it.moveToBlock(blk); err != nil {
 		return nil, eris.Wrap(err, ErrFailedToCreateNewIterator.Error())
 	}
+
 	return it, nil
 }
 
@@ -40,23 +41,27 @@ func (it *Iterator) HasNext() bool {
 func (it *Iterator) Next() ([]byte, error) {
 	if it.currentPos == it.fm.BlockSize() {
 		it.blk = storage.NewBlockID(it.blk.Filename(), it.blk.Number()-1)
+
 		err := it.moveToBlock(it.blk)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	rec := it.p.GetBytes(it.currentPos)
 	it.currentPos += int32Size + uint32(len(rec))
+
 	return rec, nil
 }
 
 // Перемещаем итератор на следующий блок
 func (it *Iterator) moveToBlock(blk *storage.BlockID) error {
-	err := it.fm.Read(blk, it.p)
-	if err != nil {
+	if err := it.fm.Read(blk, it.p); err != nil {
 		return err
 	}
+
 	it.boundary = it.p.GetUint32(blockStart)
 	it.currentPos = it.boundary
+
 	return nil
 }

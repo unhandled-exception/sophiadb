@@ -37,6 +37,7 @@ func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 		logFileName: logFileName,
 		logPage:     storage.NewPage(fm.BlockSize()),
 	}
+
 	logSize, err := fm.Length(logFileName)
 	if err != nil {
 		return nil, eris.Wrap(err, ErrFailedToCreateNewManager.Error())
@@ -72,8 +73,7 @@ func (lm *Manager) Flush(lsn int64, force bool) error {
 
 // Iterator возвращает новый итератор по журналу
 func (lm *Manager) Iterator() (*Iterator, error) {
-	err := lm.Flush(0, true)
-	if err != nil {
+	if err := lm.Flush(0, true); err != nil {
 		return nil, err
 	}
 

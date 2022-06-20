@@ -34,9 +34,10 @@ func (ts *ManagerTestSuite) TearDownSuite() {
 	test.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *ManagerTestSuite) createBuffersManager(len int) (*Manager, string) {
+func (ts *ManagerTestSuite) createBuffersManager(pLen int) (*Manager, string) {
 	var defaultBlockSize uint32 = 400
-	var walFile = "wal_log.dat"
+
+	walFile := "wal_log.dat"
 
 	path := test.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
@@ -47,7 +48,7 @@ func (ts *ManagerTestSuite) createBuffersManager(len int) (*Manager, string) {
 	ts.Require().NoError(err)
 	ts.Require().FileExists(filepath.Join(path, walFile))
 
-	m := NewManager(fm, lm, len)
+	m := NewManager(fm, lm, pLen)
 	ts.Require().NotNil(m)
 
 	m.SetMaxPinLockTime(250 * time.Millisecond)
@@ -60,7 +61,9 @@ func (ts *ManagerTestSuite) TestBuffersManager() {
 	defer bm.fm.Close()
 
 	testFile := "test_file.dat"
+
 	var buffers [7]*Buffer
+
 	var err error
 
 	test.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))
@@ -105,6 +108,7 @@ func (ts *ManagerTestSuite) TestBuffersManager() {
 	// Освобождаем один из буферов и снова пытаемся занять
 	bm.Unpin(buffers[2])
 	buffers[2] = nil
+
 	ts.Equal(1, bm.Available())
 
 	// Пытаемся запинить несуществующий на диске блок

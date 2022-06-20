@@ -18,26 +18,30 @@ type buffersPool struct {
 type newBufferFunc func() *Buffer
 
 // newBuffersPool создает новый пул буферов
-func newBuffersPool(len int, nbf newBufferFunc) *buffersPool {
+func newBuffersPool(bLen int, nbf newBufferFunc) *buffersPool {
 	bp := &buffersPool{
-		len:             len,
-		blocksToBuffers: make(map[string]*Buffer, len),
-		ring:            ring.New(len),
+		len:             bLen,
+		blocksToBuffers: make(map[string]*Buffer, bLen),
+		ring:            ring.New(bLen),
 	}
-	for i := 0; i < len; i++ {
+
+	for i := 0; i < bLen; i++ {
 		bp.ring.Value = nbf()
 		bp.ring = bp.ring.Next()
 	}
+
 	return bp
 }
 
 // buffers возвращает массив буферов в виде слайса
 func (bp *buffersPool) buffers() []*Buffer {
 	buffers := make([]*Buffer, bp.len)
+
 	for i := 0; i < bp.len; i++ {
-		buffers[i] = bp.ring.Value.(*Buffer)
+		buffers[i], _ = bp.ring.Value.(*Buffer)
 		bp.ring = bp.ring.Next()
 	}
+
 	return buffers
 }
 
@@ -47,15 +51,17 @@ func (bp *buffersPool) FlushAll(txnum int64) error {
 	defer bp.Unlock()
 
 	for i := 0; i < bp.len; i++ {
-		buf := bp.ring.Value.(*Buffer)
+		buf, _ := bp.ring.Value.(*Buffer)
 		if buf.ModifyingTX() == txnum {
 			err := buf.Flush()
 			if err != nil {
 				return err
 			}
 		}
+
 		bp.ring = bp.ring.Next()
 	}
+
 	return nil
 }
 
@@ -64,6 +70,7 @@ func (bp *buffersPool) FindExistingBuffer(block *storage.BlockID) *Buffer {
 	if buf, ok := bp.blocksToBuffers[block.HashKey()]; ok {
 		return buf
 	}
+
 	return nil
 }
 
@@ -71,19 +78,23 @@ func (bp *buffersPool) FindExistingBuffer(block *storage.BlockID) *Buffer {
 func (bp *buffersPool) ChooseUnpinnedBuffer() *Buffer {
 	for i := 0; i < bp.len; i++ {
 		bp.ring = bp.ring.Next()
-		buf := bp.ring.Value.(*Buffer)
+
+		buf, _ := bp.ring.Value.(*Buffer)
 		if !buf.IsPinned() {
 			return buf
 		}
 	}
+
 	return nil
 }
 
 // AssignBufferToBlock связывает буфер с блоком на диске
 func (bp *buffersPool) AssignBufferToBlock(buf *Buffer, block *storage.BlockID) error {
 	bp.blocksToBuffers[block.HashKey()] = buf
+
 	if oldBlock := buf.Block(); oldBlock != nil {
 		delete(bp.blocksToBuffers, buf.Block().HashKey())
 	}
+
 	return buf.AssignToBlock(block)
 }

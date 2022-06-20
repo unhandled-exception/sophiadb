@@ -49,6 +49,7 @@ func (p *Page) fetchBytes(offset uint32, size int) []byte {
 	for i := 0; i < size; i++ {
 		result[i] = p.bb[int(offset)+i]
 	}
+
 	return result
 }
 
@@ -56,6 +57,7 @@ func (p *Page) fetchBytes(offset uint32, size int) []byte {
 func (p *Page) GetInt32(offset uint32) int32 {
 	buf := p.fetchBytes(offset, int32Size)
 	value := int32(p.order.Uint32(buf))
+
 	return value
 }
 
@@ -80,6 +82,7 @@ func (p *Page) SetUint32(offset uint32, value uint32) {
 func (p *Page) GetInt64(offset uint32) int64 {
 	buf := p.fetchBytes(offset, int64Size)
 	value := int64(p.order.Uint64(buf))
+
 	return value
 }
 
@@ -93,6 +96,7 @@ func (p *Page) SetInt64(offset uint32, value int64) {
 // GetBytes возвращает байтовый массив по смещению offset
 func (p *Page) GetBytes(offset uint32) []byte {
 	length := p.GetInt32(offset)
+
 	return p.fetchBytes(offset+int32Size, int(length))
 }
 
@@ -117,6 +121,7 @@ func (p *Page) SetString(offset uint32, value string) {
 func (p *Page) GetFloat32(offset uint32) float32 {
 	buf := p.fetchBytes(offset, int32Size)
 	value := math.Float32frombits(p.order.Uint32(buf))
+
 	return value
 }
 
@@ -138,5 +143,6 @@ func (p *Page) SetBool(offset uint32, value bool) {
 	if value {
 		bValue = boolTrueMark
 	}
+
 	p.bb[offset] = bValue
 }
