@@ -4,8 +4,8 @@ github.com/davecgh/go-spew/spew
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/rotisserie/eris v0.5.1
-## explicit; go 1.15
+# github.com/rotisserie/eris v0.5.4
+## explicit; go 1.18
 github.com/rotisserie/eris
 # github.com/stretchr/testify v1.7.0
 ## explicit; go 1.13
