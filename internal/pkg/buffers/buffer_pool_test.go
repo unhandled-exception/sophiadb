@@ -93,7 +93,9 @@ func (ts *BuffersPoolTestSuite) TestChooseUnpinnedBuffer() {
 
 	for i := 0; i < bp.len; i++ {
 		if i%2 == 0 {
-			v, _ := bp.ring.Value.(*Buffer)
+			v, ok := bp.ring.Value.(*Buffer)
+			ts.Require().True(ok, "failed to cast ring value")
+
 			v.Pin()
 		}
 
@@ -103,7 +105,9 @@ func (ts *BuffersPoolTestSuite) TestChooseUnpinnedBuffer() {
 	var pins [5]bool
 
 	for i := 0; i < bp.len; i++ {
-		v, _ := bp.ring.Value.(*Buffer)
+		v, ok := bp.ring.Value.(*Buffer)
+		ts.Require().True(ok, "failed to cast ring value")
+
 		pins[i] = v.IsPinned()
 		bp.ring = bp.ring.Next()
 	}
