@@ -4,7 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rotisserie/eris"
+	"github.com/pkg/errors"
+
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
@@ -12,8 +13,8 @@ import (
 
 var defaultMaxPinTime time.Duration = 10 * time.Second
 
-// NoAvailableBuffers — нет свободных буферов в памяти
-var NoAvailableBuffers = eris.New("no available buffers")
+// ErrNoAvailableBuffers — нет свободных буферов в памяти
+var ErrNoAvailableBuffers = errors.New("no available buffers")
 
 // Manager менеджер буферов в памяти
 type Manager struct {
@@ -79,7 +80,7 @@ func (bm *Manager) Unpin(buf *Buffer) {
 // Pin — закрепляет блок в памяти
 func (bm *Manager) Pin(block *storage.BlockID) (*Buffer, error) {
 	buf, err := bm.tryToPin(block)
-	if err != nil && !eris.Is(err, NoAvailableBuffers) {
+	if err != nil && !errors.Is(err, ErrNoAvailableBuffers) {
 		return nil, err
 	}
 
@@ -93,14 +94,14 @@ func (bm *Manager) Pin(block *storage.BlockID) (*Buffer, error) {
 			bm.pinLock.WaitWithTimeout(bm.maxPinLockTime)
 
 			buf, err = bm.tryToPin(block)
-			if err != nil && !eris.Is(err, NoAvailableBuffers) {
+			if err != nil && !errors.Is(err, ErrNoAvailableBuffers) {
 				return nil, err
 			}
 		}
 	}
 
 	if buf == nil {
-		return nil, NoAvailableBuffers
+		return nil, ErrNoAvailableBuffers
 	}
 
 	return buf, nil
@@ -111,7 +112,7 @@ func (bm *Manager) tryToPin(block *storage.BlockID) (*Buffer, error) {
 	if buf == nil {
 		buf = bm.pool.ChooseUnpinnedBuffer()
 		if buf == nil {
-			return nil, NoAvailableBuffers
+			return nil, ErrNoAvailableBuffers
 		}
 
 		err := bm.pool.AssignBufferToBlock(buf, block)

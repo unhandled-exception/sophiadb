@@ -3,7 +3,7 @@ package wal
 import (
 	"sync"
 
-	"github.com/rotisserie/eris"
+	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 )
 
@@ -25,10 +25,10 @@ type Manager struct {
 }
 
 // ErrFailedToCreateNewManager — ошибка при создании нового менеджера
-var ErrFailedToCreateNewManager = eris.New("failed to create a new wal manager")
+var ErrFailedToCreateNewManager = errors.New("failed to create a new wal manager")
 
 // ErrFailedToAppendNewRecord — ошибка при создании новой записи в wal-логе
-var ErrFailedToAppendNewRecord = eris.New("failed to add new record to wal log")
+var ErrFailedToAppendNewRecord = errors.New("failed to add new record to wal log")
 
 // NewManager создает новый объект LogManager
 func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
@@ -40,19 +40,19 @@ func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 
 	logSize, err := fm.Length(logFileName)
 	if err != nil {
-		return nil, eris.Wrap(err, ErrFailedToCreateNewManager.Error())
+		return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())
 	}
 
 	if logSize == 0 {
 		lm.currentBlock, err = lm.appendNewBlock()
 		if err != nil {
-			return nil, eris.Wrap(err, ErrFailedToCreateNewManager.Error())
+			return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())
 		}
 	} else {
 		lm.currentBlock = storage.NewBlockID(lm.logFileName, logSize-1)
 		err = lm.fm.Read(lm.currentBlock, lm.logPage)
 		if err != nil {
-			return nil, eris.Wrap(err, ErrFailedToCreateNewManager.Error())
+			return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())
 		}
 	}
 
@@ -100,12 +100,12 @@ func (lm *Manager) Append(logRec []byte) (int64, error) {
 		// — создаем новый блок
 		err := lm.Flush(0, true)
 		if err != nil {
-			return 0, eris.Wrap(err, ErrFailedToAppendNewRecord.Error())
+			return 0, errors.WithMessage(ErrFailedToAppendNewRecord, err.Error())
 		}
 
 		lm.currentBlock, err = lm.appendNewBlock()
 		if err != nil {
-			return 0, eris.Wrap(err, ErrFailedToAppendNewRecord.Error())
+			return 0, errors.WithMessage(ErrFailedToAppendNewRecord, err.Error())
 		}
 
 		boundary = lm.logPage.GetUint32(blockStart)

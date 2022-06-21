@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rotisserie/eris"
+	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 )
 
@@ -20,7 +20,7 @@ const (
 )
 
 // ErrFileManagerIO вызываем при ошибках ввода вывода
-var ErrFileManagerIO error = eris.New("file manager io error")
+var ErrFileManagerIO error = errors.New("file manager io error")
 
 type openFilesMap map[string]*os.File
 
@@ -45,7 +45,7 @@ func NewFileManager(path string, blockSize uint32) (*Manager, error) {
 
 	err = os.MkdirAll(path, defaultFilePermissions)
 	if err != nil {
-		return nil, eris.Wrapf(err, "file manager: cannot create data dir \"%s\"", path)
+		return nil, errors.WithMessagef(ErrFileManagerIO, "cannot create data dir \"%s\": %v", path, err)
 	}
 
 	err = fm.cleanTemporaryFiles()
@@ -87,20 +87,20 @@ func (fm *Manager) Path() string {
 
 // Close pаскрывает файлы открытые менеджером
 func (fm *Manager) Close() error {
-	errors := make([]error, 0, len(fm.openFiles))
+	errs := make([]error, 0, len(fm.openFiles))
 
 	var err error
 	for k, v := range fm.openFiles {
 		err = v.Close()
 		if err != nil {
-			errors = append(errors, err)
+			errs = append(errs, err)
 		}
 
 		delete(fm.openFiles, k)
 	}
 
-	if len(errors) > 0 {
-		return eris.Errorf("file manager: errors on close files: %s", utils.JoinErrors(errors, ", "))
+	if len(errs) > 0 {
+		return errors.WithMessagef(ErrFileManagerIO, "errors on close files: %s", utils.JoinErrors(errs, ", "))
 	}
 
 	return nil
@@ -118,12 +118,12 @@ func (fm *Manager) Read(block *BlockID, page *Page) error {
 
 	_, err = file.Seek(int64(block.number)*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
-		return eris.Wrap(err, ErrFileManagerIO.Error())
+		return errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
 	_, err = file.Read(page.Content())
 	if err != nil {
-		return eris.Wrap(err, ErrFileManagerIO.Error())
+		return errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
 	return nil
@@ -141,12 +141,12 @@ func (fm *Manager) Write(block *BlockID, page *Page) error {
 
 	_, err = file.Seek(int64(block.number)*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
-		return eris.Wrap(err, ErrFileManagerIO.Error())
+		return errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
 	_, err = file.Write(page.Content())
 	if err != nil {
-		return eris.Wrap(err, ErrFileManagerIO.Error())
+		return errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
 	return nil
@@ -172,12 +172,12 @@ func (fm *Manager) Append(filename string) (*BlockID, error) {
 
 	_, err = file.Seek(0, io.SeekEnd)
 	if err != nil {
-		return nil, eris.Wrap(err, ErrFileManagerIO.Error())
+		return nil, errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
 	_, err = file.Write(blockData)
 	if err != nil {
-		return nil, eris.Wrap(err, ErrFileManagerIO.Error())
+		return nil, errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
 	return blockID, nil
@@ -192,7 +192,7 @@ func (fm *Manager) Length(filename string) (uint32, error) {
 
 	stat, err := file.Stat()
 	if err != nil {
-		return 0, eris.Wrap(err, ErrFileManagerIO.Error())
+		return 0, errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
 	return uint32(stat.Size() / int64(fm.blockSize)), nil
@@ -210,7 +210,7 @@ func (fm *Manager) getFile(filename string) (*os.File, error) {
 			syncedFilePermissions,
 		)
 		if err != nil {
-			return nil, eris.Wrap(err, "file manager create new file errror")
+			return nil, errors.WithMessage(ErrFileManagerIO, err.Error())
 		}
 
 		fm.openFiles[filename] = file

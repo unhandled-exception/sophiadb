@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
@@ -133,7 +132,7 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 	// Проверяем, что обрабатываем ошибки
 	err = fm.Close()
 	ts.Require().Error(err)
-	ts.Require().EqualError(eris.Cause(os.ErrClosed), os.ErrClosed.Error())
+	ts.Require().ErrorIs(err, ErrFileManagerIO)
 	ts.Require().Empty(fm.openFiles)
 }
 
@@ -157,7 +156,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 
 		blocks[i], err = fm.Append(fmt.Sprintf("b_%d.dat", filenum))
 		if err != nil {
-			ts.FailNow(eris.ToString(err, true))
+			ts.FailNow(err.Error())
 		}
 	}
 

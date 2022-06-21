@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
@@ -102,7 +101,7 @@ func (ts *ManagerTestSuite) TestBuffersManager() {
 
 	// Пытаемся занять пул новым блоком и получаем ошибку
 	buffers[5], err = bm.Pin(storage.NewBlockID(testFile, 3))
-	ts.Require().True(eris.Is(err, NoAvailableBuffers), err.Error())
+	ts.Require().ErrorIs(err, ErrNoAvailableBuffers)
 	ts.Nil(buffers[5])
 
 	// Освобождаем один из буферов и снова пытаемся занять
@@ -113,7 +112,7 @@ func (ts *ManagerTestSuite) TestBuffersManager() {
 
 	// Пытаемся запинить несуществующий на диске блок
 	buffers[5], err = bm.Pin(storage.NewBlockID(testFile, 1000))
-	ts.Require().True(eris.Is(err, FailedToAssignBlockToBuffer), err.Error())
+	ts.Require().ErrorIs(err, ErrFailedToAssignBlockToBuffer)
 	ts.Nil(buffers[5])
 
 	// Теперь запиниваем нрмальный блок

@@ -1,7 +1,7 @@
 package wal
 
 import (
-	"github.com/rotisserie/eris"
+	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 )
 
@@ -15,7 +15,7 @@ type Iterator struct {
 }
 
 // ErrFailedToCreateNewIterator — ошибка при создании нового итератора
-var ErrFailedToCreateNewIterator = eris.New("failed to create a new wal iterator")
+var ErrFailedToCreateNewIterator = errors.New("failed to create a new wal iterator")
 
 // NewIterator создает новый объект итератора по журналу
 func NewIterator(fm *storage.Manager, blk *storage.BlockID) (*Iterator, error) {
@@ -26,7 +26,7 @@ func NewIterator(fm *storage.Manager, blk *storage.BlockID) (*Iterator, error) {
 	}
 
 	if err := it.moveToBlock(blk); err != nil {
-		return nil, eris.Wrap(err, ErrFailedToCreateNewIterator.Error())
+		return nil, errors.WithMessage(ErrFailedToCreateNewIterator, err.Error())
 	}
 
 	return it, nil
