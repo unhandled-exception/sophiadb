@@ -160,7 +160,9 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 		}
 	}
 
-	list, _ := filepath.Glob(filepath.Join(path, "b_*.dat"))
+	list, err := filepath.Glob(filepath.Join(path, "b_*.dat"))
+	ts.Require().NoError(err)
+
 	ts.Len(list, 2)
 
 	// Создаем странички

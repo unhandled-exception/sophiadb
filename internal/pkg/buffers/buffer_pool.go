@@ -51,8 +51,8 @@ func (bp *buffersPool) FlushAll(txnum int64) error {
 	defer bp.Unlock()
 
 	for i := 0; i < bp.len; i++ {
-		buf, _ := bp.ring.Value.(*Buffer)
-		if buf.ModifyingTX() == txnum {
+		buf, ok := bp.ring.Value.(*Buffer)
+		if ok && buf.ModifyingTX() == txnum {
 			err := buf.Flush()
 			if err != nil {
 				return err
@@ -79,8 +79,8 @@ func (bp *buffersPool) ChooseUnpinnedBuffer() *Buffer {
 	for i := 0; i < bp.len; i++ {
 		bp.ring = bp.ring.Next()
 
-		buf, _ := bp.ring.Value.(*Buffer)
-		if !buf.IsPinned() {
+		buf, ok := bp.ring.Value.(*Buffer)
+		if ok && !buf.IsPinned() {
 			return buf
 		}
 	}
