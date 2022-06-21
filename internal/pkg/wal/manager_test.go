@@ -1,4 +1,4 @@
-package wal
+package wal_test
 
 import (
 	"fmt"
@@ -7,7 +7,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
 type WalManagerTestSuite struct {
@@ -30,20 +31,20 @@ func (ts *WalManagerTestSuite) SuiteDir() string {
 }
 
 func (ts *WalManagerTestSuite) SetupSuite() {
-	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, testSuiteDir)
+	ts.suiteDir = testutil.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
 func (ts *WalManagerTestSuite) TearDownSuite() {
-	test.RemoveSuiteTemporaryDir(ts)
+	testutil.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *WalManagerTestSuite) createWALManager() *Manager {
-	path := test.CreateTestTemporaryDir(ts)
+func (ts *WalManagerTestSuite) createWALManager() *wal.Manager {
+	path := testutil.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(fm)
 
-	m, err := NewManager(fm, walFile)
+	m, err := wal.NewManager(fm, walFile)
 	ts.Require().NoError(err)
 	ts.Require().FileExists(filepath.Join(path, walFile))
 
@@ -54,11 +55,11 @@ func (ts *WalManagerTestSuite) TestCreateManagerUnexistsLogFile() {
 	m := ts.createWALManager()
 	ts.Require().NotNil(m)
 
-	defer m.fm.Close()
+	defer m.StorageManager().Close()
 }
 
 func (ts *WalManagerTestSuite) TestCreateManagerExistsLogFile() {
-	path := test.CreateTestTemporaryDir(ts)
+	path := testutil.CreateTestTemporaryDir(ts)
 	walPath := filepath.Join(path, walFile)
 
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
@@ -77,18 +78,18 @@ func (ts *WalManagerTestSuite) TestCreateManagerExistsLogFile() {
 		ts.Require().NoError(err)
 	}
 
-	ts.Require().Equal(int64(800), test.GetFileSize(ts, walPath))
+	ts.Require().Equal(int64(800), testutil.GetFileSize(ts, walPath))
 
-	nm, err := NewManager(fm, walFile)
+	nm, err := wal.NewManager(fm, walFile)
 	ts.Require().NoError(err)
-	ts.Equal(uint32(1), nm.currentBlock.Number())
+	ts.Equal(uint32(1), nm.CurrentBlock().Number())
 }
 
 func (ts *WalManagerTestSuite) TestCreateRecords() {
 	m := ts.createWALManager()
 	ts.Require().NotNil(m)
 
-	defer m.fm.Close()
+	defer m.StorageManager().Close()
 
 	for i := 0; i < 100; i++ {
 		_, err := m.Append([]byte(fmt.Sprintf("record %d", i)))
@@ -96,7 +97,7 @@ func (ts *WalManagerTestSuite) TestCreateRecords() {
 			ts.FailNow(err.Error())
 		}
 	}
-	ts.Equal(int64(1600), test.GetFileSize(ts, filepath.Join(m.fm.Path(), walFile)))
+	ts.Equal(int64(1600), testutil.GetFileSize(ts, filepath.Join(m.StorageManager().Path(), walFile)))
 
 	it, err := m.Iterator()
 	ts.Require().NoError(err)

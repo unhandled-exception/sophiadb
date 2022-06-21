@@ -24,7 +24,7 @@ type Manager struct {
 	fm *storage.Manager
 	lm *wal.Manager
 
-	pool           *buffersPool
+	pool           *BuffersPool
 	len            int
 	available      int
 	maxPinLockTime time.Duration
@@ -40,9 +40,14 @@ func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int) *Manager {
 		maxPinLockTime: defaultMaxPinTime,
 		pinLock:        utils.NewCond(&sync.Mutex{}),
 	}
-	bm.pool = newBuffersPool(pLen, bm.newBuffer)
+	bm.pool = NewBuffersPool(pLen, bm.newBuffer)
 
 	return bm
+}
+
+// StorageManager возвращает менеджер хранилища
+func (bm *Manager) StorageManager() *storage.Manager {
+	return bm.fm
 }
 
 func (bm *Manager) newBuffer() *Buffer {

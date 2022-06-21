@@ -22,7 +22,7 @@ const (
 // ErrFileManagerIO вызываем при ошибках ввода вывода
 var ErrFileManagerIO error = errors.New("file manager io error")
 
-type openFilesMap map[string]*os.File
+type OpenFilesMap map[string]*os.File
 
 // Manager управляет чтением и записью блоков на диске
 type Manager struct {
@@ -30,7 +30,7 @@ type Manager struct {
 
 	path      string
 	blockSize uint32
-	openFiles openFilesMap
+	openFiles OpenFilesMap
 }
 
 // NewFileManager создает новый объект FileManager
@@ -40,7 +40,7 @@ func NewFileManager(path string, blockSize uint32) (*Manager, error) {
 	fm := &Manager{
 		path:      path,
 		blockSize: blockSize,
-		openFiles: make(openFilesMap),
+		openFiles: make(OpenFilesMap),
 	}
 
 	err = os.MkdirAll(path, defaultFilePermissions)
@@ -54,6 +54,10 @@ func NewFileManager(path string, blockSize uint32) (*Manager, error) {
 	}
 
 	return fm, nil
+}
+
+func (fm *Manager) OpenFiles() OpenFilesMap {
+	return fm.openFiles
 }
 
 // cleanTemporaryFiles
