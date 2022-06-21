@@ -1,11 +1,13 @@
-package utils
+package utils_test
 
 import (
 	"os"
 	"testing"
+
+	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 )
 
-func Test_joinErrors(t *testing.T) {
+func TestJoinErrors(t *testing.T) {
 	type args struct {
 		errors []error
 		sep    string
@@ -39,7 +41,7 @@ func Test_joinErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := JoinErrors(tt.args.errors, tt.args.sep); got != tt.want {
+			if got := utils.JoinErrors(tt.args.errors, tt.args.sep); got != tt.want {
 				t.Errorf("joinErrors() = %v, want %v", got, tt.want)
 			}
 		})

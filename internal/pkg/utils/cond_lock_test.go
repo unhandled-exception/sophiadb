@@ -1,9 +1,4 @@
-//go:build !race
-// +build !race
-
-// В тесте TestCond есть явный data-race, который нужен для тестирования мтода Broadcast
-
-package utils
+package utils_test
 
 import (
 	"log"
@@ -13,11 +8,12 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 )
 
-func TestCond(t *testing.T) {
+func TestCondLock(t *testing.T) {
 	x := 0
-	c := NewCond(&sync.Mutex{})
+	c := utils.NewCond(&sync.Mutex{})
 	done := make(chan bool)
 
 	go func() {
@@ -90,31 +86,39 @@ func TestCond(t *testing.T) {
 	<-done
 }
 
-func TestWaitWithTimeout(t *testing.T) {
-	c := NewCond(&sync.Mutex{})
+func TestCondLock_WaitWithTimeout(t *testing.T) {
+	c := utils.NewCond(&sync.Mutex{})
 	c.L.Lock()
 
-	hasData := false
+	hasData := make(chan struct{})
 	ch := make(chan int)
 
-	go func() {
+	go func(hasData chan<- struct{}) {
 		ch <- 1
 
 		time.Sleep(250 * time.Millisecond)
 
-		hasData = true
+		hasData <- struct{}{}
 
 		c.Broadcast()
-	}()
+	}(hasData)
 
 	// Синхроизируем запуск горутины и ожидания броадкаста
 	<-ch
 
 	c.WaitWithTimeout(50 * time.Millisecond)
-	assert.False(t, hasData)
+	select {
+	case <-hasData:
+		assert.Fail(t, "has data before deadline")
+	default:
+	}
 
 	c.WaitWithTimeout(1000 * time.Millisecond)
-	assert.True(t, hasData)
+	select {
+	case <-hasData:
+	default:
+		assert.Fail(t, "has not data after deadline")
+	}
 
 	// Проверяем пустые вызовы
 	c.WaitWithTimeout(20 * time.Millisecond)
