@@ -1,4 +1,4 @@
-package buffers
+package buffers_test
 
 import (
 	"path/filepath"
@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
@@ -26,19 +27,19 @@ func (ts *ManagerTestSuite) SuiteDir() string {
 
 func (ts *ManagerTestSuite) SetupSuite() {
 	testSuiteDir := "buffers_manager_tests"
-	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, testSuiteDir)
+	ts.suiteDir = testutil.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
 func (ts *ManagerTestSuite) TearDownSuite() {
-	test.RemoveSuiteTemporaryDir(ts)
+	testutil.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *ManagerTestSuite) createBuffersManager(pLen int) (*Manager, string) {
+func (ts *ManagerTestSuite) createBuffersManager(pLen int) (*buffers.Manager, string) {
 	var defaultBlockSize uint32 = 400
 
 	walFile := "wal_log.dat"
 
-	path := test.CreateTestTemporaryDir(ts)
+	path := testutil.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(fm)
@@ -47,7 +48,7 @@ func (ts *ManagerTestSuite) createBuffersManager(pLen int) (*Manager, string) {
 	ts.Require().NoError(err)
 	ts.Require().FileExists(filepath.Join(path, walFile))
 
-	m := NewManager(fm, lm, pLen)
+	m := buffers.NewManager(fm, lm, pLen)
 	ts.Require().NotNil(m)
 
 	m.SetMaxPinLockTime(250 * time.Millisecond)
@@ -57,79 +58,79 @@ func (ts *ManagerTestSuite) createBuffersManager(pLen int) (*Manager, string) {
 
 func (ts *ManagerTestSuite) TestBuffersManager() {
 	bm, path := ts.createBuffersManager(3)
-	defer bm.fm.Close()
+	defer bm.StorageManager().Close()
 
 	testFile := "test_file.dat"
 
-	var buffers [7]*Buffer
+	var bufs [7]*buffers.Buffer
 
 	var err error
 
-	test.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))
+	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))
 
 	// Занимаем все буферы в пуле
-	buffers[0], err = bm.Pin(storage.NewBlockID(testFile, 0))
+	bufs[0], err = bm.Pin(storage.NewBlockID(testFile, 0))
 	ts.Require().NoError(err)
-	ts.NotNil(buffers[0])
-	ts.Equal(make([]byte, 400), buffers[0].Content().Content())
+	ts.NotNil(bufs[0])
+	ts.Equal(make([]byte, 400), bufs[0].Content().Content())
 
-	buffers[1], err = bm.Pin(storage.NewBlockID(testFile, 1))
+	bufs[1], err = bm.Pin(storage.NewBlockID(testFile, 1))
 	ts.Require().NoError(err)
-	ts.NotNil(buffers[1])
+	ts.NotNil(bufs[1])
 
-	buffers[2], err = bm.Pin(storage.NewBlockID(testFile, 2))
+	bufs[2], err = bm.Pin(storage.NewBlockID(testFile, 2))
 	ts.Require().NoError(err)
-	ts.NotNil(buffers[2])
+	ts.NotNil(bufs[2])
 
 	// Освобождаем один буфер
-	bm.Unpin(buffers[1])
-	ts.False(buffers[1].IsPinned())
-	buffers[1] = nil
+	bm.Unpin(bufs[1])
+	ts.False(bufs[1].IsPinned())
+	bufs[1] = nil
 
 	// Получаем еще одну ссылку на запиненный буфер
-	buffers[3], err = bm.Pin(storage.NewBlockID(testFile, 0))
+	bufs[3], err = bm.Pin(storage.NewBlockID(testFile, 0))
 	ts.Require().NoError(err)
-	ts.NotNil(buffers[3])
-	ts.Equal(2, buffers[3].pins)
+	ts.NotNil(bufs[3])
+	ts.Equal(2, bufs[3].Pins())
 
 	// Используем существующий буфер не создавая новый
-	buffers[4], err = bm.Pin(storage.NewBlockID(testFile, 1))
+	bufs[4], err = bm.Pin(storage.NewBlockID(testFile, 1))
 	ts.Require().NoError(err)
-	ts.Equal(1, buffers[4].pins)
+	ts.Equal(1, bufs[4].Pins())
 
 	ts.Equal(0, bm.Available())
 
 	// Пытаемся занять пул новым блоком и получаем ошибку
-	buffers[5], err = bm.Pin(storage.NewBlockID(testFile, 3))
-	ts.Require().ErrorIs(err, ErrNoAvailableBuffers)
-	ts.Nil(buffers[5])
+	bufs[5], err = bm.Pin(storage.NewBlockID(testFile, 3))
+	ts.Require().ErrorIs(err, buffers.ErrNoAvailableBuffers)
+	ts.Nil(bufs[5])
 
 	// Освобождаем один из буферов и снова пытаемся занять
-	bm.Unpin(buffers[2])
-	buffers[2] = nil
+	bm.Unpin(bufs[2])
+	bufs[2] = nil
 
 	ts.Equal(1, bm.Available())
 
 	// Пытаемся запинить несуществующий на диске блок
-	buffers[5], err = bm.Pin(storage.NewBlockID(testFile, 1000))
-	ts.Require().ErrorIs(err, ErrFailedToAssignBlockToBuffer)
-	ts.Nil(buffers[5])
+	bufs[5], err = bm.Pin(storage.NewBlockID(testFile, 1000))
+	ts.Require().ErrorIs(err, buffers.ErrFailedToAssignBlockToBuffer)
+	ts.Nil(bufs[5])
 
 	// Теперь запиниваем нрмальный блок
-	buffers[5], err = bm.Pin(storage.NewBlockID(testFile, 3))
+	bufs[5], err = bm.Pin(storage.NewBlockID(testFile, 3))
 	ts.Require().NoError(err)
-	ts.NotNil(buffers[5])
+	ts.NotNil(bufs[5])
 
 	// Сбрасываем буферы на диск
-	buffers[0].SetModified(1, 2)
-	buffers[5].SetModified(2, 3)
-	ts.Equal(int64(1), buffers[0].ModifyingTX())
-	ts.Equal(int64(2), buffers[0].lsn)
-	ts.Equal(int64(2), buffers[5].ModifyingTX())
-	ts.Equal(int64(3), buffers[5].lsn)
+	bufs[0].SetModified(1, 2)
+	bufs[5].SetModified(2, 3)
+	ts.Equal(int64(1), bufs[0].ModifyingTX())
+	ts.Equal(int64(2), bufs[0].LSN())
+	ts.Equal(int64(2), bufs[5].ModifyingTX())
+	ts.Equal(int64(3), bufs[5].LSN())
 
 	err = bm.FlushAll(1)
 	ts.Require().NoError(err)
-	ts.Equal(int64(-1), buffers[0].ModifyingTX())
-	ts.Equal(int64(2), buffers[5].ModifyingTX())
+	ts.Equal(int64(-1), bufs[0].ModifyingTX())
+	ts.Equal(int64(2), bufs[5].ModifyingTX())
 }

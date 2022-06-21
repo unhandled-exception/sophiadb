@@ -59,6 +59,16 @@ func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 	return lm, nil
 }
 
+// StorageManager возвращает менеджер хранилища
+func (lm *Manager) StorageManager() *storage.Manager {
+	return lm.fm
+}
+
+// CurrentBlock возвращает текущий блок
+func (lm *Manager) CurrentBlock() *storage.BlockID {
+	return lm.currentBlock
+}
+
 // Flush сбрасывает журнал на диск
 func (lm *Manager) Flush(lsn int64, force bool) error {
 	if lsn >= lm.lastSavedLSN || force {

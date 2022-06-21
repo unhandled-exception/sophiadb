@@ -7,7 +7,7 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 )
 
-type buffersPool struct {
+type BuffersPool struct {
 	sync.Mutex
 
 	len             int
@@ -17,9 +17,9 @@ type buffersPool struct {
 
 type newBufferFunc func() *Buffer
 
-// newBuffersPool создает новый пул буферов
-func newBuffersPool(bLen int, nbf newBufferFunc) *buffersPool {
-	bp := &buffersPool{
+// NewBuffersPool создает новый пул буферов
+func NewBuffersPool(bLen int, nbf newBufferFunc) *BuffersPool {
+	bp := &BuffersPool{
 		len:             bLen,
 		blocksToBuffers: make(map[string]*Buffer, bLen),
 		ring:            ring.New(bLen),
@@ -33,8 +33,8 @@ func newBuffersPool(bLen int, nbf newBufferFunc) *buffersPool {
 	return bp
 }
 
-// buffers возвращает массив буферов в виде слайса
-func (bp *buffersPool) buffers() []*Buffer {
+// Buffers возвращает массив буферов в виде слайса
+func (bp *BuffersPool) Buffers() []*Buffer {
 	buffers := make([]*Buffer, bp.len)
 
 	for i := 0; i < bp.len; i++ {
@@ -46,7 +46,7 @@ func (bp *buffersPool) buffers() []*Buffer {
 }
 
 // FlushAll сбрасывает на диск все блоки, соответствующие транзакции
-func (bp *buffersPool) FlushAll(txnum int64) error {
+func (bp *BuffersPool) FlushAll(txnum int64) error {
 	bp.Lock()
 	defer bp.Unlock()
 
@@ -66,7 +66,7 @@ func (bp *buffersPool) FlushAll(txnum int64) error {
 }
 
 // FindExistingBuffer ищет существующий буфер, соотоветсвующий блоку
-func (bp *buffersPool) FindExistingBuffer(block *storage.BlockID) *Buffer {
+func (bp *BuffersPool) FindExistingBuffer(block *storage.BlockID) *Buffer {
 	if buf, ok := bp.blocksToBuffers[block.HashKey()]; ok {
 		return buf
 	}
@@ -75,7 +75,7 @@ func (bp *buffersPool) FindExistingBuffer(block *storage.BlockID) *Buffer {
 }
 
 // ChooseUnpinnedBuffer ищет незакрепленные буферы в памяти
-func (bp *buffersPool) ChooseUnpinnedBuffer() *Buffer {
+func (bp *BuffersPool) ChooseUnpinnedBuffer() *Buffer {
 	for i := 0; i < bp.len; i++ {
 		bp.ring = bp.ring.Next()
 
@@ -89,7 +89,7 @@ func (bp *buffersPool) ChooseUnpinnedBuffer() *Buffer {
 }
 
 // AssignBufferToBlock связывает буфер с блоком на диске
-func (bp *buffersPool) AssignBufferToBlock(buf *Buffer, block *storage.BlockID) error {
+func (bp *BuffersPool) AssignBufferToBlock(buf *Buffer, block *storage.BlockID) error {
 	bp.blocksToBuffers[block.HashKey()] = buf
 
 	if oldBlock := buf.Block(); oldBlock != nil {

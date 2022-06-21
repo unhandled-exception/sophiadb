@@ -1,12 +1,13 @@
-package buffers
+package buffers_test
 
 import (
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
@@ -25,19 +26,19 @@ func (ts *BuffersPoolTestSuite) SuiteDir() string {
 
 func (ts *BuffersPoolTestSuite) SetupSuite() {
 	testSuiteDir := "buffers_pool_tests"
-	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, testSuiteDir)
+	ts.suiteDir = testutil.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
 func (ts *BuffersPoolTestSuite) TearDownSuite() {
-	test.RemoveSuiteTemporaryDir(ts)
+	testutil.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *BuffersPoolTestSuite) createBufferPool(bLen int) (*buffersPool, string, *storage.Manager) {
+func (ts *BuffersPoolTestSuite) createBufferPool(bLen int) (*buffers.BuffersPool, string, *storage.Manager) {
 	var defaultBlockSize uint32 = 400
 
 	walFile := "wal_log.dat"
 
-	path := test.CreateTestTemporaryDir(ts)
+	path := testutil.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
 
@@ -46,22 +47,24 @@ func (ts *BuffersPoolTestSuite) createBufferPool(bLen int) (*buffersPool, string
 
 	ts.Require().FileExists(filepath.Join(path, walFile))
 
-	bp := newBuffersPool(bLen, func() *Buffer {
-		return NewBuffer(fm, lm)
+	bp := buffers.NewBuffersPool(bLen, func() *buffers.Buffer {
+		return buffers.NewBuffer(fm, lm)
 	})
 
 	return bp, path, fm
 }
 
 func (ts *BuffersPoolTestSuite) TestFindExistingBuffer() {
-	bp, path, fm := ts.createBufferPool(10)
+	bpLen := 10
+	bp, path, fm := ts.createBufferPool(bpLen)
+
 	defer fm.Close()
 
 	defaultBlockSize := 400
 	testFile := "test_file_1.dat"
-	test.CreateFile(ts, filepath.Join(path, testFile), make([]byte, bp.len*defaultBlockSize))
+	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, bpLen*defaultBlockSize))
 
-	buffers := bp.buffers()
+	buffers := bp.Buffers()
 
 	block0 := storage.NewBlockID(testFile, 0)
 	block1 := storage.NewBlockID(testFile, 1)
@@ -82,39 +85,28 @@ func (ts *BuffersPoolTestSuite) TestFindExistingBuffer() {
 }
 
 func (ts *BuffersPoolTestSuite) TestChooseUnpinnedBuffer() {
+	bpLen := 5
 	bp, path, fm := ts.createBufferPool(5)
+
 	defer fm.Close()
 
 	defaultBlockSize := 400
 	testFile := "test_file_2.dat"
-	test.CreateFile(ts, filepath.Join(path, testFile), make([]byte, bp.len*defaultBlockSize))
+	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, bpLen*defaultBlockSize))
 
-	var buf *Buffer
+	pins := make([]bool, bpLen)
 
-	for i := 0; i < bp.len; i++ {
+	for i, buf := range bp.Buffers() {
 		if i%2 == 0 {
-			v, ok := bp.ring.Value.(*Buffer)
-			ts.Require().True(ok, "failed to cast ring value")
-
-			v.Pin()
+			buf.Pin()
 		}
 
-		bp.ring = bp.ring.Next()
+		pins[i] = buf.IsPinned()
 	}
 
-	var pins [5]bool
+	ts.Require().Equal([]bool{true, false, true, false, true}, pins)
 
-	for i := 0; i < bp.len; i++ {
-		v, ok := bp.ring.Value.(*Buffer)
-		ts.Require().True(ok, "failed to cast ring value")
-
-		pins[i] = v.IsPinned()
-		bp.ring = bp.ring.Next()
-	}
-
-	ts.Require().Equal([5]bool{true, false, true, false, true}, pins)
-
-	buf = bp.ChooseUnpinnedBuffer()
+	buf := bp.ChooseUnpinnedBuffer()
 	ts.Require().NotNil(buf)
 
 	ts.Require().False(buf.IsPinned())

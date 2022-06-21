@@ -72,6 +72,16 @@ func (buf *Buffer) ModifyingTX() int64 {
 	return buf.txnum
 }
 
+// Возвращает LSN
+func (buf *Buffer) LSN() int64 {
+	return buf.lsn
+}
+
+// Возвращает LSN
+func (buf *Buffer) Pins() int {
+	return buf.pins
+}
+
 // AssignToBlock cвязывает страницу буфера со странице на диске
 func (buf *Buffer) AssignToBlock(block *storage.BlockID) error {
 	err := buf.Flush()

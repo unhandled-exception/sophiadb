@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	boolTrueMark  byte = 0xf0
-	boolFalseMark byte = 0x0f
+	BoolTrueMark  byte = 0xf0
+	BoolFalseMark byte = 0x0f
 	int32Size          = 4
 	int64Size          = 8
 )
@@ -36,15 +36,15 @@ func (p *Page) Content() []byte {
 	return p.bb
 }
 
-// putBytes записывает массив байтов по смещению в страницу
-func (p *Page) putBytes(offset uint32, value []byte) {
+// PutBytes записывает массив байтов по смещению в страницу
+func (p *Page) PutBytes(offset uint32, value []byte) {
 	for i, v := range value {
 		p.bb[int(offset)+i] = v
 	}
 }
 
-// fetchBytes возвращает массив байтов из страницы по смещению offset длинной size
-func (p *Page) fetchBytes(offset uint32, size int) []byte {
+// FetchBytes возвращает массив байтов из страницы по смещению offset длинной size
+func (p *Page) FetchBytes(offset uint32, size int) []byte {
 	result := make([]byte, size)
 	for i := 0; i < size; i++ {
 		result[i] = p.bb[int(offset)+i]
@@ -55,7 +55,7 @@ func (p *Page) fetchBytes(offset uint32, size int) []byte {
 
 // GetInt32 возвращает значение int32 по смещению offset
 func (p *Page) GetInt32(offset uint32) int32 {
-	buf := p.fetchBytes(offset, int32Size)
+	buf := p.FetchBytes(offset, int32Size)
 	value := int32(p.order.Uint32(buf))
 
 	return value
@@ -65,7 +65,7 @@ func (p *Page) GetInt32(offset uint32) int32 {
 func (p *Page) SetInt32(offset uint32, value int32) {
 	buf := make([]byte, int32Size)
 	p.order.PutUint32(buf, uint32(value))
-	p.putBytes(offset, buf)
+	p.PutBytes(offset, buf)
 }
 
 // GetUint32 возвращает значение uint32 по смещению offset
@@ -80,7 +80,7 @@ func (p *Page) SetUint32(offset uint32, value uint32) {
 
 // GetInt64 возвращает значение int64 по смещению offset
 func (p *Page) GetInt64(offset uint32) int64 {
-	buf := p.fetchBytes(offset, int64Size)
+	buf := p.FetchBytes(offset, int64Size)
 	value := int64(p.order.Uint64(buf))
 
 	return value
@@ -90,21 +90,21 @@ func (p *Page) GetInt64(offset uint32) int64 {
 func (p *Page) SetInt64(offset uint32, value int64) {
 	buf := make([]byte, int64Size)
 	p.order.PutUint64(buf, uint64(value))
-	p.putBytes(offset, buf)
+	p.PutBytes(offset, buf)
 }
 
 // GetBytes возвращает байтовый массив по смещению offset
 func (p *Page) GetBytes(offset uint32) []byte {
 	length := p.GetInt32(offset)
 
-	return p.fetchBytes(offset+int32Size, int(length))
+	return p.FetchBytes(offset+int32Size, int(length))
 }
 
 // SetBytes записывает байтовый массив по смещению offset
 func (p *Page) SetBytes(offset uint32, value []byte) {
 	length := len(value)
 	p.SetInt32(offset, int32(length))
-	p.putBytes(offset+int32Size, value)
+	p.PutBytes(offset+int32Size, value)
 }
 
 // GetString возвращает строку по смещению offset
@@ -119,7 +119,7 @@ func (p *Page) SetString(offset uint32, value string) {
 
 // GetFloat32 возвращает значение float32 по смещению offset
 func (p *Page) GetFloat32(offset uint32) float32 {
-	buf := p.fetchBytes(offset, int32Size)
+	buf := p.FetchBytes(offset, int32Size)
 	value := math.Float32frombits(p.order.Uint32(buf))
 
 	return value
@@ -129,19 +129,19 @@ func (p *Page) GetFloat32(offset uint32) float32 {
 func (p *Page) SetFloat32(offset uint32, value float32) {
 	buf := make([]byte, int32Size)
 	p.order.PutUint32(buf, math.Float32bits(value))
-	p.putBytes(offset, buf)
+	p.PutBytes(offset, buf)
 }
 
 // GetBool возвращает значение bool по смещению offset
 func (p *Page) GetBool(offset uint32) bool {
-	return (p.bb[offset] == boolTrueMark)
+	return (p.bb[offset] == BoolTrueMark)
 }
 
 // SetBool записывает значение bool по смещению offset
 func (p *Page) SetBool(offset uint32, value bool) {
-	bValue := boolFalseMark
+	bValue := BoolFalseMark
 	if value {
-		bValue = boolTrueMark
+		bValue = BoolTrueMark
 	}
 
 	p.bb[offset] = bValue

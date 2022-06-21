@@ -1,3 +1,3 @@
 // Утилиты для тестирования
 
-package test
+package testutil

@@ -1,9 +1,10 @@
-package storage
+package storage_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 )
 
 type PageTestSuite struct {
@@ -15,8 +16,8 @@ func TestPageTestSuite(t *testing.T) {
 }
 
 func (ts PageTestSuite) TestCreatePage() {
-	p := NewPage(400)
-	ts.Len(p.bb, 400)
+	p := storage.NewPage(400)
+	ts.Len(p.Content(), 400)
 
 	for i, b := range p.Content() {
 		ts.Equal(uint8(0x00), b, "Byte %d equals to %x", i, b)
@@ -24,22 +25,22 @@ func (ts PageTestSuite) TestCreatePage() {
 }
 
 func (ts PageTestSuite) TestPutAndFetchBytes() {
-	p := NewPage(20)
-	p.putBytes(0, []byte{0x13, 0x14, 0x00, 0x15})
-	p.putBytes(8, []byte{0x23, 0x24, 0x00, 0x25})
+	p := storage.NewPage(20)
+	p.PutBytes(0, []byte{0x13, 0x14, 0x00, 0x15})
+	p.PutBytes(8, []byte{0x23, 0x24, 0x00, 0x25})
 
 	ts.Equal(
 		[]byte{0x13, 0x14, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00},
-		p.fetchBytes(0, 8),
+		p.FetchBytes(0, 8),
 	)
 	ts.Equal(
 		[]byte{0x23, 0x24, 0x00, 0x25, 0x00, 0x00, 0x00, 0x00},
-		p.fetchBytes(8, 8),
+		p.FetchBytes(8, 8),
 	)
 }
 
 func (ts PageTestSuite) TestGetAndSetInt32() {
-	p := NewPage(24)
+	p := storage.NewPage(24)
 	p.SetInt32(0, 12345)
 	p.SetInt32(4, -12345)
 	p.SetInt32(16, 0x7fffffff)
@@ -49,7 +50,7 @@ func (ts PageTestSuite) TestGetAndSetInt32() {
 }
 
 func (ts PageTestSuite) TestGetAndSetUint32() {
-	p := NewPage(24)
+	p := storage.NewPage(24)
 	p.SetUint32(0, 12345)
 	p.SetUint32(16, 0xffffffff)
 	ts.Equal(uint32(12345), p.GetUint32(0))
@@ -57,7 +58,7 @@ func (ts PageTestSuite) TestGetAndSetUint32() {
 }
 
 func (ts PageTestSuite) TestGetAndSetInt64() {
-	p := NewPage(24)
+	p := storage.NewPage(24)
 	p.SetInt64(0, 12345)
 	p.SetInt64(8, -12345)
 	p.SetInt64(16, 0x7fffffffffffffff)
@@ -67,7 +68,7 @@ func (ts PageTestSuite) TestGetAndSetInt64() {
 }
 
 func (ts PageTestSuite) TestGetAndSetString() {
-	p := NewPage(200)
+	p := storage.NewPage(200)
 	cases := []string{
 		"Тестовая string 1",
 		"Еще одна тестовая string",
@@ -89,7 +90,7 @@ func (ts PageTestSuite) TestGetAndSetString() {
 }
 
 func (ts PageTestSuite) TestGetAndSetFloat32() {
-	p := NewPage(24)
+	p := storage.NewPage(24)
 	p.SetFloat32(0, 12345.245)
 	p.SetFloat32(4, -12345.245)
 	p.SetFloat32(16, 0x7fffffff)
@@ -99,12 +100,12 @@ func (ts PageTestSuite) TestGetAndSetFloat32() {
 }
 
 func (ts PageTestSuite) TestGetAndSetBool() {
-	p := NewPage(4)
+	p := storage.NewPage(4)
 	p.SetBool(0, true)
 	p.SetBool(1, false)
 	p.SetBool(2, true)
 	ts.Equal(true, p.GetBool(0))
 	ts.Equal(false, p.GetBool(1))
 	ts.Equal(true, p.GetBool(2))
-	ts.Equal([]byte{boolTrueMark, boolFalseMark, boolTrueMark, 0x0}, p.Content())
+	ts.Equal([]byte{storage.BoolTrueMark, storage.BoolFalseMark, storage.BoolTrueMark, 0x0}, p.Content())
 }

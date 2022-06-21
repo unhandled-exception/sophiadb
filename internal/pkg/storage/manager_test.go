@@ -1,4 +1,4 @@
-package storage
+package storage_test
 
 import (
 	"fmt"
@@ -9,7 +9,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
 )
 
 const testSuiteDir = "file_manager_tests"
@@ -28,20 +29,20 @@ func (ts *FileManagerTestSuite) SuiteDir() string {
 }
 
 func (ts *FileManagerTestSuite) SetupSuite() {
-	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, testSuiteDir)
+	ts.suiteDir = testutil.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
 func (ts *FileManagerTestSuite) TearDownSuite() {
-	test.RemoveSuiteTemporaryDir(ts)
+	testutil.RemoveSuiteTemporaryDir(ts)
 }
 
 func (ts *FileManagerTestSuite) TestCreateFileManager() {
 	path := filepath.Join(
-		test.CreateTestTemporaryDir(ts),
+		testutil.CreateTestTemporaryDir(ts),
 		"data",
 	)
 	ts.Require().NoDirExists(path)
-	fm, err := NewFileManager(path, 400)
+	fm, err := storage.NewFileManager(path, 400)
 	ts.DirExists(path)
 
 	ts.Require().NoError(err)
@@ -51,30 +52,30 @@ func (ts *FileManagerTestSuite) TestCreateFileManager() {
 }
 
 func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
-	path := filepath.Join(test.CreateTestTemporaryDir(ts))
+	path := filepath.Join(testutil.CreateTestTemporaryDir(ts))
 
 	// Создаем временные файлы в папке с тестом
 	for i := 0; i < 5; i++ {
-		test.CreateFile(ts, filepath.Join(path, fmt.Sprintf("%s_%d.dat", TempFilesPrefix, i)), []byte{})
+		testutil.CreateFile(ts, filepath.Join(path, fmt.Sprintf("%s_%d.dat", storage.TempFilesPrefix, i)), []byte{})
 	}
 
 	for i := 0; i < 5; i++ {
-		test.CreateFile(ts, filepath.Join(path, fmt.Sprintf("b_%d.dat", i)), []byte{})
+		testutil.CreateFile(ts, filepath.Join(path, fmt.Sprintf("b_%d.dat", i)), []byte{})
 	}
 
-	dir, err := filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", TempFilesPrefix)))
+	dir, err := filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", storage.TempFilesPrefix)))
 	if err != nil {
 		ts.FailNow(err.Error())
 	}
 
 	ts.Require().Len(dir, 5)
 
-	fm, err := NewFileManager(path, 400)
+	fm, err := storage.NewFileManager(path, 400)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(fm)
 
 	// Проверяем, что файлы удалили в конструкторе
-	dir, err = filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", TempFilesPrefix)))
+	dir, err = filepath.Glob(filepath.Join(path, fmt.Sprintf("%s_*.dat", storage.TempFilesPrefix)))
 	if err != nil {
 		ts.FailNow(err.Error())
 	}
@@ -91,57 +92,57 @@ func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
 }
 
 func (ts *FileManagerTestSuite) TestCloseAllFiles() {
-	path := filepath.Join(test.CreateTestTemporaryDir(ts))
+	path := filepath.Join(testutil.CreateTestTemporaryDir(ts))
 
-	fm, err := NewFileManager(path, 400)
+	fm, err := storage.NewFileManager(path, 400)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(fm)
 
 	// Создаем файлы с данными и записываем их в список файлов в менеджере
 	for i := 0; i < 5; i++ {
 		filePath := filepath.Join(path, fmt.Sprintf("%d.dat", i))
-		test.CreateFile(ts, filePath, []byte{})
+		testutil.CreateFile(ts, filePath, []byte{})
 
 		f, err := os.Open(filePath)
 		if err != nil {
 			ts.FailNow("failed to open file \"%s\": %s", filePath, err.Error())
 		}
 
-		fm.openFiles[filepath.Base(filePath)] = f
+		fm.OpenFiles()[filepath.Base(filePath)] = f
 	}
-	ts.Require().Len(fm.openFiles, 5)
+	ts.Require().Len(fm.OpenFiles(), 5)
 
 	err = fm.Close()
 	ts.Require().NoError(err)
-	ts.Require().Empty(fm.openFiles)
+	ts.Require().Empty(fm.OpenFiles())
 
 	// Создаем еще пару файлов и сразу закрываем их
 	for i := 0; i < 2; i++ {
 		filePath := filepath.Join(path, fmt.Sprintf("closed_%d.dat", i))
-		test.CreateFile(ts, filePath, []byte{})
+		testutil.CreateFile(ts, filePath, []byte{})
 
 		f, err := os.Open(filePath)
 		if err != nil {
 			ts.FailNow("failed to open file \"%s\": %s", filePath, err.Error())
 		}
 
-		fm.openFiles[filepath.Base(filePath)] = f
+		fm.OpenFiles()[filepath.Base(filePath)] = f
 		f.Close()
 	}
 
 	// Проверяем, что обрабатываем ошибки
 	err = fm.Close()
 	ts.Require().Error(err)
-	ts.Require().ErrorIs(err, ErrFileManagerIO)
-	ts.Require().Empty(fm.openFiles)
+	ts.Require().ErrorIs(err, storage.ErrFileManagerIO)
+	ts.Require().Empty(fm.OpenFiles())
 }
 
 func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
-	path := filepath.Join(test.CreateTestTemporaryDir(ts))
+	path := filepath.Join(testutil.CreateTestTemporaryDir(ts))
 
 	var blockSize uint32 = 100
 
-	fm, err := NewFileManager(path, blockSize)
+	fm, err := storage.NewFileManager(path, blockSize)
 	ts.Require().NoError(err)
 
 	ts.Require().NotNil(fm)
@@ -149,7 +150,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	defer fm.Close()
 
 	// Создаем блоки
-	blocks := make([]*BlockID, 10)
+	blocks := make([]*storage.BlockID, 10)
 
 	for i := 0; i < len(blocks); i++ {
 		filenum := i % 2
@@ -166,15 +167,15 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	ts.Len(list, 2)
 
 	// Создаем странички
-	emptyPage := NewPage(blockSize)
+	emptyPage := storage.NewPage(blockSize)
 
-	p1 := NewPage(blockSize)
+	p1 := storage.NewPage(blockSize)
 	p1.SetString(0, "Первый блок")
-	ts.Require().NotEqual(emptyPage.bb, p1.bb)
+	ts.Require().NotEqual(emptyPage.Content(), p1.Content())
 
-	p2 := NewPage(blockSize)
+	p2 := storage.NewPage(blockSize)
 	p2.SetString(0, "Второй блок")
-	ts.Require().NotEqual(emptyPage.bb, p2.bb)
+	ts.Require().NotEqual(emptyPage.Content(), p2.Content())
 
 	// Записываем странички в файлы
 	ts.Require().NoError(fm.Write(blocks[0], p1))
@@ -183,7 +184,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	ts.Require().NoError(fm.Write(blocks[3], p2))
 
 	// Страница-приёмник
-	pd := NewPage(blockSize)
+	pd := storage.NewPage(blockSize)
 
 	// Читаем странички из файлов
 	ts.Require().NoError(fm.Read(blocks[0], pd))
@@ -202,9 +203,9 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	fc, err := ioutil.ReadFile(filepath.Join(path, blocks[0].Filename()))
 	ts.Require().NoError(err)
 	ts.Require().Len(fc, int(5*blockSize))
-	ts.Equal(p1.bb, fc[0:blockSize])
-	ts.Equal(p2.bb, fc[blockSize:2*blockSize])
-	ts.Equal(emptyPage.bb, fc[2*blockSize:3*blockSize])
-	ts.Equal(emptyPage.bb, fc[3*blockSize:4*blockSize])
-	ts.Equal(emptyPage.bb, fc[4*blockSize:5*blockSize])
+	ts.Equal(p1.Content(), fc[0:blockSize])
+	ts.Equal(p2.Content(), fc[blockSize:2*blockSize])
+	ts.Equal(emptyPage.Content(), fc[2*blockSize:3*blockSize])
+	ts.Equal(emptyPage.Content(), fc[3*blockSize:4*blockSize])
+	ts.Equal(emptyPage.Content(), fc[4*blockSize:5*blockSize])
 }
