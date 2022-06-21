@@ -1,13 +1,13 @@
 package buffers
 
 import (
-	"github.com/rotisserie/eris"
+	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
-// FailedToAssignBlockToBuffer — ошибка при связывании буыера с блоком
-var FailedToAssignBlockToBuffer = eris.New("failed to assign a block to buffer")
+// ErrFailedToAssignBlockToBuffer — ошибка при связывании буыера с блоком
+var ErrFailedToAssignBlockToBuffer = errors.New("failed to assign a block to buffer")
 
 // Buffer — страница в пуле буферов
 type Buffer struct {
@@ -76,14 +76,14 @@ func (buf *Buffer) ModifyingTX() int64 {
 func (buf *Buffer) AssignToBlock(block *storage.BlockID) error {
 	err := buf.Flush()
 	if err != nil {
-		return eris.Wrap(err, FailedToAssignBlockToBuffer.Error())
+		return errors.WithMessage(ErrFailedToAssignBlockToBuffer, err.Error())
 	}
 
 	buf.block = block
 
 	err = buf.fm.Read(buf.block, buf.contents)
 	if err != nil {
-		return eris.Wrap(err, FailedToAssignBlockToBuffer.Error())
+		return errors.WithMessage(ErrFailedToAssignBlockToBuffer, err.Error())
 	}
 
 	return nil

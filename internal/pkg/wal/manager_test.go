@@ -10,7 +10,7 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/test"
 )
 
-type ManagerTestSuite struct {
+type WalManagerTestSuite struct {
 	suite.Suite
 	suiteDir string
 }
@@ -22,22 +22,22 @@ const (
 )
 
 func TestManagerTestSuite(t *testing.T) {
-	suite.Run(t, new(ManagerTestSuite))
+	suite.Run(t, new(WalManagerTestSuite))
 }
 
-func (ts *ManagerTestSuite) SuiteDir() string {
+func (ts *WalManagerTestSuite) SuiteDir() string {
 	return ts.suiteDir
 }
 
-func (ts *ManagerTestSuite) SetupSuite() {
+func (ts *WalManagerTestSuite) SetupSuite() {
 	ts.suiteDir = test.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
-func (ts *ManagerTestSuite) TearDownSuite() {
+func (ts *WalManagerTestSuite) TearDownSuite() {
 	test.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *ManagerTestSuite) createWALManager() *Manager {
+func (ts *WalManagerTestSuite) createWALManager() *Manager {
 	path := test.CreateTestTemporaryDir(ts)
 	fm, err := storage.NewFileManager(path, defaultBlockSize)
 	ts.Require().NoError(err)
@@ -50,14 +50,14 @@ func (ts *ManagerTestSuite) createWALManager() *Manager {
 	return m
 }
 
-func (ts *ManagerTestSuite) TestCreateManagerUnexistsLogFile() {
+func (ts *WalManagerTestSuite) TestCreateManagerUnexistsLogFile() {
 	m := ts.createWALManager()
 	ts.Require().NotNil(m)
 
 	defer m.fm.Close()
 }
 
-func (ts *ManagerTestSuite) TestCreateManagerExistsLogFile() {
+func (ts *WalManagerTestSuite) TestCreateManagerExistsLogFile() {
 	path := test.CreateTestTemporaryDir(ts)
 	walPath := filepath.Join(path, walFile)
 
@@ -84,7 +84,7 @@ func (ts *ManagerTestSuite) TestCreateManagerExistsLogFile() {
 	ts.Equal(uint32(1), nm.currentBlock.Number())
 }
 
-func (ts *ManagerTestSuite) TestCreateRecords() {
+func (ts *WalManagerTestSuite) TestCreateRecords() {
 	m := ts.createWALManager()
 	ts.Require().NotNil(m)
 
