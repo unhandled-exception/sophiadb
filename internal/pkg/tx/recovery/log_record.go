@@ -10,12 +10,14 @@ import (
 
 const (
 	int32Size = 4
+	int64Size = 8
 )
 
 type trxInt interface {
 	Pin(block *storage.BlockID) error
 	Unpin(block *storage.BlockID) error
 	SetString(block *storage.BlockID, offset uint32, value string, okToLog bool) error
+	SetInt64(block *storage.BlockID, offset uint32, value int64, okToLog bool) error
 }
 
 type LogRecord interface {
@@ -45,6 +47,8 @@ func NewLogRecordFromBytes(rawRecord []byte) (interface{}, error) {
 	switch op {
 	case SetStringOp:
 		return NewSetStringLogRecordFromBytes(rawRecord)
+	case SetInt64Op:
+		return NewSetInt64LogRecordFromBytes(rawRecord)
 	default:
 		return nil, errors.WithMessagef(ErrUnknownLogRecord, "%d is an unknown op", op)
 	}

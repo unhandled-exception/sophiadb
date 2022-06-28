@@ -6,18 +6,18 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 )
 
-type SetStringLogRecord struct {
+type SetInt64LogRecord struct {
 	BaseLogRecord
 
 	offset uint32
-	value  string
+	value  int64
 	block  *storage.BlockID
 }
 
-func NewSetStringLogRecord(txnum int32, block *storage.BlockID, offset uint32, value string) *SetStringLogRecord {
-	return &SetStringLogRecord{
+func NewSetInt64LogRecord(txnum int32, block *storage.BlockID, offset uint32, value int64) *SetInt64LogRecord {
+	return &SetInt64LogRecord{
 		BaseLogRecord: BaseLogRecord{
-			op:    SetStringOp,
+			op:    SetInt64Op,
 			txnum: txnum,
 		},
 		offset: offset,
@@ -26,8 +26,8 @@ func NewSetStringLogRecord(txnum int32, block *storage.BlockID, offset uint32, v
 	}
 }
 
-func NewSetStringLogRecordFromBytes(rawRecord []byte) (*SetStringLogRecord, error) {
-	r := SetStringLogRecord{}
+func NewSetInt64LogRecordFromBytes(rawRecord []byte) (*SetInt64LogRecord, error) {
+	r := SetInt64LogRecord{}
 
 	err := r.unmarshalBytes(rawRecord)
 	if err != nil {
@@ -37,12 +37,12 @@ func NewSetStringLogRecordFromBytes(rawRecord []byte) (*SetStringLogRecord, erro
 	return &r, nil
 }
 
-func (lr *SetStringLogRecord) Undo(tx trxInt) error {
+func (lr *SetInt64LogRecord) Undo(tx trxInt) error {
 	if err := tx.Pin(lr.block); err != nil {
 		return err
 	}
 
-	if err := tx.SetString(lr.block, lr.offset, lr.value, false); err != nil {
+	if err := tx.SetInt64(lr.block, lr.offset, lr.value, false); err != nil {
 		return err
 	}
 
@@ -53,9 +53,9 @@ func (lr *SetStringLogRecord) Undo(tx trxInt) error {
 	return nil
 }
 
-func (lr *SetStringLogRecord) String() string {
+func (lr *SetInt64LogRecord) String() string {
 	return fmt.Sprintf(
-		`<SET_STRING, %d, block: %s, offset: %d, value: "%s">`,
+		`<SET_INT64, %d, block: %s, offset: %d, value: %d>`,
 		lr.TXNum(),
 		lr.block.String(),
 		lr.offset,
@@ -63,7 +63,7 @@ func (lr *SetStringLogRecord) String() string {
 	)
 }
 
-func (lr *SetStringLogRecord) MarshalBytes() []byte {
+func (lr *SetInt64LogRecord) MarshalBytes() []byte {
 	blockFilename := lr.block.Filename()
 
 	oppos := uint32(0)
@@ -72,7 +72,7 @@ func (lr *SetStringLogRecord) MarshalBytes() []byte {
 	bpos := fpos + int32Size + uint32(len(blockFilename))
 	ofpos := bpos + int32Size
 	vpos := ofpos + int32Size
-	recLen := vpos + int32Size + uint32(len(lr.value))
+	recLen := vpos + int64Size
 
 	p := storage.NewPage(recLen)
 
@@ -81,12 +81,12 @@ func (lr *SetStringLogRecord) MarshalBytes() []byte {
 	p.SetString(fpos, blockFilename)
 	p.SetUint32(bpos, lr.block.Number())
 	p.SetUint32(ofpos, lr.offset)
-	p.SetString(vpos, lr.value)
+	p.SetInt64(vpos, lr.value)
 
 	return p.Content()
 }
 
-func (lr *SetStringLogRecord) unmarshalBytes(rawRecord []byte) error {
+func (lr *SetInt64LogRecord) unmarshalBytes(rawRecord []byte) error {
 	p := storage.NewPageFromBytes(rawRecord)
 
 	lr.op = p.GetUint32(0)
@@ -104,7 +104,7 @@ func (lr *SetStringLogRecord) unmarshalBytes(rawRecord []byte) error {
 	lr.offset = p.GetUint32(ofpos)
 
 	vpos := ofpos + int32Size
-	lr.value = p.GetString(vpos)
+	lr.value = p.GetInt64(vpos)
 
 	return nil
 }

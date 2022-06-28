@@ -23,6 +23,12 @@ type TrxIntMock struct {
 	beforePinCounter uint64
 	PinMock          mTrxIntMockPin
 
+	funcSetInt64          func(block *storage.BlockID, offset uint32, value int64, okToLog bool) (err error)
+	inspectFuncSetInt64   func(block *storage.BlockID, offset uint32, value int64, okToLog bool)
+	afterSetInt64Counter  uint64
+	beforeSetInt64Counter uint64
+	SetInt64Mock          mTrxIntMockSetInt64
+
 	funcSetString          func(block *storage.BlockID, offset uint32, value string, okToLog bool) (err error)
 	inspectFuncSetString   func(block *storage.BlockID, offset uint32, value string, okToLog bool)
 	afterSetStringCounter  uint64
@@ -45,6 +51,9 @@ func NewTrxIntMock(t minimock.Tester) *TrxIntMock {
 
 	m.PinMock = mTrxIntMockPin{mock: m}
 	m.PinMock.callArgs = []*TrxIntMockPinParams{}
+
+	m.SetInt64Mock = mTrxIntMockSetInt64{mock: m}
+	m.SetInt64Mock.callArgs = []*TrxIntMockSetInt64Params{}
 
 	m.SetStringMock = mTrxIntMockSetString{mock: m}
 	m.SetStringMock.callArgs = []*TrxIntMockSetStringParams{}
@@ -267,6 +276,224 @@ func (m *TrxIntMock) MinimockPinInspect() {
 	// if func was set then invocations count should be greater than zero
 	if m.funcPin != nil && mm_atomic.LoadUint64(&m.afterPinCounter) < 1 {
 		m.t.Error("Expected call to TrxIntMock.Pin")
+	}
+}
+
+type mTrxIntMockSetInt64 struct {
+	mock               *TrxIntMock
+	defaultExpectation *TrxIntMockSetInt64Expectation
+	expectations       []*TrxIntMockSetInt64Expectation
+
+	callArgs []*TrxIntMockSetInt64Params
+	mutex    sync.RWMutex
+}
+
+// TrxIntMockSetInt64Expectation specifies expectation struct of the trxInt.SetInt64
+type TrxIntMockSetInt64Expectation struct {
+	mock    *TrxIntMock
+	params  *TrxIntMockSetInt64Params
+	results *TrxIntMockSetInt64Results
+	Counter uint64
+}
+
+// TrxIntMockSetInt64Params contains parameters of the trxInt.SetInt64
+type TrxIntMockSetInt64Params struct {
+	block   *storage.BlockID
+	offset  uint32
+	value   int64
+	okToLog bool
+}
+
+// TrxIntMockSetInt64Results contains results of the trxInt.SetInt64
+type TrxIntMockSetInt64Results struct {
+	err error
+}
+
+// Expect sets up expected params for trxInt.SetInt64
+func (mmSetInt64 *mTrxIntMockSetInt64) Expect(block *storage.BlockID, offset uint32, value int64, okToLog bool) *mTrxIntMockSetInt64 {
+	if mmSetInt64.mock.funcSetInt64 != nil {
+		mmSetInt64.mock.t.Fatalf("TrxIntMock.SetInt64 mock is already set by Set")
+	}
+
+	if mmSetInt64.defaultExpectation == nil {
+		mmSetInt64.defaultExpectation = &TrxIntMockSetInt64Expectation{}
+	}
+
+	mmSetInt64.defaultExpectation.params = &TrxIntMockSetInt64Params{block, offset, value, okToLog}
+	for _, e := range mmSetInt64.expectations {
+		if minimock.Equal(e.params, mmSetInt64.defaultExpectation.params) {
+			mmSetInt64.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmSetInt64.defaultExpectation.params)
+		}
+	}
+
+	return mmSetInt64
+}
+
+// Inspect accepts an inspector function that has same arguments as the trxInt.SetInt64
+func (mmSetInt64 *mTrxIntMockSetInt64) Inspect(f func(block *storage.BlockID, offset uint32, value int64, okToLog bool)) *mTrxIntMockSetInt64 {
+	if mmSetInt64.mock.inspectFuncSetInt64 != nil {
+		mmSetInt64.mock.t.Fatalf("Inspect function is already set for TrxIntMock.SetInt64")
+	}
+
+	mmSetInt64.mock.inspectFuncSetInt64 = f
+
+	return mmSetInt64
+}
+
+// Return sets up results that will be returned by trxInt.SetInt64
+func (mmSetInt64 *mTrxIntMockSetInt64) Return(err error) *TrxIntMock {
+	if mmSetInt64.mock.funcSetInt64 != nil {
+		mmSetInt64.mock.t.Fatalf("TrxIntMock.SetInt64 mock is already set by Set")
+	}
+
+	if mmSetInt64.defaultExpectation == nil {
+		mmSetInt64.defaultExpectation = &TrxIntMockSetInt64Expectation{mock: mmSetInt64.mock}
+	}
+	mmSetInt64.defaultExpectation.results = &TrxIntMockSetInt64Results{err}
+	return mmSetInt64.mock
+}
+
+//Set uses given function f to mock the trxInt.SetInt64 method
+func (mmSetInt64 *mTrxIntMockSetInt64) Set(f func(block *storage.BlockID, offset uint32, value int64, okToLog bool) (err error)) *TrxIntMock {
+	if mmSetInt64.defaultExpectation != nil {
+		mmSetInt64.mock.t.Fatalf("Default expectation is already set for the trxInt.SetInt64 method")
+	}
+
+	if len(mmSetInt64.expectations) > 0 {
+		mmSetInt64.mock.t.Fatalf("Some expectations are already set for the trxInt.SetInt64 method")
+	}
+
+	mmSetInt64.mock.funcSetInt64 = f
+	return mmSetInt64.mock
+}
+
+// When sets expectation for the trxInt.SetInt64 which will trigger the result defined by the following
+// Then helper
+func (mmSetInt64 *mTrxIntMockSetInt64) When(block *storage.BlockID, offset uint32, value int64, okToLog bool) *TrxIntMockSetInt64Expectation {
+	if mmSetInt64.mock.funcSetInt64 != nil {
+		mmSetInt64.mock.t.Fatalf("TrxIntMock.SetInt64 mock is already set by Set")
+	}
+
+	expectation := &TrxIntMockSetInt64Expectation{
+		mock:   mmSetInt64.mock,
+		params: &TrxIntMockSetInt64Params{block, offset, value, okToLog},
+	}
+	mmSetInt64.expectations = append(mmSetInt64.expectations, expectation)
+	return expectation
+}
+
+// Then sets up trxInt.SetInt64 return parameters for the expectation previously defined by the When method
+func (e *TrxIntMockSetInt64Expectation) Then(err error) *TrxIntMock {
+	e.results = &TrxIntMockSetInt64Results{err}
+	return e.mock
+}
+
+// SetInt64 implements trxInt
+func (mmSetInt64 *TrxIntMock) SetInt64(block *storage.BlockID, offset uint32, value int64, okToLog bool) (err error) {
+	mm_atomic.AddUint64(&mmSetInt64.beforeSetInt64Counter, 1)
+	defer mm_atomic.AddUint64(&mmSetInt64.afterSetInt64Counter, 1)
+
+	if mmSetInt64.inspectFuncSetInt64 != nil {
+		mmSetInt64.inspectFuncSetInt64(block, offset, value, okToLog)
+	}
+
+	mm_params := &TrxIntMockSetInt64Params{block, offset, value, okToLog}
+
+	// Record call args
+	mmSetInt64.SetInt64Mock.mutex.Lock()
+	mmSetInt64.SetInt64Mock.callArgs = append(mmSetInt64.SetInt64Mock.callArgs, mm_params)
+	mmSetInt64.SetInt64Mock.mutex.Unlock()
+
+	for _, e := range mmSetInt64.SetInt64Mock.expectations {
+		if minimock.Equal(e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmSetInt64.SetInt64Mock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmSetInt64.SetInt64Mock.defaultExpectation.Counter, 1)
+		mm_want := mmSetInt64.SetInt64Mock.defaultExpectation.params
+		mm_got := TrxIntMockSetInt64Params{block, offset, value, okToLog}
+		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmSetInt64.t.Errorf("TrxIntMock.SetInt64 got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmSetInt64.SetInt64Mock.defaultExpectation.results
+		if mm_results == nil {
+			mmSetInt64.t.Fatal("No results are set for the TrxIntMock.SetInt64")
+		}
+		return (*mm_results).err
+	}
+	if mmSetInt64.funcSetInt64 != nil {
+		return mmSetInt64.funcSetInt64(block, offset, value, okToLog)
+	}
+	mmSetInt64.t.Fatalf("Unexpected call to TrxIntMock.SetInt64. %v %v %v %v", block, offset, value, okToLog)
+	return
+}
+
+// SetInt64AfterCounter returns a count of finished TrxIntMock.SetInt64 invocations
+func (mmSetInt64 *TrxIntMock) SetInt64AfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmSetInt64.afterSetInt64Counter)
+}
+
+// SetInt64BeforeCounter returns a count of TrxIntMock.SetInt64 invocations
+func (mmSetInt64 *TrxIntMock) SetInt64BeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmSetInt64.beforeSetInt64Counter)
+}
+
+// Calls returns a list of arguments used in each call to TrxIntMock.SetInt64.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmSetInt64 *mTrxIntMockSetInt64) Calls() []*TrxIntMockSetInt64Params {
+	mmSetInt64.mutex.RLock()
+
+	argCopy := make([]*TrxIntMockSetInt64Params, len(mmSetInt64.callArgs))
+	copy(argCopy, mmSetInt64.callArgs)
+
+	mmSetInt64.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockSetInt64Done returns true if the count of the SetInt64 invocations corresponds
+// the number of defined expectations
+func (m *TrxIntMock) MinimockSetInt64Done() bool {
+	for _, e := range m.SetInt64Mock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.SetInt64Mock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterSetInt64Counter) < 1 {
+		return false
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcSetInt64 != nil && mm_atomic.LoadUint64(&m.afterSetInt64Counter) < 1 {
+		return false
+	}
+	return true
+}
+
+// MinimockSetInt64Inspect logs each unmet expectation
+func (m *TrxIntMock) MinimockSetInt64Inspect() {
+	for _, e := range m.SetInt64Mock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to TrxIntMock.SetInt64 with params: %#v", *e.params)
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.SetInt64Mock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterSetInt64Counter) < 1 {
+		if m.SetInt64Mock.defaultExpectation.params == nil {
+			m.t.Error("Expected call to TrxIntMock.SetInt64")
+		} else {
+			m.t.Errorf("Expected call to TrxIntMock.SetInt64 with params: %#v", *m.SetInt64Mock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcSetInt64 != nil && mm_atomic.LoadUint64(&m.afterSetInt64Counter) < 1 {
+		m.t.Error("Expected call to TrxIntMock.SetInt64")
 	}
 }
 
@@ -708,6 +935,8 @@ func (m *TrxIntMock) MinimockFinish() {
 	if !m.minimockDone() {
 		m.MinimockPinInspect()
 
+		m.MinimockSetInt64Inspect()
+
 		m.MinimockSetStringInspect()
 
 		m.MinimockUnpinInspect()
@@ -735,6 +964,7 @@ func (m *TrxIntMock) minimockDone() bool {
 	done := true
 	return done &&
 		m.MinimockPinDone() &&
+		m.MinimockSetInt64Done() &&
 		m.MinimockSetStringDone() &&
 		m.MinimockUnpinDone()
 }

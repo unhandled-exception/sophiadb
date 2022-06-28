@@ -25,6 +25,7 @@ func (ts *LogRecordTestSuite) TestNewLogRecordFromBytes_OK() {
 		Record    interface{}
 	}{
 		{Name: "SetStringRecord", RawRecord: testRawSetStringRecord, Record: testSetStringRecord},
+		{Name: "SetInt64Record", RawRecord: testRawSetInt64Record, Record: testSetInt64Record},
 	}
 
 	for _, tc := range testCases {
