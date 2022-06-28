@@ -17,3 +17,4 @@
 *.code-*
 .idea/
 /bin
+.vscode/

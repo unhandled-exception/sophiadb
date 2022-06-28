@@ -11,14 +11,14 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/recovery"
 )
 
-var testSetStringRecord = recovery.NewSetStringLogRecord(
+var testSetStringLogRecord = recovery.NewSetStringLogRecord(
 	0x1234,
 	storage.NewBlockID("testlogfile", 0x0789),
 	0x0145,
 	"Test string value",
 )
 
-var testRawSetStringRecord = []byte{
+var testRawSetStringLogRecord = []byte{
 	0x5, 0x0, 0x0, 0x0, // op == 5
 	0x34, 0x12, 0x0, 0x0, // txnum == 0x1234
 	0xb, 0x0, 0x0, 0x0, // filename length == 11
@@ -56,18 +56,18 @@ func (ts *SetStringLogRecordTestSuite) TestNewSetStringLogRecord() {
 func (ts *SetStringLogRecordTestSuite) TestNewSetStringLogRecordFromBytes() {
 	t := ts.T()
 
-	r, err := recovery.NewSetStringLogRecordFromBytes(testRawSetStringRecord)
+	r, err := recovery.NewSetStringLogRecordFromBytes(testRawSetStringLogRecord)
 	require.NoError(t, err)
 
-	assert.Equal(t, testSetStringRecord, r)
+	assert.Equal(t, testSetStringLogRecord, r)
 }
 
 func (ts *SetStringLogRecordTestSuite) TestMarshalBytes() {
 	t := ts.T()
 
 	assert.EqualValues(t,
-		testRawSetStringRecord,
-		testSetStringRecord.MarshalBytes(),
+		testRawSetStringLogRecord,
+		testSetStringLogRecord.MarshalBytes(),
 	)
 }
 
@@ -81,6 +81,6 @@ func (ts *SetStringLogRecordTestSuite) TestUndo() {
 		UnpinMock.Return(nil).
 		SetStringMock.Return(nil)
 
-	err := testSetStringRecord.Undo(trxIntMock)
+	err := testSetStringLogRecord.Undo(trxIntMock)
 	require.NoError(t, err)
 }

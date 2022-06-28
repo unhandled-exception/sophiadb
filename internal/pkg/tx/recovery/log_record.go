@@ -28,7 +28,7 @@ type LogRecord interface {
 }
 
 const (
-	CheckpointOp uint32 = 0
+	CheckpointOp uint32 = 255
 	StartOp      uint32 = 1
 	CommitOp     uint32 = 2
 	RollbackOp   uint32 = 3
@@ -45,6 +45,14 @@ func NewLogRecordFromBytes(rawRecord []byte) (interface{}, error) {
 	op := p.GetUint32(0)
 
 	switch op {
+	case CheckpointOp:
+		return NewCheckpointLogRecordFromBytes(rawRecord)
+	case StartOp:
+		return NewStartLogRecordFromBytes(rawRecord)
+	case CommitOp:
+		return NewCommitLogRecordFromBytes(rawRecord)
+	case RollbackOp:
+		return NewRollbackLogRecordFromBytes(rawRecord)
 	case SetStringOp:
 		return NewSetStringLogRecordFromBytes(rawRecord)
 	case SetInt64Op:
@@ -59,10 +67,36 @@ type BaseLogRecord struct {
 	txnum int32
 }
 
-func (blr BaseLogRecord) Op() uint32 {
-	return blr.op
+func (lr *BaseLogRecord) Op() uint32 {
+	return lr.op
 }
 
-func (blr BaseLogRecord) TXNum() int32 {
-	return blr.txnum
+func (lr *BaseLogRecord) TXNum() int32 {
+	return lr.txnum
+}
+
+func (lr *BaseLogRecord) Undo(tx trxInt) error {
+	return nil
+}
+
+func (lr *BaseLogRecord) MarshalBytes() []byte {
+	oppos := uint32(0)
+	txpos := oppos + int32Size
+	recLen := txpos + int32Size
+
+	p := storage.NewPage(recLen)
+
+	p.SetUint32(oppos, lr.op)
+	p.SetInt32(txpos, lr.txnum)
+
+	return p.Content()
+}
+
+func (lr *BaseLogRecord) unmarshalBytes(rawRecord []byte) error {
+	p := storage.NewPageFromBytes(rawRecord)
+
+	lr.op = p.GetUint32(0)
+	lr.txnum = p.GetInt32(int32Size)
+
+	return nil
 }

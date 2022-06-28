@@ -11,15 +11,15 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/recovery"
 )
 
-var testSetInt64Record = recovery.NewSetInt64LogRecord(
+var testSetInt64LogRecord = recovery.NewSetInt64LogRecord(
 	0x1234,
 	storage.NewBlockID("testlogfile", 0x0789),
 	0x0145,
 	0x01020304012345fa,
 )
 
-var testRawSetInt64Record = []byte{
-	0x4, 0x0, 0x0, 0x0, // op == 5
+var testRawSetInt64LogRecord = []byte{
+	0x4, 0x0, 0x0, 0x0, // op == 4
 	0x34, 0x12, 0x0, 0x0, // txnum == 0x1234
 	0xb, 0x0, 0x0, 0x0, // filename length == 11
 	0x74, 0x65, 0x73, 0x74, 0x6c, 0x6f, 0x67, 0x66, 0x69, 0x6c, 0x65, // filename "testlogfile"
@@ -55,18 +55,18 @@ func (ts *SetInt64LogRecordTestSuite) TestNewSetInt64LogRecord() {
 func (ts *SetInt64LogRecordTestSuite) TestNewSetInt64LogRecordFromBytes() {
 	t := ts.T()
 
-	r, err := recovery.NewSetInt64LogRecordFromBytes(testRawSetInt64Record)
+	r, err := recovery.NewSetInt64LogRecordFromBytes(testRawSetInt64LogRecord)
 	require.NoError(t, err)
 
-	assert.Equal(t, testSetInt64Record, r)
+	assert.Equal(t, testSetInt64LogRecord, r)
 }
 
 func (ts *SetInt64LogRecordTestSuite) TestMarshalBytes() {
 	t := ts.T()
 
 	assert.EqualValues(t,
-		testRawSetInt64Record,
-		testSetInt64Record.MarshalBytes(),
+		testRawSetInt64LogRecord,
+		testSetInt64LogRecord.MarshalBytes(),
 	)
 }
 
@@ -80,6 +80,6 @@ func (ts *SetInt64LogRecordTestSuite) TestUndo() {
 		UnpinMock.Return(nil).
 		SetInt64Mock.Return(nil)
 
-	err := testSetInt64Record.Undo(trxIntMock)
+	err := testSetInt64LogRecord.Undo(trxIntMock)
 	require.NoError(t, err)
 }

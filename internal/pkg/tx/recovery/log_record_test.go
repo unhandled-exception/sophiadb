@@ -24,8 +24,14 @@ func (ts *LogRecordTestSuite) TestNewLogRecordFromBytes_OK() {
 		RawRecord []byte
 		Record    interface{}
 	}{
-		{Name: "SetStringRecord", RawRecord: testRawSetStringRecord, Record: testSetStringRecord},
-		{Name: "SetInt64Record", RawRecord: testRawSetInt64Record, Record: testSetInt64Record},
+		{Name: "CheckpointLogRecord", RawRecord: testRawCheckpointLogRecord, Record: testCheckpointLogRecord},
+
+		{Name: "StartLogRecord", RawRecord: testRawStartLogRecord, Record: testStartLogRecord},
+		{Name: "CommitLogRecord", RawRecord: testRawCommitLogRecord, Record: testCommitLogRecord},
+		{Name: "RollbackLogRecord", RawRecord: testRawRollbackLogRecord, Record: testRollbackLogRecord},
+
+		{Name: "SetStringRecord", RawRecord: testRawSetStringLogRecord, Record: testSetStringLogRecord},
+		{Name: "SetInt64Record", RawRecord: testRawSetInt64LogRecord, Record: testSetInt64LogRecord},
 	}
 
 	for _, tc := range testCases {
@@ -41,7 +47,7 @@ func (ts *LogRecordTestSuite) TestNewLogRecordFromBytes_OK() {
 func (ts *LogRecordTestSuite) TestNewLogRecordFromBytes_Failed() {
 	t := ts.T()
 
-	_, err := recovery.NewLogRecordFromBytes([]byte{0xff, 0x0, 0x0, 0x0})
+	_, err := recovery.NewLogRecordFromBytes([]byte{0xff, 0x00, 0x0, 0xff})
 	assert.ErrorIs(t, err, recovery.ErrUnknownLogRecord)
 
 	_, err = recovery.NewLogRecordFromBytes(nil)
