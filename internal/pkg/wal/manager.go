@@ -24,12 +24,6 @@ type Manager struct {
 	lastSavedLSN int64
 }
 
-// ErrFailedToCreateNewManager — ошибка при создании нового менеджера
-var ErrFailedToCreateNewManager = errors.New("failed to create a new wal manager")
-
-// ErrFailedToAppendNewRecord — ошибка при создании новой записи в wal-логе
-var ErrFailedToAppendNewRecord = errors.New("failed to add new record to wal log")
-
 // NewManager создает новый объект LogManager
 func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 	lm := &Manager{

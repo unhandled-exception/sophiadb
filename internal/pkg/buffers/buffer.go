@@ -6,9 +6,6 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
-// ErrFailedToAssignBlockToBuffer — ошибка при связывании буыера с блоком
-var ErrFailedToAssignBlockToBuffer = errors.New("failed to assign a block to buffer")
-
 // Buffer — страница в пуле буферов
 type Buffer struct {
 	fm       *storage.Manager

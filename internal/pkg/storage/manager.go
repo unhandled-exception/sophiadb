@@ -19,9 +19,6 @@ const (
 	syncedFilePermissions  = 0o755
 )
 
-// ErrFileManagerIO вызываем при ошибках ввода вывода
-var ErrFileManagerIO error = errors.New("file manager io error")
-
 type OpenFilesMap map[string]*os.File
 
 // Manager управляет чтением и записью блоков на диске

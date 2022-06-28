@@ -14,9 +14,6 @@ type Iterator struct {
 	boundary   uint32
 }
 
-// ErrFailedToCreateNewIterator — ошибка при создании нового итератора
-var ErrFailedToCreateNewIterator = errors.New("failed to create a new wal iterator")
-
 // NewIterator создает новый объект итератора по журналу
 func NewIterator(fm *storage.Manager, blk *storage.BlockID) (*Iterator, error) {
 	it := &Iterator{

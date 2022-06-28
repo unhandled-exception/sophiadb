@@ -13,9 +13,6 @@ import (
 
 var defaultMaxPinTime time.Duration = 10 * time.Second
 
-// ErrNoAvailableBuffers — нет свободных буферов в памяти
-var ErrNoAvailableBuffers = errors.New("no available buffers")
-
 // Manager менеджер буферов в памяти
 type Manager struct {
 	sync.Mutex
