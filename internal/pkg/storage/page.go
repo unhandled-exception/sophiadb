@@ -26,6 +26,13 @@ func NewPage(size uint32) *Page {
 	}
 }
 
+func NewPageFromBytes(rawPage []byte) *Page {
+	return &Page{
+		bb:    rawPage,
+		order: binary.LittleEndian,
+	}
+}
+
 // Len возвращает размер страницы в байтах
 func (p *Page) Len() uint32 {
 	return uint32(len(p.bb))

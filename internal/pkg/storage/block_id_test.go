@@ -15,7 +15,7 @@ func TestBlockIDTestSuite(t *testing.T) {
 	suite.Run(t, new(BlockIDTestSuite))
 }
 
-func (ts BlockIDTestSuite) TestCreateBlockID() {
+func (ts *BlockIDTestSuite) TestCreateBlockID() {
 	filename := "block_filename"
 	blkNum := uint32(12345)
 	blockID := storage.NewBlockID(filename, blkNum)
@@ -25,7 +25,7 @@ func (ts BlockIDTestSuite) TestCreateBlockID() {
 	ts.Equal("[block_filename][12345]", blockID.HashKey())
 }
 
-func (ts BlockIDTestSuite) TestBlockEquals() {
+func (ts *BlockIDTestSuite) TestBlockEquals() {
 	block1 := storage.NewBlockID("filename", 1)
 	block2 := storage.NewBlockID("filename", 2)
 	block3 := storage.NewBlockID("filename", 1)
