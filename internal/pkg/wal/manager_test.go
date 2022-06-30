@@ -14,6 +14,7 @@ import (
 
 type WalManagerTestSuite struct {
 	suite.Suite
+
 	suiteDir string
 }
 

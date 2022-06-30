@@ -35,6 +35,12 @@ type TrxIntMock struct {
 	beforeSetStringCounter uint64
 	SetStringMock          mTrxIntMockSetString
 
+	funcTXNum          func() (t1 types.TRX)
+	inspectFuncTXNum   func()
+	afterTXNumCounter  uint64
+	beforeTXNumCounter uint64
+	TXNumMock          mTrxIntMockTXNum
+
 	funcUnpin          func(block *types.BlockID) (err error)
 	inspectFuncUnpin   func(block *types.BlockID)
 	afterUnpinCounter  uint64
@@ -57,6 +63,8 @@ func NewTrxIntMock(t minimock.Tester) *TrxIntMock {
 
 	m.SetStringMock = mTrxIntMockSetString{mock: m}
 	m.SetStringMock.callArgs = []*TrxIntMockSetStringParams{}
+
+	m.TXNumMock = mTrxIntMockTXNum{mock: m}
 
 	m.UnpinMock = mTrxIntMockUnpin{mock: m}
 	m.UnpinMock.callArgs = []*TrxIntMockUnpinParams{}
@@ -715,6 +723,149 @@ func (m *TrxIntMock) MinimockSetStringInspect() {
 	}
 }
 
+type mTrxIntMockTXNum struct {
+	mock               *TrxIntMock
+	defaultExpectation *TrxIntMockTXNumExpectation
+	expectations       []*TrxIntMockTXNumExpectation
+}
+
+// TrxIntMockTXNumExpectation specifies expectation struct of the trxInt.TXNum
+type TrxIntMockTXNumExpectation struct {
+	mock *TrxIntMock
+
+	results *TrxIntMockTXNumResults
+	Counter uint64
+}
+
+// TrxIntMockTXNumResults contains results of the trxInt.TXNum
+type TrxIntMockTXNumResults struct {
+	t1 types.TRX
+}
+
+// Expect sets up expected params for trxInt.TXNum
+func (mmTXNum *mTrxIntMockTXNum) Expect() *mTrxIntMockTXNum {
+	if mmTXNum.mock.funcTXNum != nil {
+		mmTXNum.mock.t.Fatalf("TrxIntMock.TXNum mock is already set by Set")
+	}
+
+	if mmTXNum.defaultExpectation == nil {
+		mmTXNum.defaultExpectation = &TrxIntMockTXNumExpectation{}
+	}
+
+	return mmTXNum
+}
+
+// Inspect accepts an inspector function that has same arguments as the trxInt.TXNum
+func (mmTXNum *mTrxIntMockTXNum) Inspect(f func()) *mTrxIntMockTXNum {
+	if mmTXNum.mock.inspectFuncTXNum != nil {
+		mmTXNum.mock.t.Fatalf("Inspect function is already set for TrxIntMock.TXNum")
+	}
+
+	mmTXNum.mock.inspectFuncTXNum = f
+
+	return mmTXNum
+}
+
+// Return sets up results that will be returned by trxInt.TXNum
+func (mmTXNum *mTrxIntMockTXNum) Return(t1 types.TRX) *TrxIntMock {
+	if mmTXNum.mock.funcTXNum != nil {
+		mmTXNum.mock.t.Fatalf("TrxIntMock.TXNum mock is already set by Set")
+	}
+
+	if mmTXNum.defaultExpectation == nil {
+		mmTXNum.defaultExpectation = &TrxIntMockTXNumExpectation{mock: mmTXNum.mock}
+	}
+	mmTXNum.defaultExpectation.results = &TrxIntMockTXNumResults{t1}
+	return mmTXNum.mock
+}
+
+//Set uses given function f to mock the trxInt.TXNum method
+func (mmTXNum *mTrxIntMockTXNum) Set(f func() (t1 types.TRX)) *TrxIntMock {
+	if mmTXNum.defaultExpectation != nil {
+		mmTXNum.mock.t.Fatalf("Default expectation is already set for the trxInt.TXNum method")
+	}
+
+	if len(mmTXNum.expectations) > 0 {
+		mmTXNum.mock.t.Fatalf("Some expectations are already set for the trxInt.TXNum method")
+	}
+
+	mmTXNum.mock.funcTXNum = f
+	return mmTXNum.mock
+}
+
+// TXNum implements trxInt
+func (mmTXNum *TrxIntMock) TXNum() (t1 types.TRX) {
+	mm_atomic.AddUint64(&mmTXNum.beforeTXNumCounter, 1)
+	defer mm_atomic.AddUint64(&mmTXNum.afterTXNumCounter, 1)
+
+	if mmTXNum.inspectFuncTXNum != nil {
+		mmTXNum.inspectFuncTXNum()
+	}
+
+	if mmTXNum.TXNumMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmTXNum.TXNumMock.defaultExpectation.Counter, 1)
+
+		mm_results := mmTXNum.TXNumMock.defaultExpectation.results
+		if mm_results == nil {
+			mmTXNum.t.Fatal("No results are set for the TrxIntMock.TXNum")
+		}
+		return (*mm_results).t1
+	}
+	if mmTXNum.funcTXNum != nil {
+		return mmTXNum.funcTXNum()
+	}
+	mmTXNum.t.Fatalf("Unexpected call to TrxIntMock.TXNum.")
+	return
+}
+
+// TXNumAfterCounter returns a count of finished TrxIntMock.TXNum invocations
+func (mmTXNum *TrxIntMock) TXNumAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmTXNum.afterTXNumCounter)
+}
+
+// TXNumBeforeCounter returns a count of TrxIntMock.TXNum invocations
+func (mmTXNum *TrxIntMock) TXNumBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmTXNum.beforeTXNumCounter)
+}
+
+// MinimockTXNumDone returns true if the count of the TXNum invocations corresponds
+// the number of defined expectations
+func (m *TrxIntMock) MinimockTXNumDone() bool {
+	for _, e := range m.TXNumMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.TXNumMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterTXNumCounter) < 1 {
+		return false
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcTXNum != nil && mm_atomic.LoadUint64(&m.afterTXNumCounter) < 1 {
+		return false
+	}
+	return true
+}
+
+// MinimockTXNumInspect logs each unmet expectation
+func (m *TrxIntMock) MinimockTXNumInspect() {
+	for _, e := range m.TXNumMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Error("Expected call to TrxIntMock.TXNum")
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.TXNumMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterTXNumCounter) < 1 {
+		m.t.Error("Expected call to TrxIntMock.TXNum")
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcTXNum != nil && mm_atomic.LoadUint64(&m.afterTXNumCounter) < 1 {
+		m.t.Error("Expected call to TrxIntMock.TXNum")
+	}
+}
+
 type mTrxIntMockUnpin struct {
 	mock               *TrxIntMock
 	defaultExpectation *TrxIntMockUnpinExpectation
@@ -939,6 +1090,8 @@ func (m *TrxIntMock) MinimockFinish() {
 
 		m.MinimockSetStringInspect()
 
+		m.MinimockTXNumInspect()
+
 		m.MinimockUnpinInspect()
 		m.t.FailNow()
 	}
@@ -966,5 +1119,6 @@ func (m *TrxIntMock) minimockDone() bool {
 		m.MinimockPinDone() &&
 		m.MinimockSetInt64Done() &&
 		m.MinimockSetStringDone() &&
+		m.MinimockTXNumDone() &&
 		m.MinimockUnpinDone()
 }

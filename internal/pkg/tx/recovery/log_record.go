@@ -14,6 +14,7 @@ const (
 )
 
 type LogRecord interface {
+	String() string
 	Op() uint32
 	TXNum() types.TRX
 	Undo(tx trxInt) error
@@ -58,6 +59,10 @@ func NewLogRecordFromBytes(rawRecord []byte) (interface{}, error) {
 type BaseLogRecord struct {
 	op    uint32
 	txnum types.TRX
+}
+
+func (lr *BaseLogRecord) String() string {
+	return ""
 }
 
 func (lr *BaseLogRecord) Op() uint32 {
