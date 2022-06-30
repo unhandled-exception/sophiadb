@@ -7,14 +7,12 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
 var defaultMaxPinTime time.Duration = 10 * time.Second
-
-// ErrNoAvailableBuffers — нет свободных буферов в памяти
-var ErrNoAvailableBuffers = errors.New("no available buffers")
 
 // Manager менеджер буферов в памяти
 type Manager struct {
@@ -65,7 +63,7 @@ func (bm *Manager) Available() int {
 }
 
 // FlushAll сбрасывает все буферы транзакции на диск
-func (bm *Manager) FlushAll(txnum int64) error {
+func (bm *Manager) FlushAll(txnum types.TRX) error {
 	return bm.pool.FlushAll(txnum)
 }
 
@@ -83,7 +81,7 @@ func (bm *Manager) Unpin(buf *Buffer) {
 }
 
 // Pin — закрепляет блок в памяти
-func (bm *Manager) Pin(block *storage.BlockID) (*Buffer, error) {
+func (bm *Manager) Pin(block *types.BlockID) (*Buffer, error) {
 	buf, err := bm.tryToPin(block)
 	if err != nil && !errors.Is(err, ErrNoAvailableBuffers) {
 		return nil, err
@@ -112,7 +110,7 @@ func (bm *Manager) Pin(block *storage.BlockID) (*Buffer, error) {
 	return buf, nil
 }
 
-func (bm *Manager) tryToPin(block *storage.BlockID) (*Buffer, error) {
+func (bm *Manager) tryToPin(block *types.BlockID) (*Buffer, error) {
 	buf := bm.pool.FindExistingBuffer(block)
 	if buf == nil {
 		buf = bm.pool.ChooseUnpinnedBuffer()

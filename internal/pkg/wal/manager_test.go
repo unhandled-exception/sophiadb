@@ -8,11 +8,13 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
 type WalManagerTestSuite struct {
 	suite.Suite
+
 	suiteDir string
 }
 
@@ -70,7 +72,7 @@ func (ts *WalManagerTestSuite) TestCreateManagerExistsLogFile() {
 	ts.Require().NoError(err)
 	ts.Require().NotNil(fm)
 
-	p := storage.NewPage(defaultBlockSize)
+	p := types.NewPage(defaultBlockSize)
 	p.SetUint32(0, 4)
 
 	for i := 0; i < 2; i++ {

@@ -3,26 +3,24 @@ package wal
 import (
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 // Iterator — итератор по журналу
 type Iterator struct {
 	fm         *storage.Manager
-	blk        *storage.BlockID
-	p          *storage.Page
+	blk        *types.BlockID
+	p          *types.Page
 	currentPos uint32
 	boundary   uint32
 }
 
-// ErrFailedToCreateNewIterator — ошибка при создании нового итератора
-var ErrFailedToCreateNewIterator = errors.New("failed to create a new wal iterator")
-
 // NewIterator создает новый объект итератора по журналу
-func NewIterator(fm *storage.Manager, blk *storage.BlockID) (*Iterator, error) {
+func NewIterator(fm *storage.Manager, blk *types.BlockID) (*Iterator, error) {
 	it := &Iterator{
 		fm:  fm,
 		blk: blk,
-		p:   storage.NewPage(fm.BlockSize()),
+		p:   types.NewPage(fm.BlockSize()),
 	}
 
 	if err := it.moveToBlock(blk); err != nil {
@@ -40,7 +38,7 @@ func (it *Iterator) HasNext() bool {
 // Next достает следующею запись из лога
 func (it *Iterator) Next() ([]byte, error) {
 	if it.currentPos == it.fm.BlockSize() {
-		it.blk = storage.NewBlockID(it.blk.Filename(), it.blk.Number()-1)
+		it.blk = types.NewBlockID(it.blk.Filename(), it.blk.Number()-1)
 
 		err := it.moveToBlock(it.blk)
 		if err != nil {
@@ -55,7 +53,7 @@ func (it *Iterator) Next() ([]byte, error) {
 }
 
 // Перемещаем итератор на следующий блок
-func (it *Iterator) moveToBlock(blk *storage.BlockID) error {
+func (it *Iterator) moveToBlock(blk *types.BlockID) error {
 	if err := it.fm.Read(blk, it.p); err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-package storage
+package types
 
 import (
 	"encoding/binary"
@@ -22,6 +22,13 @@ type Page struct {
 func NewPage(size uint32) *Page {
 	return &Page{
 		bb:    make([]byte, size),
+		order: binary.LittleEndian,
+	}
+}
+
+func NewPageFromBytes(rawPage []byte) *Page {
+	return &Page{
+		bb:    rawPage,
 		order: binary.LittleEndian,
 	}
 }
