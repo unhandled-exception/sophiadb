@@ -7,13 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/recovery"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 var testSetStringLogRecord = recovery.NewSetStringLogRecord(
 	0x1234,
-	storage.NewBlockID("testlogfile", 0x0789),
+	types.NewBlockID("testlogfile", 0x0789),
 	0x0145,
 	"Test string value",
 )
@@ -42,7 +42,7 @@ func (ts *SetStringLogRecordTestSuite) TestNewSetStringLogRecord() {
 
 	r := recovery.NewSetStringLogRecord(
 		12345,
-		storage.NewBlockID("testlogfile", 789),
+		types.NewBlockID("testlogfile", 789),
 		145,
 		"Test string value",
 	)

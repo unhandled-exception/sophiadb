@@ -5,7 +5,7 @@ package recovery
 import (
 	"github.com/pkg/errors"
 
-	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 const (
@@ -13,16 +13,9 @@ const (
 	int64Size = 8
 )
 
-type trxInt interface {
-	Pin(block *storage.BlockID) error
-	Unpin(block *storage.BlockID) error
-	SetString(block *storage.BlockID, offset uint32, value string, okToLog bool) error
-	SetInt64(block *storage.BlockID, offset uint32, value int64, okToLog bool) error
-}
-
 type LogRecord interface {
 	Op() uint32
-	TXNum() int32
+	TXNum() types.TRX
 	Undo(tx trxInt) error
 	MarshalBytes() []byte
 }
@@ -41,7 +34,7 @@ func NewLogRecordFromBytes(rawRecord []byte) (interface{}, error) {
 		return nil, ErrEmptyLogRecord
 	}
 
-	p := storage.NewPageFromBytes(rawRecord)
+	p := types.NewPageFromBytes(rawRecord)
 	op := p.GetUint32(0)
 
 	switch op {
@@ -64,14 +57,14 @@ func NewLogRecordFromBytes(rawRecord []byte) (interface{}, error) {
 
 type BaseLogRecord struct {
 	op    uint32
-	txnum int32
+	txnum types.TRX
 }
 
 func (lr *BaseLogRecord) Op() uint32 {
 	return lr.op
 }
 
-func (lr *BaseLogRecord) TXNum() int32 {
+func (lr *BaseLogRecord) TXNum() types.TRX {
 	return lr.txnum
 }
 
@@ -84,19 +77,19 @@ func (lr *BaseLogRecord) MarshalBytes() []byte {
 	txpos := oppos + int32Size
 	recLen := txpos + int32Size
 
-	p := storage.NewPage(recLen)
+	p := types.NewPage(recLen)
 
 	p.SetUint32(oppos, lr.op)
-	p.SetInt32(txpos, lr.txnum)
+	p.SetInt32(txpos, int32(lr.txnum))
 
 	return p.Content()
 }
 
 func (lr *BaseLogRecord) unmarshalBytes(rawRecord []byte) error {
-	p := storage.NewPageFromBytes(rawRecord)
+	p := types.NewPageFromBytes(rawRecord)
 
 	lr.op = p.GetUint32(0)
-	lr.txnum = p.GetInt32(int32Size)
+	lr.txnum = types.TRX(p.GetInt32(int32Size))
 
 	return nil
 }

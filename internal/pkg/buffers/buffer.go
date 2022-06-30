@@ -3,6 +3,7 @@ package buffers
 import (
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
@@ -10,11 +11,11 @@ import (
 type Buffer struct {
 	fm       *storage.Manager
 	lm       *wal.Manager
-	contents *storage.Page
-	block    *storage.BlockID
+	contents *types.Page
+	block    *types.BlockID
 	pins     int
-	txnum    int64
-	lsn      int64
+	txnum    types.TRX
+	lsn      types.LSN
 }
 
 // NewBuffer создает новый объект буфера
@@ -22,7 +23,7 @@ func NewBuffer(fm *storage.Manager, lm *wal.Manager) *Buffer {
 	buf := &Buffer{
 		fm:       fm,
 		lm:       lm,
-		contents: storage.NewPage(fm.BlockSize()),
+		contents: types.NewPage(fm.BlockSize()),
 		pins:     0,
 		txnum:    -1,
 		lsn:      -1,
@@ -32,17 +33,17 @@ func NewBuffer(fm *storage.Manager, lm *wal.Manager) *Buffer {
 }
 
 // Content возвращает страницу с соlержимым буфера
-func (buf *Buffer) Content() *storage.Page {
+func (buf *Buffer) Content() *types.Page {
 	return buf.contents
 }
 
 // Block возвращает ссылку на блок
-func (buf *Buffer) Block() *storage.BlockID {
+func (buf *Buffer) Block() *types.BlockID {
 	return buf.block
 }
 
 // SetModified устанавливает указатели транзакции и лога
-func (buf *Buffer) SetModified(txnum int64, lsn int64) {
+func (buf *Buffer) SetModified(txnum types.TRX, lsn types.LSN) {
 	buf.txnum = txnum
 	if lsn >= 0 {
 		buf.lsn = lsn
@@ -65,12 +66,12 @@ func (buf *Buffer) IsPinned() bool {
 }
 
 // ModifyingTX возвращает указатель транзакции
-func (buf *Buffer) ModifyingTX() int64 {
+func (buf *Buffer) ModifyingTX() types.TRX {
 	return buf.txnum
 }
 
 // Возвращает LSN
-func (buf *Buffer) LSN() int64 {
+func (buf *Buffer) LSN() types.LSN {
 	return buf.lsn
 }
 
@@ -80,7 +81,7 @@ func (buf *Buffer) Pins() int {
 }
 
 // AssignToBlock cвязывает страницу буфера со странице на диске
-func (buf *Buffer) AssignToBlock(block *storage.BlockID) error {
+func (buf *Buffer) AssignToBlock(block *types.BlockID) error {
 	err := buf.Flush()
 	if err != nil {
 		return errors.WithMessage(ErrFailedToAssignBlockToBuffer, err.Error())

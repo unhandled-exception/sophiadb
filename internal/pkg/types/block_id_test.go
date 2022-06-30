@@ -1,10 +1,10 @@
-package storage_test
+package types_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 type BlockIDTestSuite struct {
@@ -18,7 +18,7 @@ func TestBlockIDTestSuite(t *testing.T) {
 func (ts *BlockIDTestSuite) TestCreateBlockID() {
 	filename := "block_filename"
 	blkNum := uint32(12345)
-	blockID := storage.NewBlockID(filename, blkNum)
+	blockID := types.NewBlockID(filename, blkNum)
 	ts.Equal(filename, blockID.Filename())
 	ts.Equal(blkNum, blockID.Number())
 	ts.Equal("[file block_filename, block 12345]", blockID.String())
@@ -26,10 +26,10 @@ func (ts *BlockIDTestSuite) TestCreateBlockID() {
 }
 
 func (ts *BlockIDTestSuite) TestBlockEquals() {
-	block1 := storage.NewBlockID("filename", 1)
-	block2 := storage.NewBlockID("filename", 2)
-	block3 := storage.NewBlockID("filename", 1)
-	block4 := storage.NewBlockID("filename2", 1)
+	block1 := types.NewBlockID("filename", 1)
+	block2 := types.NewBlockID("filename", 2)
+	block3 := types.NewBlockID("filename", 1)
+	block4 := types.NewBlockID("filename2", 1)
 
 	ts.True(block1.Equals(block1))
 	ts.False(block1.Equals(block2))

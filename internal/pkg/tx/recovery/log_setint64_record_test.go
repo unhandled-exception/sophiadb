@@ -7,13 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/recovery"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 var testSetInt64LogRecord = recovery.NewSetInt64LogRecord(
 	0x1234,
-	storage.NewBlockID("testlogfile", 0x0789),
+	types.NewBlockID("testlogfile", 0x0789),
 	0x0145,
 	0x01020304012345fa,
 )
@@ -41,7 +41,7 @@ func (ts *SetInt64LogRecordTestSuite) TestNewSetInt64LogRecord() {
 
 	r := recovery.NewSetInt64LogRecord(
 		12345,
-		storage.NewBlockID("testlogfile", 789),
+		types.NewBlockID("testlogfile", 789),
 		145,
 		-1245,
 	)

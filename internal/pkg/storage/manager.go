@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 )
 
@@ -108,7 +109,7 @@ func (fm *Manager) Close() error {
 }
 
 // Read читает блок из файла в страницу page
-func (fm *Manager) Read(block *BlockID, page *Page) error {
+func (fm *Manager) Read(block *types.BlockID, page *types.Page) error {
 	fm.Lock()
 	defer fm.Unlock()
 
@@ -117,7 +118,7 @@ func (fm *Manager) Read(block *BlockID, page *Page) error {
 		return err
 	}
 
-	_, err = file.Seek(int64(block.number)*int64(fm.blockSize), io.SeekStart)
+	_, err = file.Seek(int64(block.Number())*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
 		return errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
@@ -131,7 +132,7 @@ func (fm *Manager) Read(block *BlockID, page *Page) error {
 }
 
 // Write записывает блок в файл из страницы page
-func (fm *Manager) Write(block *BlockID, page *Page) error {
+func (fm *Manager) Write(block *types.BlockID, page *types.Page) error {
 	fm.Lock()
 	defer fm.Unlock()
 
@@ -140,7 +141,7 @@ func (fm *Manager) Write(block *BlockID, page *Page) error {
 		return err
 	}
 
-	_, err = file.Seek(int64(block.number)*int64(fm.blockSize), io.SeekStart)
+	_, err = file.Seek(int64(block.Number())*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
 		return errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
@@ -154,7 +155,7 @@ func (fm *Manager) Write(block *BlockID, page *Page) error {
 }
 
 // Append добавляет новый блок в файл
-func (fm *Manager) Append(filename string) (*BlockID, error) {
+func (fm *Manager) Append(filename string) (*types.BlockID, error) {
 	fm.Lock()
 	defer fm.Unlock()
 
@@ -163,7 +164,7 @@ func (fm *Manager) Append(filename string) (*BlockID, error) {
 		return nil, err
 	}
 
-	blockID := NewBlockID(filename, blkNum)
+	blockID := types.NewBlockID(filename, blkNum)
 	blockData := make([]byte, fm.blockSize)
 
 	file, err := fm.getFile(blockID.Filename())

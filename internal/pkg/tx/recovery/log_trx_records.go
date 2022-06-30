@@ -2,13 +2,15 @@ package recovery
 
 import (
 	"fmt"
+
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 type StartLogRecord struct {
 	BaseLogRecord
 }
 
-func NewStartLogRecord(txnum int32) *StartLogRecord {
+func NewStartLogRecord(txnum types.TRX) *StartLogRecord {
 	return &StartLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    StartOp,
@@ -36,7 +38,7 @@ type CommitLogRecord struct {
 	BaseLogRecord
 }
 
-func NewCommitLogRecord(txnum int32) *CommitLogRecord {
+func NewCommitLogRecord(txnum types.TRX) *CommitLogRecord {
 	return &CommitLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    CommitOp,
@@ -64,7 +66,7 @@ type RollbackLogRecord struct {
 	BaseLogRecord
 }
 
-func NewRollbackLogRecord(txnum int32) *RollbackLogRecord {
+func NewRollbackLogRecord(txnum types.TRX) *RollbackLogRecord {
 	return &RollbackLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    RollbackOp,

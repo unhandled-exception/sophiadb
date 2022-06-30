@@ -8,6 +8,7 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
@@ -66,10 +67,10 @@ func (ts *BuffersPoolTestSuite) TestFindExistingBuffer() {
 
 	buffers := bp.Buffers()
 
-	block0 := storage.NewBlockID(testFile, 0)
-	block1 := storage.NewBlockID(testFile, 1)
-	block2 := storage.NewBlockID(testFile, 2)
-	block3 := storage.NewBlockID(testFile, 3)
+	block0 := types.NewBlockID(testFile, 0)
+	block1 := types.NewBlockID(testFile, 1)
+	block2 := types.NewBlockID(testFile, 2)
+	block3 := types.NewBlockID(testFile, 3)
 
 	ts.Require().NoError(bp.AssignBufferToBlock(buffers[0], block0))
 	ts.Require().NoError(bp.AssignBufferToBlock(buffers[1], block1))

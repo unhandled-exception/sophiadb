@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 const (
@@ -18,10 +19,10 @@ type Manager struct {
 
 	fm           *storage.Manager
 	logFileName  string
-	logPage      *storage.Page
-	currentBlock *storage.BlockID
-	latestLSN    int64
-	lastSavedLSN int64
+	logPage      *types.Page
+	currentBlock *types.BlockID
+	latestLSN    types.LSN
+	lastSavedLSN types.LSN
 }
 
 // NewManager создает новый объект LogManager
@@ -29,7 +30,7 @@ func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 	lm := &Manager{
 		fm:          fm,
 		logFileName: logFileName,
-		logPage:     storage.NewPage(fm.BlockSize()),
+		logPage:     types.NewPage(fm.BlockSize()),
 	}
 
 	logSize, err := fm.Length(logFileName)
@@ -43,7 +44,7 @@ func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 			return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())
 		}
 	} else {
-		lm.currentBlock = storage.NewBlockID(lm.logFileName, logSize-1)
+		lm.currentBlock = types.NewBlockID(lm.logFileName, logSize-1)
 		err = lm.fm.Read(lm.currentBlock, lm.logPage)
 		if err != nil {
 			return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())
@@ -59,12 +60,12 @@ func (lm *Manager) StorageManager() *storage.Manager {
 }
 
 // CurrentBlock возвращает текущий блок
-func (lm *Manager) CurrentBlock() *storage.BlockID {
+func (lm *Manager) CurrentBlock() *types.BlockID {
 	return lm.currentBlock
 }
 
 // Flush сбрасывает журнал на диск
-func (lm *Manager) Flush(lsn int64, force bool) error {
+func (lm *Manager) Flush(lsn types.LSN, force bool) error {
 	if lsn >= lm.lastSavedLSN || force {
 		err := lm.fm.Write(lm.currentBlock, lm.logPage)
 		if err != nil {
@@ -90,7 +91,7 @@ func (lm *Manager) Iterator() (*Iterator, error) {
 }
 
 // Append добавляет в журнал новую запись
-func (lm *Manager) Append(logRec []byte) (int64, error) {
+func (lm *Manager) Append(logRec []byte) (types.LSN, error) {
 	lm.Lock()
 	defer lm.Unlock()
 
@@ -126,7 +127,7 @@ func (lm *Manager) Append(logRec []byte) (int64, error) {
 }
 
 // appendNewBlock добавляет новый блок в журнал
-func (lm *Manager) appendNewBlock() (*storage.BlockID, error) {
+func (lm *Manager) appendNewBlock() (*types.BlockID, error) {
 	blk, err := lm.fm.Append(lm.logFileName)
 	if err != nil {
 		return nil, err

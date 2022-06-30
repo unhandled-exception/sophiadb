@@ -1,8 +1,6 @@
 package recovery
 
-import (
-	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
-)
+import "github.com/unhandled-exception/sophiadb/internal/pkg/types"
 
 type CheckpointLogRecord struct {
 	BaseLogRecord
@@ -35,7 +33,7 @@ func (lr *CheckpointLogRecord) MarshalBytes() []byte {
 	oppos := uint32(0)
 	recLen := oppos + int32Size
 
-	p := storage.NewPage(recLen)
+	p := types.NewPage(recLen)
 
 	p.SetUint32(oppos, lr.op)
 
@@ -43,7 +41,7 @@ func (lr *CheckpointLogRecord) MarshalBytes() []byte {
 }
 
 func (lr *CheckpointLogRecord) unmarshalBytes(rawRecord []byte) error {
-	p := storage.NewPageFromBytes(rawRecord)
+	p := types.NewPageFromBytes(rawRecord)
 
 	lr.op = p.GetUint32(0)
 

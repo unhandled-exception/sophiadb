@@ -11,6 +11,7 @@ import (
 
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 const testSuiteDir = "file_manager_tests"
@@ -150,7 +151,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	defer fm.Close()
 
 	// Создаем блоки
-	blocks := make([]*storage.BlockID, 10)
+	blocks := make([]*types.BlockID, 10)
 
 	for i := 0; i < len(blocks); i++ {
 		filenum := i % 2
@@ -167,13 +168,13 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	ts.Len(list, 2)
 
 	// Создаем странички
-	emptyPage := storage.NewPage(blockSize)
+	emptyPage := types.NewPage(blockSize)
 
-	p1 := storage.NewPage(blockSize)
+	p1 := types.NewPage(blockSize)
 	p1.SetString(0, "Первый блок")
 	ts.Require().NotEqual(emptyPage.Content(), p1.Content())
 
-	p2 := storage.NewPage(blockSize)
+	p2 := types.NewPage(blockSize)
 	p2.SetString(0, "Второй блок")
 	ts.Require().NotEqual(emptyPage.Content(), p2.Content())
 
@@ -184,7 +185,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	ts.Require().NoError(fm.Write(blocks[3], p2))
 
 	// Страница-приёмник
-	pd := storage.NewPage(blockSize)
+	pd := types.NewPage(blockSize)
 
 	// Читаем странички из файлов
 	ts.Require().NoError(fm.Read(blocks[0], pd))

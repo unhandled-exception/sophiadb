@@ -3,7 +3,7 @@ package recovery
 import (
 	"fmt"
 
-	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 type SetInt64LogRecord struct {
@@ -11,10 +11,10 @@ type SetInt64LogRecord struct {
 
 	offset uint32
 	value  int64
-	block  *storage.BlockID
+	block  *types.BlockID
 }
 
-func NewSetInt64LogRecord(txnum int32, block *storage.BlockID, offset uint32, value int64) *SetInt64LogRecord {
+func NewSetInt64LogRecord(txnum types.TRX, block *types.BlockID, offset uint32, value int64) *SetInt64LogRecord {
 	return &SetInt64LogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    SetInt64Op,
@@ -74,10 +74,10 @@ func (lr *SetInt64LogRecord) MarshalBytes() []byte {
 	vpos := ofpos + int32Size
 	recLen := vpos + int64Size
 
-	p := storage.NewPage(recLen)
+	p := types.NewPage(recLen)
 
 	p.SetUint32(oppos, lr.op)
-	p.SetInt32(txpos, lr.txnum)
+	p.SetInt32(txpos, int32(lr.txnum))
 	p.SetString(fpos, blockFilename)
 	p.SetUint32(bpos, lr.block.Number())
 	p.SetUint32(ofpos, lr.offset)
@@ -87,10 +87,10 @@ func (lr *SetInt64LogRecord) MarshalBytes() []byte {
 }
 
 func (lr *SetInt64LogRecord) unmarshalBytes(rawRecord []byte) error {
-	p := storage.NewPageFromBytes(rawRecord)
+	p := types.NewPageFromBytes(rawRecord)
 
 	lr.op = p.GetUint32(0)
-	lr.txnum = p.GetInt32(int32Size)
+	lr.txnum = types.TRX(p.GetInt32(int32Size))
 
 	fpos := uint32(2 * int32Size) //nolint:gomnd
 	blockFilename := p.GetString(fpos)
@@ -98,7 +98,7 @@ func (lr *SetInt64LogRecord) unmarshalBytes(rawRecord []byte) error {
 	bpos := fpos + uint32(int32Size+len(blockFilename))
 	blockNum := p.GetUint32(bpos)
 
-	lr.block = storage.NewBlockID(blockFilename, blockNum)
+	lr.block = types.NewBlockID(blockFilename, blockNum)
 
 	ofpos := bpos + int32Size
 	lr.offset = p.GetUint32(ofpos)
