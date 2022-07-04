@@ -9,14 +9,14 @@ import (
 // Iterator — итератор по журналу
 type Iterator struct {
 	fm         *storage.Manager
-	blk        *types.BlockID
+	blk        *types.Block
 	p          *types.Page
 	currentPos uint32
 	boundary   uint32
 }
 
 // NewIterator создает новый объект итератора по журналу
-func NewIterator(fm *storage.Manager, blk *types.BlockID) (*Iterator, error) {
+func NewIterator(fm *storage.Manager, blk *types.Block) (*Iterator, error) {
 	it := &Iterator{
 		fm:  fm,
 		blk: blk,
@@ -53,7 +53,7 @@ func (it *Iterator) Next() ([]byte, error) {
 }
 
 // Перемещаем итератор на следующий блок
-func (it *Iterator) moveToBlock(blk *types.BlockID) error {
+func (it *Iterator) moveToBlock(blk *types.Block) error {
 	if err := it.fm.Read(blk, it.p); err != nil {
 		return err
 	}

@@ -13,7 +13,7 @@ var defaultMaxLockWaitTime time.Duration = 10 * time.Second
 const XLockValue int32 = -1
 
 type LockTable struct {
-	locks map[types.BlockID]int32
+	locks map[types.Block]int32
 
 	L               sync.RWMutex
 	locksCond       *utils.Cond
@@ -24,7 +24,7 @@ type lockTableOpt func(lt *LockTable)
 
 func NewLockTable(opts ...lockTableOpt) *LockTable {
 	lt := &LockTable{
-		locks: make(map[types.BlockID]int32),
+		locks: make(map[types.Block]int32),
 
 		L:               sync.RWMutex{},
 		locksCond:       utils.NewCond(&sync.Mutex{}),
@@ -44,23 +44,23 @@ func WithLockWaitTimeout(wt time.Duration) lockTableOpt {
 	}
 }
 
-func (lt *LockTable) LocksCount(block *types.BlockID) int32 {
+func (lt *LockTable) LocksCount(block *types.Block) int32 {
 	lCount := lt.locks[*block]
 
 	return lCount
 }
 
-func (lt *LockTable) HasXLock(block *types.BlockID) bool {
+func (lt *LockTable) HasXLock(block *types.Block) bool {
 	return lt.LocksCount(block) == XLockValue
 }
 
-func (lt *LockTable) HasOtherSLock(block *types.BlockID) bool {
+func (lt *LockTable) HasOtherSLock(block *types.Block) bool {
 	// Менеджер конкуренции берет slock перед xlock, поэтому единица равна ровно одной блокировке и можно брать xlock
 	return lt.LocksCount(block) > 1
 }
 
 // SLock устанавливает разделеяемую блокировку для блока (shared lock)
-func (lt *LockTable) SLock(block *types.BlockID) error {
+func (lt *LockTable) SLock(block *types.Block) error {
 	deadline := time.Now().Add(lt.lockWaitTimeout)
 
 	lt.locksCond.L.Lock()
@@ -92,7 +92,7 @@ func (lt *LockTable) SLock(block *types.BlockID) error {
 }
 
 // XLock устанавливает эксклюзивную блокировку для блока (shared lock)
-func (lt *LockTable) XLock(block *types.BlockID) error {
+func (lt *LockTable) XLock(block *types.Block) error {
 	deadline := time.Now().Add(lt.lockWaitTimeout)
 
 	lt.locksCond.L.Lock()
@@ -123,7 +123,7 @@ func (lt *LockTable) XLock(block *types.BlockID) error {
 }
 
 // Unlock снимает блокировку для блока
-func (lt *LockTable) Unlock(block *types.BlockID) {
+func (lt *LockTable) Unlock(block *types.Block) {
 	lt.L.Lock()
 	defer lt.L.Unlock()
 	defer lt.locksCond.Broadcast()

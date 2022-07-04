@@ -6,10 +6,10 @@ import (
 )
 
 type trxInt interface {
-	Pin(block *types.BlockID) error
-	Unpin(block *types.BlockID) error
-	SetString(block *types.BlockID, offset uint32, value string, okToLog bool) error
-	SetInt64(block *types.BlockID, offset uint32, value int64, okToLog bool) error
+	Pin(block *types.Block) error
+	Unpin(block *types.Block) error
+	SetString(block *types.Block, offset uint32, value string, okToLog bool) error
+	SetInt64(block *types.Block, offset uint32, value int64, okToLog bool) error
 	TXNum() types.TRX
 }
 
@@ -25,5 +25,5 @@ type walManager interface {
 
 type buffer interface {
 	Content() *types.Page
-	Block() *types.BlockID
+	Block() *types.Block
 }

@@ -11,17 +11,17 @@ const (
 
 type Manager struct {
 	lockTable *LockTable
-	locks     map[types.BlockID]lockType
+	locks     map[types.Block]lockType
 }
 
 func NewManager(lockTable *LockTable) *Manager {
 	return &Manager{
 		lockTable: lockTable,
-		locks:     make(map[types.BlockID]lockType),
+		locks:     make(map[types.Block]lockType),
 	}
 }
 
-func (m *Manager) SLock(block *types.BlockID) error {
+func (m *Manager) SLock(block *types.Block) error {
 	if _, ok := m.locks[*block]; ok {
 		return nil
 	}
@@ -36,7 +36,7 @@ func (m *Manager) SLock(block *types.BlockID) error {
 	return nil
 }
 
-func (m *Manager) XLock(block *types.BlockID) error {
+func (m *Manager) XLock(block *types.Block) error {
 	if m.HasXlock(block) {
 		return nil
 	}
@@ -63,16 +63,16 @@ func (m *Manager) Release() {
 		m.lockTable.Unlock(&block)
 	}
 
-	m.locks = make(map[types.BlockID]lockType)
+	m.locks = make(map[types.Block]lockType)
 }
 
-func (m *Manager) HasXlock(block *types.BlockID) bool {
+func (m *Manager) HasXlock(block *types.Block) bool {
 	lock, ok := m.locks[*block]
 
 	return ok && lock == xlockType
 }
 
-func (m *Manager) HasSlock(block *types.BlockID) bool {
+func (m *Manager) HasSlock(block *types.Block) bool {
 	lock, ok := m.locks[*block]
 
 	return ok && lock == slockType
