@@ -1,0 +1,3 @@
+// Менеджер конкуренции
+
+package concurrency

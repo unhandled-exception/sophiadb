@@ -38,6 +38,7 @@ func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int) *Manager {
 		maxPinLockTime: defaultMaxPinTime,
 		pinLock:        utils.NewCond(&sync.Mutex{}),
 	}
+
 	bm.pool = NewBuffersPool(pLen, bm.newBuffer)
 
 	return bm
