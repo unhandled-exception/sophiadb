@@ -109,7 +109,7 @@ func (fm *Manager) Close() error {
 }
 
 // Read читает блок из файла в страницу page
-func (fm *Manager) Read(block *types.BlockID, page *types.Page) error {
+func (fm *Manager) Read(block *types.Block, page *types.Page) error {
 	fm.Lock()
 	defer fm.Unlock()
 
@@ -132,7 +132,7 @@ func (fm *Manager) Read(block *types.BlockID, page *types.Page) error {
 }
 
 // Write записывает блок в файл из страницы page
-func (fm *Manager) Write(block *types.BlockID, page *types.Page) error {
+func (fm *Manager) Write(block *types.Block, page *types.Page) error {
 	fm.Lock()
 	defer fm.Unlock()
 
@@ -155,7 +155,7 @@ func (fm *Manager) Write(block *types.BlockID, page *types.Page) error {
 }
 
 // Append добавляет новый блок в файл
-func (fm *Manager) Append(filename string) (*types.BlockID, error) {
+func (fm *Manager) Append(filename string) (*types.Block, error) {
 	fm.Lock()
 	defer fm.Unlock()
 

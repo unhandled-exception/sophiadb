@@ -11,10 +11,10 @@ type SetStringLogRecord struct {
 
 	offset uint32
 	value  string
-	block  *types.BlockID
+	block  *types.Block
 }
 
-func NewSetStringLogRecord(txnum types.TRX, block *types.BlockID, offset uint32, value string) *SetStringLogRecord {
+func NewSetStringLogRecord(txnum types.TRX, block *types.Block, offset uint32, value string) *SetStringLogRecord {
 	return &SetStringLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    SetStringOp,

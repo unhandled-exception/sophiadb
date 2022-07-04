@@ -12,7 +12,7 @@ type Buffer struct {
 	fm       *storage.Manager
 	lm       *wal.Manager
 	contents *types.Page
-	block    *types.BlockID
+	block    *types.Block
 	pins     int
 	txnum    types.TRX
 	lsn      types.LSN
@@ -38,7 +38,7 @@ func (buf *Buffer) Content() *types.Page {
 }
 
 // Block возвращает ссылку на блок
-func (buf *Buffer) Block() *types.BlockID {
+func (buf *Buffer) Block() *types.Block {
 	return buf.block
 }
 
@@ -81,7 +81,7 @@ func (buf *Buffer) Pins() int {
 }
 
 // AssignToBlock cвязывает страницу буфера со странице на диске
-func (buf *Buffer) AssignToBlock(block *types.BlockID) error {
+func (buf *Buffer) AssignToBlock(block *types.Block) error {
 	err := buf.Flush()
 	if err != nil {
 		return errors.WithMessage(ErrFailedToAssignBlockToBuffer, err.Error())

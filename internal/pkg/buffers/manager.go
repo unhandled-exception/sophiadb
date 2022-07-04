@@ -38,6 +38,7 @@ func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int) *Manager {
 		maxPinLockTime: defaultMaxPinTime,
 		pinLock:        utils.NewCond(&sync.Mutex{}),
 	}
+
 	bm.pool = NewBuffersPool(pLen, bm.newBuffer)
 
 	return bm
@@ -81,7 +82,7 @@ func (bm *Manager) Unpin(buf *Buffer) {
 }
 
 // Pin — закрепляет блок в памяти
-func (bm *Manager) Pin(block *types.BlockID) (*Buffer, error) {
+func (bm *Manager) Pin(block *types.Block) (*Buffer, error) {
 	buf, err := bm.tryToPin(block)
 	if err != nil && !errors.Is(err, ErrNoAvailableBuffers) {
 		return nil, err
@@ -110,7 +111,7 @@ func (bm *Manager) Pin(block *types.BlockID) (*Buffer, error) {
 	return buf, nil
 }
 
-func (bm *Manager) tryToPin(block *types.BlockID) (*Buffer, error) {
+func (bm *Manager) tryToPin(block *types.Block) (*Buffer, error) {
 	buf := bm.pool.FindExistingBuffer(block)
 	if buf == nil {
 		buf = bm.pool.ChooseUnpinnedBuffer()

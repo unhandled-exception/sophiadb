@@ -13,29 +13,29 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
-type ManagerTestSuite struct {
+type BuffersManagerTestSuite struct {
 	suite.Suite
 	suiteDir string
 }
 
 func TestManagerTestSuite(t *testing.T) {
-	suite.Run(t, new(ManagerTestSuite))
+	suite.Run(t, new(BuffersManagerTestSuite))
 }
 
-func (ts *ManagerTestSuite) SuiteDir() string {
+func (ts *BuffersManagerTestSuite) SuiteDir() string {
 	return ts.suiteDir
 }
 
-func (ts *ManagerTestSuite) SetupSuite() {
+func (ts *BuffersManagerTestSuite) SetupSuite() {
 	testSuiteDir := "buffers_manager_tests"
 	ts.suiteDir = testutil.CreateSuiteTemporaryDir(ts, testSuiteDir)
 }
 
-func (ts *ManagerTestSuite) TearDownSuite() {
+func (ts *BuffersManagerTestSuite) TearDownSuite() {
 	testutil.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *ManagerTestSuite) createBuffersManager(pLen int) (*buffers.Manager, string) {
+func (ts *BuffersManagerTestSuite) createBuffersManager(pLen int) (*buffers.Manager, string) {
 	var defaultBlockSize uint32 = 400
 
 	walFile := "wal_log.dat"
@@ -57,7 +57,7 @@ func (ts *ManagerTestSuite) createBuffersManager(pLen int) (*buffers.Manager, st
 	return m, path
 }
 
-func (ts *ManagerTestSuite) TestBuffersManager() {
+func (ts *BuffersManagerTestSuite) TestBuffersManager() {
 	bm, path := ts.createBuffersManager(3)
 	defer bm.StorageManager().Close()
 

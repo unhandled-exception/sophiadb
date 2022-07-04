@@ -151,7 +151,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	defer fm.Close()
 
 	// Создаем блоки
-	blocks := make([]*types.BlockID, 10)
+	blocks := make([]*types.Block, 10)
 
 	for i := 0; i < len(blocks); i++ {
 		filenum := i % 2

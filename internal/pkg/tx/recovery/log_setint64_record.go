@@ -11,10 +11,10 @@ type SetInt64LogRecord struct {
 
 	offset uint32
 	value  int64
-	block  *types.BlockID
+	block  *types.Block
 }
 
-func NewSetInt64LogRecord(txnum types.TRX, block *types.BlockID, offset uint32, value int64) *SetInt64LogRecord {
+func NewSetInt64LogRecord(txnum types.TRX, block *types.Block, offset uint32, value int64) *SetInt64LogRecord {
 	return &SetInt64LogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    SetInt64Op,
