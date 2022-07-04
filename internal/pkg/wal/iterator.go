@@ -38,7 +38,7 @@ func (it *Iterator) HasNext() bool {
 // Next достает следующею запись из лога
 func (it *Iterator) Next() ([]byte, error) {
 	if it.currentPos == it.fm.BlockSize() {
-		it.blk = types.NewBlockID(it.blk.Filename(), it.blk.Number()-1)
+		it.blk = types.NewBlock(it.blk.Filename(), it.blk.Number()-1)
 
 		err := it.moveToBlock(it.blk)
 		if err != nil {

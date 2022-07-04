@@ -31,7 +31,7 @@ func (ts *ConcurrencyManagerTestSute) TestSLock_OK() {
 
 	sut, _ := ts.newManager()
 
-	block1 := types.NewBlockID(testBlockFilename, 1)
+	block1 := types.NewBlock(testBlockFilename, 1)
 
 	assert.NoError(t, sut.SLock(block1))
 	assert.True(t, sut.HasSlock(block1))
@@ -42,7 +42,7 @@ func (ts *ConcurrencyManagerTestSute) TestSLock_Fail() {
 
 	sut, lt := ts.newManager()
 
-	block1 := types.NewBlockID(testBlockFilename, 1)
+	block1 := types.NewBlock(testBlockFilename, 1)
 	_ = lt.XLock(block1)
 
 	assert.ErrorIs(t, sut.SLock(block1), concurrency.ErrLockAbort)
@@ -54,7 +54,7 @@ func (ts *ConcurrencyManagerTestSute) TestXLock_OK() {
 
 	sut, _ := ts.newManager()
 
-	block1 := types.NewBlockID(testBlockFilename, 1)
+	block1 := types.NewBlock(testBlockFilename, 1)
 
 	assert.NoError(t, sut.XLock(block1))
 	assert.True(t, sut.HasXlock(block1))
@@ -68,7 +68,7 @@ func (ts *ConcurrencyManagerTestSute) TestXLock_Fail() {
 
 	sut, lt := ts.newManager()
 
-	block1 := types.NewBlockID(testBlockFilename, 1)
+	block1 := types.NewBlock(testBlockFilename, 1)
 
 	_ = lt.XLock(block1)
 	assert.ErrorIs(t, sut.XLock(block1), concurrency.ErrLockAbort)
@@ -84,8 +84,8 @@ func (ts *ConcurrencyManagerTestSute) TestRelease() {
 
 	sut, _ := ts.newManager()
 
-	block1 := types.NewBlockID(testBlockFilename, 1)
-	block2 := types.NewBlockID(testBlockFilename, 2)
+	block1 := types.NewBlock(testBlockFilename, 1)
+	block2 := types.NewBlock(testBlockFilename, 2)
 
 	assert.NoError(t, sut.XLock(block1))
 	assert.NoError(t, sut.SLock(block2))

@@ -8,8 +8,8 @@ type Block struct {
 	number   uint32
 }
 
-// NewBlockID создает новый объект BlockID
-func NewBlockID(filename string, number uint32) *Block {
+// NewBlock создает новый объект BlockID
+func NewBlock(filename string, number uint32) *Block {
 	return &Block{
 		filename: filename,
 		number:   number,

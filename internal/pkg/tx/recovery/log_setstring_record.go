@@ -98,7 +98,7 @@ func (lr *SetStringLogRecord) unmarshalBytes(rawRecord []byte) error {
 	bpos := fpos + uint32(int32Size+len(blockFilename))
 	blockNum := p.GetUint32(bpos)
 
-	lr.block = types.NewBlockID(blockFilename, blockNum)
+	lr.block = types.NewBlock(blockFilename, blockNum)
 
 	ofpos := bpos + int32Size
 	lr.offset = p.GetUint32(ofpos)

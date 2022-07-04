@@ -164,7 +164,7 @@ func (fm *Manager) Append(filename string) (*types.Block, error) {
 		return nil, err
 	}
 
-	blockID := types.NewBlockID(filename, blkNum)
+	blockID := types.NewBlock(filename, blkNum)
 	blockData := make([]byte, fm.blockSize)
 
 	file, err := fm.getFile(blockID.Filename())

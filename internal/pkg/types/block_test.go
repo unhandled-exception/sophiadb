@@ -7,29 +7,29 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
-type BlockIDTestSuite struct {
+type BlockTestSuite struct {
 	suite.Suite
 }
 
-func TestBlockIDTestSuite(t *testing.T) {
-	suite.Run(t, new(BlockIDTestSuite))
+func TestBlockTestSuite(t *testing.T) {
+	suite.Run(t, new(BlockTestSuite))
 }
 
-func (ts *BlockIDTestSuite) TestCreateBlockID() {
+func (ts *BlockTestSuite) TestCreateBlock() {
 	filename := "block_filename"
 	blkNum := uint32(12345)
-	blockID := types.NewBlockID(filename, blkNum)
-	ts.Equal(filename, blockID.Filename())
-	ts.Equal(blkNum, blockID.Number())
-	ts.Equal("[file block_filename, block 12345]", blockID.String())
-	ts.Equal("[block_filename][12345]", blockID.HashKey())
+	block := types.NewBlock(filename, blkNum)
+	ts.Equal(filename, block.Filename())
+	ts.Equal(blkNum, block.Number())
+	ts.Equal("[file block_filename, block 12345]", block.String())
+	ts.Equal("[block_filename][12345]", block.HashKey())
 }
 
-func (ts *BlockIDTestSuite) TestBlockEquals() {
-	block1 := types.NewBlockID("filename", 1)
-	block2 := types.NewBlockID("filename", 2)
-	block3 := types.NewBlockID("filename", 1)
-	block4 := types.NewBlockID("filename2", 1)
+func (ts *BlockTestSuite) TestBlockEquals() {
+	block1 := types.NewBlock("filename", 1)
+	block2 := types.NewBlock("filename", 2)
+	block3 := types.NewBlock("filename", 1)
+	block4 := types.NewBlock("filename2", 1)
 
 	ts.True(block1.Equals(block1))
 	ts.False(block1.Equals(block2))

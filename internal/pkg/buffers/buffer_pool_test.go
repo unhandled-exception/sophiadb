@@ -67,10 +67,10 @@ func (ts *BuffersPoolTestSuite) TestFindExistingBuffer() {
 
 	buffers := bp.Buffers()
 
-	block0 := types.NewBlockID(testFile, 0)
-	block1 := types.NewBlockID(testFile, 1)
-	block2 := types.NewBlockID(testFile, 2)
-	block3 := types.NewBlockID(testFile, 3)
+	block0 := types.NewBlock(testFile, 0)
+	block1 := types.NewBlock(testFile, 1)
+	block2 := types.NewBlock(testFile, 2)
+	block3 := types.NewBlock(testFile, 3)
 
 	ts.Require().NoError(bp.AssignBufferToBlock(buffers[0], block0))
 	ts.Require().NoError(bp.AssignBufferToBlock(buffers[1], block1))

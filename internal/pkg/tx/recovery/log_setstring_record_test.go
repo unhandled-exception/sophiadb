@@ -13,7 +13,7 @@ import (
 
 var testSetStringLogRecord = recovery.NewSetStringLogRecord(
 	0x1234,
-	types.NewBlockID("testlogfile", 0x0789),
+	types.NewBlock("testlogfile", 0x0789),
 	0x0145,
 	"Test string value",
 )
@@ -42,7 +42,7 @@ func (ts *SetStringLogRecordTestSuite) TestNewSetStringLogRecord() {
 
 	r := recovery.NewSetStringLogRecord(
 		12345,
-		types.NewBlockID("testlogfile", 789),
+		types.NewBlock("testlogfile", 789),
 		145,
 		"Test string value",
 	)
