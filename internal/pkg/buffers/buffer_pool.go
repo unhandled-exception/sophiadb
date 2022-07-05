@@ -8,7 +8,7 @@ import (
 )
 
 type BuffersPool struct {
-	sync.Mutex
+	mu sync.Mutex
 
 	len             int
 	ring            *ring.Ring         // Буферы храним в кольце, чтобы реализовать круговую стратегию поиска свобоных буферов
@@ -35,6 +35,9 @@ func NewBuffersPool(bLen int, nbf newBufferFunc) *BuffersPool {
 
 // Buffers возвращает массив буферов в виде слайса
 func (bp *BuffersPool) Buffers() []*Buffer {
+	bp.mu.Lock()
+	defer bp.mu.Unlock()
+
 	buffers := make([]*Buffer, bp.len)
 
 	for i := 0; i < bp.len; i++ {
@@ -47,8 +50,8 @@ func (bp *BuffersPool) Buffers() []*Buffer {
 
 // FlushAll сбрасывает на диск все блоки, соответствующие транзакции
 func (bp *BuffersPool) FlushAll(txnum types.TRX) error {
-	bp.Lock()
-	defer bp.Unlock()
+	bp.mu.Lock()
+	defer bp.mu.Unlock()
 
 	for i := 0; i < bp.len; i++ {
 		buf, ok := bp.ring.Value.(*Buffer)
@@ -67,6 +70,9 @@ func (bp *BuffersPool) FlushAll(txnum types.TRX) error {
 
 // FindExistingBuffer ищет существующий буфер, соотоветсвующий блоку
 func (bp *BuffersPool) FindExistingBuffer(block *types.Block) *Buffer {
+	bp.mu.Lock()
+	defer bp.mu.Unlock()
+
 	if buf, ok := bp.blocksToBuffers[block.HashKey()]; ok {
 		return buf
 	}
@@ -76,6 +82,9 @@ func (bp *BuffersPool) FindExistingBuffer(block *types.Block) *Buffer {
 
 // ChooseUnpinnedBuffer ищет незакрепленные буферы в памяти
 func (bp *BuffersPool) ChooseUnpinnedBuffer() *Buffer {
+	bp.mu.Lock()
+	defer bp.mu.Unlock()
+
 	for i := 0; i < bp.len; i++ {
 		bp.ring = bp.ring.Next()
 
@@ -90,6 +99,9 @@ func (bp *BuffersPool) ChooseUnpinnedBuffer() *Buffer {
 
 // AssignBufferToBlock связывает буфер с блоком на диске
 func (bp *BuffersPool) AssignBufferToBlock(buf *Buffer, block *types.Block) error {
+	bp.mu.Lock()
+	defer bp.mu.Unlock()
+
 	bp.blocksToBuffers[block.HashKey()] = buf
 
 	if oldBlock := buf.Block(); oldBlock != nil {

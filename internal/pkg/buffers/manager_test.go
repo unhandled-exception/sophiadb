@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
@@ -14,6 +15,8 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
+
+const testFile = "test_file.dat"
 
 type BuffersManagerTestSuite struct {
 	suite.Suite
@@ -37,7 +40,7 @@ func (ts *BuffersManagerTestSuite) TearDownSuite() {
 	testutil.RemoveSuiteTemporaryDir(ts)
 }
 
-func (ts *BuffersManagerTestSuite) createBuffersManager(pLen int) (*buffers.Manager, string) {
+func (ts *BuffersManagerTestSuite) createBuffersManager(pLen int, opts ...buffers.ManagerOpt) (*buffers.Manager, string) {
 	var defaultBlockSize uint32 = 400
 
 	walFile := "wal_log.dat"
@@ -51,7 +54,7 @@ func (ts *BuffersManagerTestSuite) createBuffersManager(pLen int) (*buffers.Mana
 	ts.Require().NoError(err)
 	ts.Require().FileExists(filepath.Join(path, walFile))
 
-	m := buffers.NewManager(fm, lm, pLen)
+	m := buffers.NewManager(fm, lm, pLen, opts...)
 	ts.Require().NotNil(m)
 
 	m.SetMaxPinLockTime(250 * time.Millisecond)
@@ -59,11 +62,35 @@ func (ts *BuffersManagerTestSuite) createBuffersManager(pLen int) (*buffers.Mana
 	return m, path
 }
 
+func (ts *BuffersManagerTestSuite) TestWaitToPinBuffer() {
+	t := ts.T()
+
+	sut, path := ts.createBuffersManager(1, buffers.WithMaxPinLockTime(100*time.Millisecond))
+	defer sut.StorageManager().Close()
+
+	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))
+
+	block1 := types.NewBlock(testFile, 1)
+	block2 := types.NewBlock(testFile, 2)
+
+	buf1, err := sut.Pin(block1)
+	require.NoError(t, err)
+
+	_, err = sut.Pin(block2)
+	require.ErrorIs(t, err, buffers.ErrNoAvailableBuffers)
+
+	go func() {
+		time.Sleep(30 * time.Millisecond)
+		sut.Unpin(buf1)
+	}()
+
+	_, err = sut.Pin(block2)
+	require.NoError(t, err)
+}
+
 func (ts *BuffersManagerTestSuite) TestBuffersManager() {
 	bm, path := ts.createBuffersManager(3)
 	defer bm.StorageManager().Close()
-
-	testFile := "test_file.dat"
 
 	var bufs [7]*buffers.Buffer
 
@@ -144,10 +171,7 @@ func (ts *BuffersManagerTestSuite) TestConcurrency() {
 	sut, path := ts.createBuffersManager(3)
 	defer sut.StorageManager().Close()
 
-	testFile := "test_file.dat"
 	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))
-
-	block1 := types.NewBlock(testFile, 1)
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
@@ -155,6 +179,7 @@ func (ts *BuffersManagerTestSuite) TestConcurrency() {
 	go func() {
 		defer wg.Done()
 
+		block1 := types.NewBlock(testFile, 1)
 		buf, _ := sut.Pin(block1)
 
 		assert.NotPanics(t, func() {
@@ -168,6 +193,7 @@ func (ts *BuffersManagerTestSuite) TestConcurrency() {
 	go func() {
 		defer wg.Done()
 
+		block1 := types.NewBlock(testFile, 1)
 		buf, _ := sut.Pin(block1)
 
 		assert.NotPanics(t, func() {

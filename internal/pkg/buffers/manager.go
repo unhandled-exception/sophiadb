@@ -16,7 +16,7 @@ var defaultMaxPinTime time.Duration = 10 * time.Second
 
 // Manager менеджер буферов в памяти
 type Manager struct {
-	sync.Mutex
+	mu      sync.Mutex
 	pinLock *utils.Cond
 
 	fm *storage.Manager
@@ -28,8 +28,10 @@ type Manager struct {
 	maxPinLockTime time.Duration
 }
 
+type ManagerOpt func(*Manager)
+
 // NewManager создает новый менеджер пулов
-func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int) *Manager {
+func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int, opts ...ManagerOpt) *Manager {
 	bm := &Manager{
 		fm:             fm,
 		lm:             lm,
@@ -41,7 +43,17 @@ func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int) *Manager {
 
 	bm.pool = NewBuffersPool(pLen, bm.newBuffer)
 
+	for _, opt := range opts {
+		opt(bm)
+	}
+
 	return bm
+}
+
+func WithMaxPinLockTime(timeout time.Duration) ManagerOpt {
+	return func(m *Manager) {
+		m.maxPinLockTime = timeout
+	}
 }
 
 // StorageManager возвращает менеджер хранилища
@@ -70,8 +82,8 @@ func (bm *Manager) FlushAll(txnum types.TRX) error {
 
 // Unpin уменьшает счетчик закреплений. Если буфер освободился, то дает сигнал другим потокам, что появился свободный буфер
 func (bm *Manager) Unpin(buf *Buffer) {
-	bm.Lock()
-	defer bm.Unlock()
+	bm.mu.Lock()
+	defer bm.mu.Unlock()
 
 	buf.Unpin()
 
@@ -88,7 +100,7 @@ func (bm *Manager) Pin(block *types.Block) (*Buffer, error) {
 		return nil, err
 	}
 
-	if buf != nil {
+	if errors.Is(err, ErrNoAvailableBuffers) {
 		bm.pinLock.L.Lock()
 		defer bm.pinLock.L.Unlock()
 
@@ -112,6 +124,9 @@ func (bm *Manager) Pin(block *types.Block) (*Buffer, error) {
 }
 
 func (bm *Manager) tryToPin(block *types.Block) (*Buffer, error) {
+	bm.mu.Lock()
+	defer bm.mu.Unlock()
+
 	buf := bm.pool.FindExistingBuffer(block)
 	if buf == nil {
 		buf = bm.pool.ChooseUnpinnedBuffer()

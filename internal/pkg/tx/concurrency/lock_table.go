@@ -26,7 +26,6 @@ func NewLockTable(opts ...lockTableOpt) *LockTable {
 	lt := &LockTable{
 		locks: make(map[types.Block]int32),
 
-		L:               sync.RWMutex{},
 		locksCond:       utils.NewCond(&sync.Mutex{}),
 		lockWaitTimeout: defaultMaxLockWaitTime,
 	}
