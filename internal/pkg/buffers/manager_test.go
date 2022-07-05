@@ -2,9 +2,11 @@ package buffers_test
 
 import (
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
@@ -134,4 +136,47 @@ func (ts *BuffersManagerTestSuite) TestBuffersManager() {
 	ts.Require().NoError(err)
 	ts.Equal(types.TRX(-1), bufs[0].ModifyingTX())
 	ts.Equal(types.TRX(2), bufs[5].ModifyingTX())
+}
+
+func (ts *BuffersManagerTestSuite) TestConcurrency() {
+	t := ts.T()
+
+	sut, path := ts.createBuffersManager(3)
+	defer sut.StorageManager().Close()
+
+	testFile := "test_file.dat"
+	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))
+
+	block1 := types.NewBlock(testFile, 1)
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		buf, _ := sut.Pin(block1)
+
+		assert.NotPanics(t, func() {
+			for i := 0; i < 10000; i++ {
+				sut.Unpin(buf)
+				buf, _ = sut.Pin(block1)
+			}
+		})
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		buf, _ := sut.Pin(block1)
+
+		assert.NotPanics(t, func() {
+			for i := 0; i < 10000; i++ {
+				sut.Unpin(buf)
+				buf, _ = sut.Pin(block1)
+			}
+		})
+	}()
+
+	wg.Wait()
 }
