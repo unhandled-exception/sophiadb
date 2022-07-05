@@ -24,7 +24,7 @@ const (
 	defaultBlockSize = 400
 )
 
-func TestManagerTestSuite(t *testing.T) {
+func TestWalManagerTestSuite(t *testing.T) {
 	suite.Run(t, new(WalManagerTestSuite))
 }
 
@@ -84,7 +84,7 @@ func (ts *WalManagerTestSuite) TestCreateManagerExistsLogFile() {
 
 	nm, err := wal.NewManager(fm, walFile)
 	ts.Require().NoError(err)
-	ts.Equal(uint32(1), nm.CurrentBlock().Number())
+	ts.Equal(int32(1), nm.CurrentBlock().Number())
 }
 
 func (ts *WalManagerTestSuite) TestCreateRecords() {

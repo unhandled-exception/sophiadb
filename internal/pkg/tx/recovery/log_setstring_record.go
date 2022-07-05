@@ -79,7 +79,7 @@ func (lr *SetStringLogRecord) MarshalBytes() []byte {
 	p.SetUint32(oppos, lr.op)
 	p.SetInt32(txpos, int32(lr.txnum))
 	p.SetString(fpos, blockFilename)
-	p.SetUint32(bpos, lr.block.Number())
+	p.SetInt32(bpos, lr.block.Number())
 	p.SetUint32(ofpos, lr.offset)
 	p.SetString(vpos, lr.value)
 
@@ -98,7 +98,7 @@ func (lr *SetStringLogRecord) unmarshalBytes(rawRecord []byte) error {
 	bpos := fpos + uint32(int32Size+len(blockFilename))
 	blockNum := p.GetUint32(bpos)
 
-	lr.block = types.NewBlock(blockFilename, blockNum)
+	lr.block = types.NewBlock(blockFilename, int32(blockNum))
 
 	ofpos := bpos + int32Size
 	lr.offset = p.GetUint32(ofpos)

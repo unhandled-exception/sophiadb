@@ -7,11 +7,11 @@ import (
 
 type Manager struct {
 	trx trxInt
-	bm  bufferManager
-	lm  walManager
+	bm  BuffersManager
+	lm  WALManager
 }
 
-func NewManager(trx trxInt, lm walManager, bm bufferManager) (*Manager, error) {
+func NewManager(trx trxInt, lm WALManager, bm BuffersManager) (*Manager, error) {
 	m := Manager{
 		trx: trx,
 		bm:  bm,
