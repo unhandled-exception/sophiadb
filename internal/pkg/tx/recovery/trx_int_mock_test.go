@@ -41,7 +41,7 @@ type TrxIntMock struct {
 	beforeTXNumCounter uint64
 	TXNumMock          mTrxIntMockTXNum
 
-	funcUnpin          func(block *types.Block) (err error)
+	funcUnpin          func(block *types.Block)
 	inspectFuncUnpin   func(block *types.Block)
 	afterUnpinCounter  uint64
 	beforeUnpinCounter uint64
@@ -877,20 +877,15 @@ type mTrxIntMockUnpin struct {
 
 // TrxIntMockUnpinExpectation specifies expectation struct of the trxInt.Unpin
 type TrxIntMockUnpinExpectation struct {
-	mock    *TrxIntMock
-	params  *TrxIntMockUnpinParams
-	results *TrxIntMockUnpinResults
+	mock   *TrxIntMock
+	params *TrxIntMockUnpinParams
+
 	Counter uint64
 }
 
 // TrxIntMockUnpinParams contains parameters of the trxInt.Unpin
 type TrxIntMockUnpinParams struct {
 	block *types.Block
-}
-
-// TrxIntMockUnpinResults contains results of the trxInt.Unpin
-type TrxIntMockUnpinResults struct {
-	err error
 }
 
 // Expect sets up expected params for trxInt.Unpin
@@ -925,7 +920,7 @@ func (mmUnpin *mTrxIntMockUnpin) Inspect(f func(block *types.Block)) *mTrxIntMoc
 }
 
 // Return sets up results that will be returned by trxInt.Unpin
-func (mmUnpin *mTrxIntMockUnpin) Return(err error) *TrxIntMock {
+func (mmUnpin *mTrxIntMockUnpin) Return() *TrxIntMock {
 	if mmUnpin.mock.funcUnpin != nil {
 		mmUnpin.mock.t.Fatalf("TrxIntMock.Unpin mock is already set by Set")
 	}
@@ -933,12 +928,12 @@ func (mmUnpin *mTrxIntMockUnpin) Return(err error) *TrxIntMock {
 	if mmUnpin.defaultExpectation == nil {
 		mmUnpin.defaultExpectation = &TrxIntMockUnpinExpectation{mock: mmUnpin.mock}
 	}
-	mmUnpin.defaultExpectation.results = &TrxIntMockUnpinResults{err}
+
 	return mmUnpin.mock
 }
 
 //Set uses given function f to mock the trxInt.Unpin method
-func (mmUnpin *mTrxIntMockUnpin) Set(f func(block *types.Block) (err error)) *TrxIntMock {
+func (mmUnpin *mTrxIntMockUnpin) Set(f func(block *types.Block)) *TrxIntMock {
 	if mmUnpin.defaultExpectation != nil {
 		mmUnpin.mock.t.Fatalf("Default expectation is already set for the trxInt.Unpin method")
 	}
@@ -951,29 +946,8 @@ func (mmUnpin *mTrxIntMockUnpin) Set(f func(block *types.Block) (err error)) *Tr
 	return mmUnpin.mock
 }
 
-// When sets expectation for the trxInt.Unpin which will trigger the result defined by the following
-// Then helper
-func (mmUnpin *mTrxIntMockUnpin) When(block *types.Block) *TrxIntMockUnpinExpectation {
-	if mmUnpin.mock.funcUnpin != nil {
-		mmUnpin.mock.t.Fatalf("TrxIntMock.Unpin mock is already set by Set")
-	}
-
-	expectation := &TrxIntMockUnpinExpectation{
-		mock:   mmUnpin.mock,
-		params: &TrxIntMockUnpinParams{block},
-	}
-	mmUnpin.expectations = append(mmUnpin.expectations, expectation)
-	return expectation
-}
-
-// Then sets up trxInt.Unpin return parameters for the expectation previously defined by the When method
-func (e *TrxIntMockUnpinExpectation) Then(err error) *TrxIntMock {
-	e.results = &TrxIntMockUnpinResults{err}
-	return e.mock
-}
-
 // Unpin implements trxInt
-func (mmUnpin *TrxIntMock) Unpin(block *types.Block) (err error) {
+func (mmUnpin *TrxIntMock) Unpin(block *types.Block) {
 	mm_atomic.AddUint64(&mmUnpin.beforeUnpinCounter, 1)
 	defer mm_atomic.AddUint64(&mmUnpin.afterUnpinCounter, 1)
 
@@ -991,7 +965,7 @@ func (mmUnpin *TrxIntMock) Unpin(block *types.Block) (err error) {
 	for _, e := range mmUnpin.UnpinMock.expectations {
 		if minimock.Equal(e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.err
+			return
 		}
 	}
 
@@ -1003,17 +977,15 @@ func (mmUnpin *TrxIntMock) Unpin(block *types.Block) (err error) {
 			mmUnpin.t.Errorf("TrxIntMock.Unpin got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmUnpin.UnpinMock.defaultExpectation.results
-		if mm_results == nil {
-			mmUnpin.t.Fatal("No results are set for the TrxIntMock.Unpin")
-		}
-		return (*mm_results).err
+		return
+
 	}
 	if mmUnpin.funcUnpin != nil {
-		return mmUnpin.funcUnpin(block)
+		mmUnpin.funcUnpin(block)
+		return
 	}
 	mmUnpin.t.Fatalf("Unexpected call to TrxIntMock.Unpin. %v", block)
-	return
+
 }
 
 // UnpinAfterCounter returns a count of finished TrxIntMock.Unpin invocations

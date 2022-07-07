@@ -77,7 +77,7 @@ func (ts *SetInt64LogRecordTestSuite) TestUndo() {
 
 	trxIntMock := recovery.NewTrxIntMock(mc).
 		PinMock.Return(nil).
-		UnpinMock.Return(nil).
+		UnpinMock.Return().
 		SetInt64Mock.Return(nil)
 
 	err := testSetInt64LogRecord.Undo(trxIntMock)

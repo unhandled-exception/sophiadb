@@ -15,7 +15,7 @@ type RecoveryManager interface {
 
 type trxInt interface {
 	Pin(block *types.Block) error
-	Unpin(block *types.Block) error
+	Unpin(block *types.Block)
 	SetString(block *types.Block, offset uint32, value string, okToLog bool) error
 	SetInt64(block *types.Block, offset uint32, value int64, okToLog bool) error
 	TXNum() types.TRX

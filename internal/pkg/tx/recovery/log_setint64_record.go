@@ -46,9 +46,7 @@ func (lr *SetInt64LogRecord) Undo(tx trxInt) error {
 		return err
 	}
 
-	if err := tx.Unpin(lr.block); err != nil {
-		return err
-	}
+	tx.Unpin(lr.block)
 
 	return nil
 }

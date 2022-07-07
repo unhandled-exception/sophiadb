@@ -69,7 +69,7 @@ func (ts *RecoveryManagerTestSuite) createRecoveryManager(mc minimock.Tester, tx
 
 	trx.TXNumMock.Return(*txNum).
 		PinMock.Return(nil).
-		UnpinMock.Return(nil)
+		UnpinMock.Return()
 
 	rm, _ := recovery.NewManager(trx, wal, bm)
 
