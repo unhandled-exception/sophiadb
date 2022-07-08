@@ -1,6 +1,8 @@
 package buffers
 
 import (
+	"sync"
+
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
@@ -16,6 +18,7 @@ type Buffer struct {
 	pins     int
 	txnum    types.TRX
 	lsn      types.LSN
+	mu       sync.Mutex
 }
 
 // NewBuffer создает новый объект буфера
@@ -44,6 +47,9 @@ func (buf *Buffer) Block() *types.Block {
 
 // SetModified устанавливает указатели транзакции и лога
 func (buf *Buffer) SetModified(txnum types.TRX, lsn types.LSN) {
+	buf.mu.Lock()
+	defer buf.mu.Unlock()
+
 	buf.txnum = txnum
 	if lsn >= 0 {
 		buf.lsn = lsn
@@ -67,6 +73,9 @@ func (buf *Buffer) IsPinned() bool {
 
 // ModifyingTX возвращает указатель транзакции
 func (buf *Buffer) ModifyingTX() types.TRX {
+	buf.mu.Lock()
+	defer buf.mu.Unlock()
+
 	return buf.txnum
 }
 
@@ -100,6 +109,9 @@ func (buf *Buffer) AssignToBlock(block *types.Block) error {
 // Flush сбрасывает страницу из памяти на диск
 func (buf *Buffer) Flush() error {
 	if buf.txnum >= 0 {
+		buf.mu.Lock()
+		defer buf.mu.Unlock()
+
 		err := buf.lm.Flush(buf.lsn, false)
 		if err != nil {
 			return err

@@ -68,21 +68,28 @@ func (lt *LockTable) SLock(block *types.Block) error {
 	lt.locksCond.L.Lock()
 	defer lt.locksCond.L.Unlock()
 
-	for time.Now().Before(deadline) {
-		lt.L.RLock()
-		wait := lt.HasXLock(block)
-		lt.L.RUnlock()
+	var err error
 
-		if !wait {
+	for {
+		lt.L.Lock()
+		err = lt.tryToSLock(block)
+		lt.L.Unlock()
+
+		if err == nil {
+			break
+		}
+
+		if !time.Now().Before(deadline) {
 			break
 		}
 
 		lt.locksCond.WaitWithTimeout(lt.lockWaitTimeout)
 	}
 
-	lt.L.Lock()
-	defer lt.L.Unlock()
+	return err
+}
 
+func (lt *LockTable) tryToSLock(block *types.Block) error {
 	if lt.HasXLock(block) {
 		return errors.WithMessagef(ErrLockAbort, "slock: block %s has xlock", block)
 	}
@@ -100,21 +107,28 @@ func (lt *LockTable) XLock(block *types.Block) error {
 	lt.locksCond.L.Lock()
 	defer lt.locksCond.L.Unlock()
 
-	for time.Now().Before(deadline) {
-		lt.L.RLock()
-		wait := lt.HasOtherSLock(block)
-		lt.L.RUnlock()
+	var err error
 
-		if !wait {
+	for {
+		lt.L.Lock()
+		err = lt.tryToXLock(block)
+		lt.L.Unlock()
+
+		if err == nil {
+			break
+		}
+
+		if !time.Now().Before(deadline) {
 			break
 		}
 
 		lt.locksCond.WaitWithTimeout(lt.lockWaitTimeout)
 	}
 
-	lt.L.Lock()
-	defer lt.L.Unlock()
+	return err
+}
 
+func (lt *LockTable) tryToXLock(block *types.Block) error {
 	if lt.HasOtherSLock(block) {
 		return errors.WithMessagef(ErrLockAbort, "xlock: block %s has other %d slock", block, lt.LocksCount(block))
 	}
@@ -127,9 +141,8 @@ func (lt *LockTable) XLock(block *types.Block) error {
 // Unlock снимает блокировку для блока
 func (lt *LockTable) Unlock(block *types.Block) {
 	lt.L.Lock()
-	lCount := lt.locks[*block]
 
-	if lCount > 1 {
+	if lCount := lt.locks[*block]; lCount > 1 {
 		lt.locks[*block] = lCount - 1
 	} else {
 		delete(lt.locks, *block)

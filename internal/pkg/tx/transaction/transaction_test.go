@@ -277,7 +277,7 @@ func (ts *TransactionTestSuite) TestConcurrentCase() {
 	wg := sync.WaitGroup{}
 	wg.Add(int(testTRXCount))
 
-	for i := int64(0); i < testTRXCount; i++ {
+	for i := int64(1); i <= testTRXCount; i++ {
 		go func() {
 			defer wg.Done()
 
@@ -289,14 +289,15 @@ func (ts *TransactionTestSuite) TestConcurrentCase() {
 			// Ждём старта одной и транзакций
 			num := <-next
 
+			// Запускаем только одну пишущую транзакцию, чтобы проверить, что она дождётся когда отвалятся локи в читающих транзакциях
+			trxType := "read"
+			if num < 2 {
+				trxType = "write"
+			}
+
 			sut, err := trxMan.Transaction()
 			if err != nil {
 				return
-			}
-
-			trxType := "read"
-			if num < testTRXCount/2 {
-				trxType = "write"
 			}
 
 			t.Logf("start %s trx %d (%d)", trxType, sut.TXNum(), num)
@@ -325,7 +326,6 @@ func (ts *TransactionTestSuite) TestConcurrentCase() {
 				if err = sut.SetString(block1, sOffset, fmt.Sprintf("%s %d", sVal, num), true); err != nil {
 					return
 				}
-
 			}
 
 			if err = sut.Commit(); err != nil {
@@ -336,15 +336,14 @@ func (ts *TransactionTestSuite) TestConcurrentCase() {
 		}()
 	}
 
-	next <- 0
+	next <- 1
+
 	wg.Wait()
 
 	// Проверяем что на диск записано
 	page := types.NewPage(defaultTestBlockSize)
 	require.NoError(t, fm.Read(block1, page))
 
-	assert.Less(t, iVal, page.GetInt64(iOffset))
-
-	assert.NotEqualValues(t, sVal, page.GetString(sOffset))
-	assert.NotEqualValues(t, "", page.GetString(sOffset))
+	assert.EqualValues(t, iVal+1, page.GetInt64(iOffset))
+	assert.EqualValues(t, sVal+" 1", page.GetString(sOffset))
 }
