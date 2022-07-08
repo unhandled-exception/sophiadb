@@ -188,7 +188,10 @@ func (ts *TransactionTestSuite) TestSequenceCase() {
 
 func (ts *TransactionTestSuite) TestRecovery() {
 	t := ts.T()
+
 	trxMan, fm := ts.newTRXManager(defaultLockTimeout)
+	defer fm.Close()
+
 	wal := trxMan.LogManager()
 
 	iOffset := uint32(80)
@@ -261,7 +264,9 @@ func (ts *TransactionTestSuite) TestConcurrentCase() {
 	t := ts.T()
 
 	testTRXCount := int64(10)
+
 	trxMan, fm := ts.newTRXManager(10000 * time.Millisecond)
+	defer fm.Close()
 
 	block1, err := fm.Append(testDataFile)
 	require.NoError(t, err)
