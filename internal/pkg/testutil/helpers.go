@@ -7,13 +7,13 @@ import (
 	"testing"
 )
 
-type suite interface {
+type testSuite interface {
 	T() *testing.T
 	FailNow(failureMessage string, msgAndArgs ...interface{}) bool
 	SuiteDir() string
 }
 
-func CreateSuiteTemporaryDir(ts suite, name string) string {
+func CreateSuiteTemporaryDir(ts testSuite, name string) string {
 	suiteDir, err := ioutil.TempDir("", name+"_")
 	if err != nil {
 		ts.FailNow("dont create temporary folder: %s", err.Error())
@@ -24,7 +24,7 @@ func CreateSuiteTemporaryDir(ts suite, name string) string {
 	return suiteDir
 }
 
-func RemoveSuiteTemporaryDir(ts suite) {
+func RemoveSuiteTemporaryDir(ts testSuite) {
 	err := os.RemoveAll(ts.SuiteDir())
 	if err != nil {
 		ts.FailNow("dont remove temporary folder: %s", err.Error())
@@ -33,7 +33,7 @@ func RemoveSuiteTemporaryDir(ts suite) {
 	ts.T().Logf("remove suite temporary directory: %s", ts.SuiteDir())
 }
 
-func CreateTestTemporaryDir(ts suite) string {
+func CreateTestTemporaryDir(ts testSuite) string {
 	path, err := ioutil.TempDir(ts.SuiteDir(), strings.ReplaceAll(ts.T().Name(), "/", "_")+"_")
 	if err != nil {
 		ts.FailNow("dont create test temporary dir: %s", err.Error())
@@ -44,7 +44,7 @@ func CreateTestTemporaryDir(ts suite) string {
 	return path
 }
 
-func CreateFile(ts suite, name string, content []byte) {
+func CreateFile(ts testSuite, name string, content []byte) {
 	file, err := os.Create(name)
 	if err != nil {
 		ts.FailNow("failed to create file \"%s\": %s", name, err)
@@ -60,7 +60,7 @@ func CreateFile(ts suite, name string, content []byte) {
 	ts.T().Logf("create file: %s, length: %d", name, len(content))
 }
 
-func GetFileSize(ts suite, name string) int64 {
+func GetFileSize(ts testSuite, name string) int64 {
 	stat, err := os.Stat(name)
 	if err != nil {
 		ts.FailNow(err.Error())

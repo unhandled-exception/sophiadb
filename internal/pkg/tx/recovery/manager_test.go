@@ -17,13 +17,10 @@ import (
 )
 
 type RecoveryManagerTestSuite struct {
-	suite.Suite
-
-	suiteDir string
+	testutil.Suite
 }
 
 const (
-	testSuiteDir              = "recovery_manager_tests"
 	testDataFile              = "data.dat"
 	testWALFile               = "recovery_wal_log.dat"
 	defaultTestBlockSize      = 400
@@ -35,20 +32,8 @@ func TestRecoveryManagerTestsuite(t *testing.T) {
 	suite.Run(t, new(RecoveryManagerTestSuite))
 }
 
-func (ts *RecoveryManagerTestSuite) SuiteDir() string {
-	return ts.suiteDir
-}
-
-func (ts *RecoveryManagerTestSuite) SetupSuite() {
-	ts.suiteDir = testutil.CreateSuiteTemporaryDir(ts, testSuiteDir)
-}
-
-func (ts *RecoveryManagerTestSuite) TearDownSuite() {
-	testutil.RemoveSuiteTemporaryDir(ts)
-}
-
-func (ts *RecoveryManagerTestSuite) createRecoveryManager(mc minimock.Tester, txNum *types.TRX) (*recovery.Manager, *recovery.TrxIntMock, *wal.Manager, *buffers.Manager) {
-	path := testutil.CreateTestTemporaryDir(ts)
+func (ts *RecoveryManagerTestSuite) newRecoveryManager(mc minimock.Tester, txNum *types.TRX) (*recovery.Manager, *recovery.TrxIntMock, *wal.Manager, *buffers.Manager) {
+	path := ts.CreateTestTemporaryDir()
 
 	fm, err := storage.NewFileManager(path, defaultTestBlockSize)
 	ts.Require().NoError(err)
@@ -69,7 +54,7 @@ func (ts *RecoveryManagerTestSuite) createRecoveryManager(mc minimock.Tester, tx
 
 	trx.TXNumMock.Return(*txNum).
 		PinMock.Return(nil).
-		UnpinMock.Return(nil)
+		UnpinMock.Return()
 
 	rm, _ := recovery.NewManager(trx, wal, bm)
 
@@ -101,7 +86,9 @@ func (ts *RecoveryManagerTestSuite) TestCommit_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, _ := ts.createRecoveryManager(mc, nil)
+	sut, _, wal, _ := ts.newRecoveryManager(mc, nil)
+
+	defer wal.StorageManager().Close()
 
 	err := sut.Commit()
 	require.NoError(t, err)
@@ -119,7 +106,9 @@ func (ts *RecoveryManagerTestSuite) TestSetInt64_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, bm := ts.createRecoveryManager(mc, nil)
+	sut, _, wal, bm := ts.newRecoveryManager(mc, nil)
+
+	defer wal.StorageManager().Close()
 
 	_, _ = bm.StorageManager().Append(testDataFile)
 	block, err := bm.StorageManager().Append(testDataFile)
@@ -156,7 +145,9 @@ func (ts *RecoveryManagerTestSuite) TestSetString_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, bm := ts.createRecoveryManager(mc, nil)
+	sut, _, wal, bm := ts.newRecoveryManager(mc, nil)
+
+	defer wal.StorageManager().Close()
 
 	_, _ = bm.StorageManager().Append(testDataFile)
 	block, err := bm.StorageManager().Append(testDataFile)
@@ -193,7 +184,9 @@ func (ts *RecoveryManagerTestSuite) TestRollback_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, _ := ts.createRecoveryManager(mc, nil)
+	sut, _, wal, _ := ts.newRecoveryManager(mc, nil)
+
+	defer wal.StorageManager().Close()
 
 	err := sut.Rollback()
 	require.NoError(t, err)
@@ -211,7 +204,9 @@ func (ts *RecoveryManagerTestSuite) TestRollback_RollbackDataOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, trx, wal, bm := ts.createRecoveryManager(mc, nil)
+	sut, trx, wal, bm := ts.newRecoveryManager(mc, nil)
+
+	defer wal.StorageManager().Close()
 
 	block, err := bm.StorageManager().Append(testDataFile)
 	require.NoError(t, err)
@@ -266,7 +261,9 @@ func (ts *RecoveryManagerTestSuite) TestRecovery_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, _ := ts.createRecoveryManager(mc, nil)
+	sut, _, wal, _ := ts.newRecoveryManager(mc, nil)
+
+	defer wal.StorageManager().Close()
 
 	err := sut.Recover()
 	require.NoError(t, err)
@@ -286,7 +283,9 @@ func (ts *RecoveryManagerTestSuite) TestRecovery_RecoveryDataOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, trx, wal, bm := ts.createRecoveryManager(mc, nil)
+	sut, trx, wal, bm := ts.newRecoveryManager(mc, nil)
+
+	defer wal.StorageManager().Close()
 
 	block, err := bm.StorageManager().Append(testDataFile)
 	require.NoError(t, err)
@@ -294,52 +293,45 @@ func (ts *RecoveryManagerTestSuite) TestRecovery_RecoveryDataOk() {
 	buf, err := bm.Pin(block)
 	require.NoError(t, err)
 
-	tx1id := trx.TXNum()
-	tx2id := types.TRX(1200)
-	tx3id := types.TRX(2200)
-	tx4id := types.TRX(3200)
-	offset := uint32(25)
-	value0 := int64(333)
-	value1 := int64(1000333)
-	value2 := int64(2000333)
-	value3 := int64(3000333)
-	value4 := int64(3000333)
-	value5 := int64(3000333)
-
 	trx.SetInt64Mock.Inspect(func(block *types.Block, offset uint32, value int64, okToLog bool) {
 		buf.Content().SetInt64(offset, value)
 	}).Return(nil)
 
-	logRecords := []recovery.LogRecord{
-		// tx1 стартанула раньше при инициализации trx
-		recovery.NewStartLogRecord(tx4id),
-		recovery.NewSetInt64LogRecord(tx4id, block, offset, value4),
+	offset := uint32(40)
 
+	trxIDS := []types.TRX{1001, 1002, 1003, 1004, 1005}
+	logRecords := []recovery.LogRecord{
+		recovery.NewStartLogRecord(trxIDS[0]),
+		recovery.NewSetInt64LogRecord(trxIDS[0], block, offset, -345),
 		recovery.NewCheckpointLogRecord(),
 
-		recovery.NewStartLogRecord(tx2id),
-		recovery.NewSetInt64LogRecord(tx2id, block, offset, value2),
-		recovery.NewCommitLogRecord(tx2id),
+		recovery.NewStartLogRecord(trxIDS[1]),
+		recovery.NewSetInt64LogRecord(trxIDS[1], block, offset, -2345),
+		recovery.NewCommitLogRecord(trxIDS[1]),
 
-		recovery.NewSetInt64LogRecord(tx1id, block, offset, value5),
+		recovery.NewStartLogRecord(trxIDS[3]),
 
-		recovery.NewStartLogRecord(tx3id),
-		recovery.NewSetInt64LogRecord(tx3id, block, offset, value3),
-		recovery.NewRollbackLogRecord(tx3id),
+		recovery.NewStartLogRecord(trxIDS[2]),
+		recovery.NewSetInt64LogRecord(trxIDS[2], block, offset, -3345),
+		recovery.NewRollbackLogRecord(trxIDS[2]),
 
-		recovery.NewSetInt64LogRecord(tx1id, block, offset, value1),
+		recovery.NewSetInt64LogRecord(trxIDS[3], block, offset, -4345),
+
+		recovery.NewStartLogRecord(trxIDS[4]),
+		recovery.NewSetInt64LogRecord(trxIDS[4], block, offset+20, -5345),
 	}
 
-	for _, lr := range logRecords {
-		_, _ = wal.Append(lr.MarshalBytes())
+	for _, rec := range logRecords {
+		_, err := wal.Append(rec.MarshalBytes())
+		require.NoError(t, err)
 	}
 
-	buf.Content().SetInt64(offset, value0)
+	buf.Content().SetInt64(offset, 100)
 
 	require.NoError(t, sut.Recover())
 
-	// Должно вернуться значение value5 из tx1
-	assert.Equal(t, value5, buf.Content().GetInt64(offset))
+	// Должно вернуться значение из trxIDS[3]
+	assert.EqualValues(t, -4345, buf.Content().GetInt64(offset))
 
 	log := ts.fetchWAL(t, wal)
 	assert.Equal(t,

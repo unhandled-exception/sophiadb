@@ -10,11 +10,13 @@ const (
 )
 
 type Manager struct {
-	lockTable *LockTable
+	lockTable Lockers
 	locks     map[types.Block]lockType
 }
 
-func NewManager(lockTable *LockTable) *Manager {
+var _ ConcurrencyManager = new(Manager)
+
+func NewManager(lockTable Lockers) *Manager {
 	return &Manager{
 		lockTable: lockTable,
 		locks:     make(map[types.Block]lockType),

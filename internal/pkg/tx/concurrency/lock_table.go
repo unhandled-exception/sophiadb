@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 )
@@ -37,9 +38,11 @@ func NewLockTable(opts ...lockTableOpt) *LockTable {
 	return lt
 }
 
-func WithLockWaitTimeout(wt time.Duration) lockTableOpt {
+func WithLockWaitTimeout(timeout time.Duration) lockTableOpt {
 	return func(lt *LockTable) {
-		lt.lockWaitTimeout = wt
+		if timeout != 0 {
+			lt.lockWaitTimeout = timeout
+		}
 	}
 }
 
@@ -65,23 +68,30 @@ func (lt *LockTable) SLock(block *types.Block) error {
 	lt.locksCond.L.Lock()
 	defer lt.locksCond.L.Unlock()
 
-	for time.Now().Before(deadline) {
-		lt.L.RLock()
-		wait := lt.HasXLock(block)
-		lt.L.RUnlock()
+	var err error
 
-		if !wait {
+	for {
+		lt.L.Lock()
+		err = lt.tryToSLock(block)
+		lt.L.Unlock()
+
+		if err == nil {
+			break
+		}
+
+		if !time.Now().Before(deadline) {
 			break
 		}
 
 		lt.locksCond.WaitWithTimeout(lt.lockWaitTimeout)
 	}
 
-	lt.L.Lock()
-	defer lt.L.Unlock()
+	return err
+}
 
+func (lt *LockTable) tryToSLock(block *types.Block) error {
 	if lt.HasXLock(block) {
-		return ErrLockAbort
+		return errors.WithMessagef(ErrLockAbort, "slock: block %s has xlock", block)
 	}
 
 	lCount := lt.locks[*block]
@@ -97,23 +107,30 @@ func (lt *LockTable) XLock(block *types.Block) error {
 	lt.locksCond.L.Lock()
 	defer lt.locksCond.L.Unlock()
 
-	for time.Now().Before(deadline) {
-		lt.L.RLock()
-		wait := lt.HasOtherSLock(block)
-		lt.L.RUnlock()
+	var err error
 
-		if !wait {
+	for {
+		lt.L.Lock()
+		err = lt.tryToXLock(block)
+		lt.L.Unlock()
+
+		if err == nil {
+			break
+		}
+
+		if !time.Now().Before(deadline) {
 			break
 		}
 
 		lt.locksCond.WaitWithTimeout(lt.lockWaitTimeout)
 	}
 
-	lt.L.Lock()
-	defer lt.L.Unlock()
+	return err
+}
 
+func (lt *LockTable) tryToXLock(block *types.Block) error {
 	if lt.HasOtherSLock(block) {
-		return ErrLockAbort
+		return errors.WithMessagef(ErrLockAbort, "xlock: block %s has other %d slock", block, lt.LocksCount(block))
 	}
 
 	lt.locks[*block] = XLockValue
@@ -124,19 +141,14 @@ func (lt *LockTable) XLock(block *types.Block) error {
 // Unlock снимает блокировку для блока
 func (lt *LockTable) Unlock(block *types.Block) {
 	lt.L.Lock()
-	defer lt.L.Unlock()
-	defer lt.locksCond.Broadcast()
 
-	lCount, ok := lt.locks[*block]
-	if !ok {
-		return
-	}
-
-	if lCount > 1 {
+	if lCount := lt.locks[*block]; lCount > 1 {
 		lt.locks[*block] = lCount - 1
-
-		return
+	} else {
+		delete(lt.locks, *block)
 	}
 
-	delete(lt.locks, *block)
+	lt.L.Unlock()
+
+	lt.locksCond.Broadcast()
 }

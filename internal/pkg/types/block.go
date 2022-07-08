@@ -5,11 +5,11 @@ import "fmt"
 // Block описание блока хранилишща
 type Block struct {
 	filename string
-	number   uint32
+	number   int32
 }
 
 // NewBlock создает новый объект BlockID
-func NewBlock(filename string, number uint32) *Block {
+func NewBlock(filename string, number int32) *Block {
 	return &Block{
 		filename: filename,
 		number:   number,
@@ -22,7 +22,7 @@ func (bid *Block) Filename() string {
 }
 
 // Number возвращает поле number
-func (bid *Block) Number() uint32 {
+func (bid *Block) Number() int32 {
 	return bid.number
 }
 

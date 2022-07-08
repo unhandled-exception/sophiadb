@@ -7,11 +7,11 @@ import (
 
 type Manager struct {
 	trx trxInt
-	bm  bufferManager
-	lm  walManager
+	bm  BuffersManager
+	lm  LogManager
 }
 
-func NewManager(trx trxInt, lm walManager, bm bufferManager) (*Manager, error) {
+func NewManager(trx trxInt, lm LogManager, bm BuffersManager) (*Manager, error) {
 	m := Manager{
 		trx: trx,
 		bm:  bm,
@@ -182,8 +182,9 @@ func (m *Manager) doRecover() error {
 	}
 
 	finishedTrxs := make(map[types.TRX]struct{})
+	foundCheckpoint := false
 
-	for it.HasNext() {
+	for !foundCheckpoint && it.HasNext() {
 		raw, err := it.Next()
 		if err != nil {
 			return err
@@ -198,7 +199,7 @@ func (m *Manager) doRecover() error {
 
 		switch {
 		case lri.Op() == CheckpointOp:
-			break
+			foundCheckpoint = true
 		case lri.Op() == CommitOp || lri.Op() == RollbackOp:
 			finishedTrxs[lri.TXNum()] = struct{}{}
 		default:
