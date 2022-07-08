@@ -7,8 +7,8 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
-type walManager interface {
-	recovery.WALManager
+type logManager interface {
+	recovery.LogManager
 }
 
 type storageManager interface {

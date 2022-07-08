@@ -15,7 +15,7 @@ const (
 
 // Manager — диспетчер журнала
 type Manager struct {
-	sync.Mutex
+	m sync.Mutex
 
 	fm           *storage.Manager
 	logFileName  string
@@ -66,6 +66,15 @@ func (lm *Manager) CurrentBlock() *types.Block {
 
 // Flush сбрасывает журнал на диск
 func (lm *Manager) Flush(lsn types.LSN, force bool) error {
+	return lm.flush(lsn, force, false)
+}
+
+func (lm *Manager) flush(lsn types.LSN, force bool, skipLock bool) error {
+	if !skipLock {
+		lm.m.Lock()
+		defer lm.m.Unlock()
+	}
+
 	if lsn >= lm.lastSavedLSN || force {
 		err := lm.fm.Write(lm.currentBlock, lm.logPage)
 		if err != nil {
@@ -92,8 +101,8 @@ func (lm *Manager) Iterator() (*Iterator, error) {
 
 // Append добавляет в журнал новую запись
 func (lm *Manager) Append(logRec []byte) (types.LSN, error) {
-	lm.Lock()
-	defer lm.Unlock()
+	lm.m.Lock()
+	defer lm.m.Unlock()
 
 	boundary := lm.logPage.GetUint32(blockStart)
 	recsize := uint32(len(logRec))
@@ -103,7 +112,7 @@ func (lm *Manager) Append(logRec []byte) (types.LSN, error) {
 		// Если данные не умещаются в блок, то:
 		// — cбрасываем текущий блок на диск
 		// — создаем новый блок
-		err := lm.Flush(0, true)
+		err := lm.flush(0, true, true)
 		if err != nil {
 			return 0, errors.WithMessage(ErrFailedToAppendNewRecord, err.Error())
 		}

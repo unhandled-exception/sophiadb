@@ -25,7 +25,7 @@ type BuffersManager interface {
 	FlushAll(txnum types.TRX) error
 }
 
-type WALManager interface {
+type LogManager interface {
 	Flush(lsn types.LSN, force bool) error
 	Append(logRec []byte) (types.LSN, error)
 	Iterator() (*wal.Iterator, error)

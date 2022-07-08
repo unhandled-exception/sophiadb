@@ -56,7 +56,7 @@ func (bl *BufferList) UnpinAll() {
 	for block, cnt := range bl.pins {
 		buf := bl.buffers[block]
 
-		for i := 0; i < cnt; i-- {
+		for i := 0; i < cnt; i++ {
 			bl.bm.Unpin(buf)
 		}
 	}

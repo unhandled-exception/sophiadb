@@ -16,11 +16,11 @@ type Transaction struct {
 	cm      concurrencyManager
 
 	fm storageManager
-	lm walManager
+	lm logManager
 	bm buffersManager
 }
 
-func NewTransaction(nextTRX func() types.TRX, fm storageManager, lm walManager, bm buffersManager, lt concurrency.Lockers) (*Transaction, error) {
+func NewTransaction(nextTRX func() types.TRX, fm storageManager, lm logManager, bm buffersManager, lt concurrency.Lockers) (*Transaction, error) {
 	txNum := nextTRX()
 
 	t := &Transaction{
@@ -34,7 +34,7 @@ func NewTransaction(nextTRX func() types.TRX, fm storageManager, lm walManager, 
 
 	rm, err := recovery.NewManager(t, lm, bm)
 	if err != nil {
-		return nil, err
+		return nil, t.wrapTransactionError(err)
 	}
 
 	t.rm = rm
