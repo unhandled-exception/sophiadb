@@ -10,8 +10,8 @@ type StartLogRecord struct {
 	BaseLogRecord
 }
 
-func NewStartLogRecord(txnum types.TRX) *StartLogRecord {
-	return &StartLogRecord{
+func NewStartLogRecord(txnum types.TRX) StartLogRecord {
+	return StartLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    StartOp,
 			txnum: txnum,
@@ -19,18 +19,17 @@ func NewStartLogRecord(txnum types.TRX) *StartLogRecord {
 	}
 }
 
-func NewStartLogRecordFromBytes(rawRecord []byte) (*StartLogRecord, error) {
+func NewStartLogRecordFromBytes(rawRecord []byte) (StartLogRecord, error) {
 	r := StartLogRecord{}
 
-	err := r.unmarshalBytes(rawRecord)
-	if err != nil {
-		return nil, err
+	if err := r.unmarshalBytes(rawRecord); err != nil {
+		return r, err
 	}
 
-	return &r, nil
+	return r, nil
 }
 
-func (lr *StartLogRecord) String() string {
+func (lr StartLogRecord) String() string {
 	return fmt.Sprintf(`<START, %d>`, lr.TXNum())
 }
 
@@ -38,8 +37,8 @@ type CommitLogRecord struct {
 	BaseLogRecord
 }
 
-func NewCommitLogRecord(txnum types.TRX) *CommitLogRecord {
-	return &CommitLogRecord{
+func NewCommitLogRecord(txnum types.TRX) CommitLogRecord {
+	return CommitLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    CommitOp,
 			txnum: txnum,
@@ -47,18 +46,17 @@ func NewCommitLogRecord(txnum types.TRX) *CommitLogRecord {
 	}
 }
 
-func NewCommitLogRecordFromBytes(rawRecord []byte) (*CommitLogRecord, error) {
+func NewCommitLogRecordFromBytes(rawRecord []byte) (CommitLogRecord, error) {
 	r := CommitLogRecord{}
 
-	err := r.unmarshalBytes(rawRecord)
-	if err != nil {
-		return nil, err
+	if err := r.unmarshalBytes(rawRecord); err != nil {
+		return r, err
 	}
 
-	return &r, nil
+	return r, nil
 }
 
-func (lr *CommitLogRecord) String() string {
+func (lr CommitLogRecord) String() string {
 	return fmt.Sprintf(`<COMMIT, %d>`, lr.TXNum())
 }
 
@@ -66,8 +64,8 @@ type RollbackLogRecord struct {
 	BaseLogRecord
 }
 
-func NewRollbackLogRecord(txnum types.TRX) *RollbackLogRecord {
-	return &RollbackLogRecord{
+func NewRollbackLogRecord(txnum types.TRX) RollbackLogRecord {
+	return RollbackLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    RollbackOp,
 			txnum: txnum,
@@ -75,17 +73,16 @@ func NewRollbackLogRecord(txnum types.TRX) *RollbackLogRecord {
 	}
 }
 
-func NewRollbackLogRecordFromBytes(rawRecord []byte) (*RollbackLogRecord, error) {
+func NewRollbackLogRecordFromBytes(rawRecord []byte) (RollbackLogRecord, error) {
 	r := RollbackLogRecord{}
 
-	err := r.unmarshalBytes(rawRecord)
-	if err != nil {
-		return nil, err
+	if err := r.unmarshalBytes(rawRecord); err != nil {
+		return r, err
 	}
 
-	return &r, nil
+	return r, nil
 }
 
-func (lr *RollbackLogRecord) String() string {
+func (lr RollbackLogRecord) String() string {
 	return fmt.Sprintf(`<ROLLBACK, %d>`, lr.TXNum())
 }

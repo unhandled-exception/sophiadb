@@ -14,8 +14,8 @@ type SetInt64LogRecord struct {
 	block  types.Block
 }
 
-func NewSetInt64LogRecord(txnum types.TRX, block types.Block, offset uint32, value int64) *SetInt64LogRecord {
-	return &SetInt64LogRecord{
+func NewSetInt64LogRecord(txnum types.TRX, block types.Block, offset uint32, value int64) SetInt64LogRecord {
+	return SetInt64LogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    SetInt64Op,
 			txnum: txnum,
@@ -26,18 +26,17 @@ func NewSetInt64LogRecord(txnum types.TRX, block types.Block, offset uint32, val
 	}
 }
 
-func NewSetInt64LogRecordFromBytes(rawRecord []byte) (*SetInt64LogRecord, error) {
+func NewSetInt64LogRecordFromBytes(rawRecord []byte) (SetInt64LogRecord, error) {
 	r := SetInt64LogRecord{}
 
-	err := r.unmarshalBytes(rawRecord)
-	if err != nil {
-		return nil, err
+	if err := r.unmarshalBytes(rawRecord); err != nil {
+		return r, err
 	}
 
-	return &r, nil
+	return r, nil
 }
 
-func (lr *SetInt64LogRecord) Undo(tx trxInt) error {
+func (lr SetInt64LogRecord) Undo(tx trxInt) error {
 	if err := tx.Pin(lr.block); err != nil {
 		return err
 	}
@@ -51,7 +50,7 @@ func (lr *SetInt64LogRecord) Undo(tx trxInt) error {
 	return nil
 }
 
-func (lr *SetInt64LogRecord) String() string {
+func (lr SetInt64LogRecord) String() string {
 	return fmt.Sprintf(
 		`<SET_INT64, %d, block: %s, offset: %d, value: %d>`,
 		lr.TXNum(),
@@ -61,7 +60,7 @@ func (lr *SetInt64LogRecord) String() string {
 	)
 }
 
-func (lr *SetInt64LogRecord) MarshalBytes() []byte {
+func (lr SetInt64LogRecord) MarshalBytes() []byte {
 	blockFilename := lr.block.Filename
 
 	oppos := uint32(0)

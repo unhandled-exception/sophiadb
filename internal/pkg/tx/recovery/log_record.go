@@ -61,23 +61,23 @@ type BaseLogRecord struct {
 	txnum types.TRX
 }
 
-func (lr *BaseLogRecord) String() string {
+func (lr BaseLogRecord) String() string {
 	return ""
 }
 
-func (lr *BaseLogRecord) Op() uint32 {
+func (lr BaseLogRecord) Op() uint32 {
 	return lr.op
 }
 
-func (lr *BaseLogRecord) TXNum() types.TRX {
+func (lr BaseLogRecord) TXNum() types.TRX {
 	return lr.txnum
 }
 
-func (lr *BaseLogRecord) Undo(tx trxInt) error {
+func (lr BaseLogRecord) Undo(tx trxInt) error {
 	return nil
 }
 
-func (lr *BaseLogRecord) MarshalBytes() []byte {
+func (lr BaseLogRecord) MarshalBytes() []byte {
 	oppos := uint32(0)
 	txpos := oppos + int32Size
 	recLen := txpos + int32Size

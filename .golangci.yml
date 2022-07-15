@@ -1,24 +1,31 @@
 linters:
   enable:
+    - bidichk
     - bodyclose
     - containedctx
     - contextcheck
+    - decorder
+    - dogsled
     - errname
     - errorlint
+    - exhaustive
     - exportloopref
     - forcetypeassert
     - goconst
     - gofumpt
     - gomnd
+    - goprintffuncname
     - gosec
     - ifshort
     - ireturn
     - makezero
+    - nakedret
     - nestif
     - nilerr
     - nilnil
     - nlreturn
     - nolintlint
+    - nonamedreturns
     - predeclared
     - rowserrcheck
     - sqlclosecheck
@@ -31,6 +38,11 @@ linters:
     - wsl
 
 linters-settings:
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+
   ireturn:
     # ireturn allows using `allow` and `reject` settings at the same time.
     # Both settings are lists of the keywords and regular expressions matched to interface or package names.

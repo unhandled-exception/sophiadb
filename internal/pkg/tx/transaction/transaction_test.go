@@ -307,7 +307,7 @@ func (ts *TransactionTestSuite) TestConcurrentCase() {
 
 			t.Logf("start %s trx %d (%d)", trxType, sut.TXNum(), num)
 
-			if err := sut.Pin(block1); err != nil {
+			if err = sut.Pin(block1); err != nil {
 				return
 			}
 

@@ -104,9 +104,9 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 		filePath := filepath.Join(path, fmt.Sprintf("%d.dat", i))
 		testutil.CreateFile(ts, filePath, []byte{})
 
-		f, err := os.Open(filePath)
-		if err != nil {
-			ts.FailNow("failed to open file \"%s\": %s", filePath, err.Error())
+		f, nerr := os.Open(filePath)
+		if nerr != nil {
+			ts.FailNow("failed to open file \"%s\": %s", filePath, nerr.Error())
 		}
 
 		fm.OpenFiles()[filepath.Base(filePath)] = f
@@ -122,9 +122,9 @@ func (ts *FileManagerTestSuite) TestCloseAllFiles() {
 		filePath := filepath.Join(path, fmt.Sprintf("closed_%d.dat", i))
 		testutil.CreateFile(ts, filePath, []byte{})
 
-		f, err := os.Open(filePath)
-		if err != nil {
-			ts.FailNow("failed to open file \"%s\": %s", filePath, err.Error())
+		f, nerr := os.Open(filePath)
+		if nerr != nil {
+			ts.FailNow("failed to open file \"%s\": %s", filePath, nerr.Error())
 		}
 
 		fm.OpenFiles()[filepath.Base(filePath)] = f
