@@ -96,7 +96,7 @@ func (lr *SetInt64LogRecord) unmarshalBytes(rawRecord []byte) error {
 	bpos := fpos + uint32(int32Size+len(blockFilename))
 	blockNum := p.GetInt32(bpos)
 
-	lr.block = types.NewBlock(blockFilename, blockNum)
+	lr.block = types.Block{Filename: blockFilename, Number: blockNum}
 
 	ofpos := bpos + int32Size
 	lr.offset = p.GetUint32(ofpos)

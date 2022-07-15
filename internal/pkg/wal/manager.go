@@ -44,7 +44,7 @@ func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 			return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())
 		}
 	} else {
-		lm.currentBlock = types.NewBlock(lm.logFileName, logSize-1)
+		lm.currentBlock = types.Block{Filename: lm.logFileName, Number: logSize - 1}
 		err = lm.fm.Read(lm.currentBlock, lm.logPage)
 		if err != nil {
 			return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())

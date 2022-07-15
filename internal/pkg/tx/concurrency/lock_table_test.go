@@ -26,8 +26,8 @@ func (ts *LockTableTestSuite) TestSlock_OK() {
 
 	sut := concurrency.NewLockTable()
 
-	block1 := types.NewBlock(testBlockFilename, 1)
-	block2 := types.NewBlock(testBlockFilename, 2)
+	block1 := types.Block{Filename: testBlockFilename, Number: 1}
+	block2 := types.Block{Filename: testBlockFilename, Number: 2}
 
 	assert.NoError(t, sut.SLock(block1))
 	assert.NoError(t, sut.SLock(block2))
@@ -45,7 +45,7 @@ func (ts *LockTableTestSuite) TestXLock_OK() {
 		concurrency.WithLockWaitTimeout(100 * time.Millisecond),
 	)
 
-	block1 := types.NewBlock(testBlockFilename, 1)
+	block1 := types.Block{Filename: testBlockFilename, Number: 1}
 
 	assert.NoError(t, sut.SLock(block1))
 	assert.NoError(t, sut.XLock(block1))
@@ -61,7 +61,7 @@ func (ts *LockTableTestSuite) TestSLock_FailedToLockIfHasXLock() {
 		concurrency.WithLockWaitTimeout(100 * time.Millisecond),
 	)
 
-	block1 := types.NewBlock(testBlockFilename, 1)
+	block1 := types.Block{Filename: testBlockFilename, Number: 1}
 	assert.NoError(t, sut.XLock(block1))
 	assert.ErrorIs(t, sut.SLock(block1), concurrency.ErrLockAbort)
 }
@@ -73,7 +73,7 @@ func (ts *LockTableTestSuite) TestXLock_FailedToLockIfOtherHasSLock() {
 		concurrency.WithLockWaitTimeout(100 * time.Millisecond),
 	)
 
-	block1 := types.NewBlock(testBlockFilename, 1)
+	block1 := types.Block{Filename: testBlockFilename, Number: 1}
 
 	assert.NoError(t, sut.SLock(block1))
 	assert.NoError(t, sut.SLock(block1))
@@ -87,8 +87,8 @@ func (ts *LockTableTestSuite) TestUnlock() {
 		concurrency.WithLockWaitTimeout(100 * time.Millisecond),
 	)
 
-	block1 := types.NewBlock(testBlockFilename, 1)
-	block2 := types.NewBlock(testBlockFilename, 2)
+	block1 := types.Block{Filename: testBlockFilename, Number: 1}
+	block2 := types.Block{Filename: testBlockFilename, Number: 2}
 
 	assert.NoError(t, sut.SLock(block1))
 	assert.NoError(t, sut.SLock(block1))
@@ -111,8 +111,8 @@ func (ts *LockTableTestSuite) TestLocksConcurrently_OK() {
 		concurrency.WithLockWaitTimeout(1 * time.Millisecond),
 	)
 
-	block1 := types.NewBlock(testBlockFilename, 1)
-	block2 := types.NewBlock(testBlockFilename, 2)
+	block1 := types.Block{Filename: testBlockFilename, Number: 1}
+	block2 := types.Block{Filename: testBlockFilename, Number: 2}
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)

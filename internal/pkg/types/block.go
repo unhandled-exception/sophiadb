@@ -8,14 +8,6 @@ type Block struct {
 	Number   int32
 }
 
-// NewBlock создает новый объект BlockID
-func NewBlock(filename string, number int32) Block {
-	return Block{
-		Filename: filename,
-		Number:   number,
-	}
-}
-
 // Equals сравнивает два блока на равенство
 func (b Block) Equals(another Block) bool {
 	return b.Filename == another.Filename && b.Number == another.Number

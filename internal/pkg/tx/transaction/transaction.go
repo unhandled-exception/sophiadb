@@ -163,7 +163,7 @@ func (t *Transaction) AvailableBuffersCount() int {
 }
 
 func (t *Transaction) Size(filename string) (int32, error) {
-	dummyBlock := types.NewBlock(filename, endOfFileBlock)
+	dummyBlock := types.Block{Filename: filename, Number: endOfFileBlock}
 
 	if err := t.cm.SLock(dummyBlock); err != nil {
 		return 0, t.wrapTransactionError(err)
@@ -173,7 +173,7 @@ func (t *Transaction) Size(filename string) (int32, error) {
 }
 
 func (t *Transaction) Append(filename string) (types.Block, error) {
-	dummyBlock := types.NewBlock(filename, endOfFileBlock)
+	dummyBlock := types.Block{Filename: filename, Number: endOfFileBlock}
 
 	if err := t.cm.XLock(dummyBlock); err != nil {
 		return types.Block{}, t.wrapTransactionError(err)

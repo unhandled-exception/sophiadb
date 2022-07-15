@@ -70,8 +70,8 @@ func (ts *BuffersManagerTestSuite) TestWaitToPinBuffer() {
 
 	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))
 
-	block1 := types.NewBlock(testFile, 1)
-	block2 := types.NewBlock(testFile, 2)
+	block1 := types.Block{Filename: testFile, Number: 1}
+	block2 := types.Block{Filename: testFile, Number: 2}
 
 	buf1, err := sut.Pin(block1)
 	require.NoError(t, err)
@@ -99,16 +99,16 @@ func (ts *BuffersManagerTestSuite) TestBuffersManager() {
 	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))
 
 	// Занимаем все буферы в пуле
-	bufs[0], err = bm.Pin(types.NewBlock(testFile, 0))
+	bufs[0], err = bm.Pin(types.Block{Filename: testFile, Number: 0})
 	ts.Require().NoError(err)
 	ts.NotNil(bufs[0])
 	ts.Equal(make([]byte, 400), bufs[0].Content().Content())
 
-	bufs[1], err = bm.Pin(types.NewBlock(testFile, 1))
+	bufs[1], err = bm.Pin(types.Block{Filename: testFile, Number: 1})
 	ts.Require().NoError(err)
 	ts.NotNil(bufs[1])
 
-	bufs[2], err = bm.Pin(types.NewBlock(testFile, 2))
+	bufs[2], err = bm.Pin(types.Block{Filename: testFile, Number: 2})
 	ts.Require().NoError(err)
 	ts.NotNil(bufs[2])
 
@@ -118,20 +118,20 @@ func (ts *BuffersManagerTestSuite) TestBuffersManager() {
 	bufs[1] = nil
 
 	// Получаем еще одну ссылку на запиненный буфер
-	bufs[3], err = bm.Pin(types.NewBlock(testFile, 0))
+	bufs[3], err = bm.Pin(types.Block{Filename: testFile, Number: 0})
 	ts.Require().NoError(err)
 	ts.NotNil(bufs[3])
 	ts.Equal(2, bufs[3].Pins())
 
 	// Используем существующий буфер не создавая новый
-	bufs[4], err = bm.Pin(types.NewBlock(testFile, 1))
+	bufs[4], err = bm.Pin(types.Block{Filename: testFile, Number: 1})
 	ts.Require().NoError(err)
 	ts.Equal(1, bufs[4].Pins())
 
 	ts.Equal(0, bm.Available())
 
 	// Пытаемся занять пул новым блоком и получаем ошибку
-	bufs[5], err = bm.Pin(types.NewBlock(testFile, 3))
+	bufs[5], err = bm.Pin(types.Block{Filename: testFile, Number: 3})
 	ts.Require().ErrorIs(err, buffers.ErrNoAvailableBuffers)
 	ts.Nil(bufs[5])
 
@@ -142,12 +142,12 @@ func (ts *BuffersManagerTestSuite) TestBuffersManager() {
 	ts.Equal(1, bm.Available())
 
 	// Пытаемся запинить несуществующий на диске блок
-	bufs[5], err = bm.Pin(types.NewBlock(testFile, 1000))
+	bufs[5], err = bm.Pin(types.Block{Filename: testFile, Number: 1000})
 	ts.Require().ErrorIs(err, buffers.ErrFailedToAssignBlockToBuffer)
 	ts.Nil(bufs[5])
 
 	// Теперь запиниваем нормальный блок
-	bufs[5], err = bm.Pin(types.NewBlock(testFile, 3))
+	bufs[5], err = bm.Pin(types.Block{Filename: testFile, Number: 3})
 	ts.Require().NoError(err)
 	ts.NotNil(bufs[5])
 
@@ -179,7 +179,7 @@ func (ts *BuffersManagerTestSuite) TestConcurrency() {
 	go func() {
 		defer wg.Done()
 
-		block1 := types.NewBlock(testFile, 1)
+		block1 := types.Block{Filename: testFile, Number: 1}
 		buf, _ := sut.Pin(block1)
 
 		assert.NotPanics(t, func() {
@@ -193,7 +193,7 @@ func (ts *BuffersManagerTestSuite) TestConcurrency() {
 	go func() {
 		defer wg.Done()
 
-		block1 := types.NewBlock(testFile, 1)
+		block1 := types.Block{Filename: testFile, Number: 1}
 		buf, _ := sut.Pin(block1)
 
 		assert.NotPanics(t, func() {
