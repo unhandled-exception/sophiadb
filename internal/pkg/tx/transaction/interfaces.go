@@ -14,12 +14,12 @@ type logManager interface {
 type storageManager interface {
 	BlockSize() uint32
 	Length(filename string) (int32, error)
-	Append(filename string) (*types.Block, error)
+	Append(filename string) (types.Block, error)
 }
 
 type buffersManager interface {
 	recovery.BuffersManager
-	Pin(block *types.Block) (*buffers.Buffer, error)
+	Pin(block types.Block) (*buffers.Buffer, error)
 	Unpin(buf *buffers.Buffer)
 	Available() int
 }
@@ -33,8 +33,8 @@ type recoveryManager interface {
 }
 
 type bufferList interface {
-	GetBuffer(block *types.Block) *buffers.Buffer
-	Pin(block *types.Block) error
-	Unpin(block *types.Block)
+	GetBuffer(block types.Block) *buffers.Buffer
+	Pin(block types.Block) error
+	Unpin(block types.Block)
 	UnpinAll()
 }

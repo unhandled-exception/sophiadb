@@ -197,7 +197,7 @@ func (ts *TransactionTestSuite) TestRecovery() {
 	iOffset := uint32(80)
 	sOffset := uint32(40)
 
-	block1 := types.NewBlock(testDataFile, 0)
+	block1 := types.Block{Filename: testDataFile, Number: 0}
 
 	trxIDS := []types.TRX{
 		trxMan.TRXGen().NextTRX(),

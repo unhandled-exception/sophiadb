@@ -80,15 +80,15 @@ func (t *Transaction) Recover() error {
 	return nil
 }
 
-func (t *Transaction) Pin(block *types.Block) error {
+func (t *Transaction) Pin(block types.Block) error {
 	return t.wrapTransactionError(t.buffers.Pin(block))
 }
 
-func (t *Transaction) Unpin(block *types.Block) {
+func (t *Transaction) Unpin(block types.Block) {
 	t.buffers.Unpin(block)
 }
 
-func (t *Transaction) GetInt64(block *types.Block, offset uint32) (int64, error) {
+func (t *Transaction) GetInt64(block types.Block, offset uint32) (int64, error) {
 	if err := t.cm.SLock(block); err != nil {
 		return 0, t.wrapTransactionError(err)
 	}
@@ -98,7 +98,7 @@ func (t *Transaction) GetInt64(block *types.Block, offset uint32) (int64, error)
 	return buf.Content().GetInt64(offset), nil
 }
 
-func (t *Transaction) GetString(block *types.Block, offset uint32) (string, error) {
+func (t *Transaction) GetString(block types.Block, offset uint32) (string, error) {
 	if err := t.cm.SLock(block); err != nil {
 		return "", t.wrapTransactionError(err)
 	}
@@ -108,7 +108,7 @@ func (t *Transaction) GetString(block *types.Block, offset uint32) (string, erro
 	return buf.Content().GetString(offset), nil
 }
 
-func (t *Transaction) SetInt64(block *types.Block, offset uint32, value int64, okToLog bool) error {
+func (t *Transaction) SetInt64(block types.Block, offset uint32, value int64, okToLog bool) error {
 	if err := t.cm.XLock(block); err != nil {
 		return t.wrapTransactionError(err)
 	}
@@ -131,7 +131,7 @@ func (t *Transaction) SetInt64(block *types.Block, offset uint32, value int64, o
 	return nil
 }
 
-func (t *Transaction) SetString(block *types.Block, offset uint32, value string, okToLog bool) error {
+func (t *Transaction) SetString(block types.Block, offset uint32, value string, okToLog bool) error {
 	if err := t.cm.XLock(block); err != nil {
 		return t.wrapTransactionError(err)
 	}
@@ -163,7 +163,7 @@ func (t *Transaction) AvailableBuffersCount() int {
 }
 
 func (t *Transaction) Size(filename string) (int32, error) {
-	dummyBlock := types.NewBlock(filename, endOfFileBlock)
+	dummyBlock := types.Block{Filename: filename, Number: endOfFileBlock}
 
 	if err := t.cm.SLock(dummyBlock); err != nil {
 		return 0, t.wrapTransactionError(err)
@@ -172,11 +172,11 @@ func (t *Transaction) Size(filename string) (int32, error) {
 	return t.fm.Length(filename)
 }
 
-func (t *Transaction) Append(filename string) (*types.Block, error) {
-	dummyBlock := types.NewBlock(filename, endOfFileBlock)
+func (t *Transaction) Append(filename string) (types.Block, error) {
+	dummyBlock := types.Block{Filename: filename, Number: endOfFileBlock}
 
 	if err := t.cm.XLock(dummyBlock); err != nil {
-		return nil, t.wrapTransactionError(err)
+		return types.Block{}, t.wrapTransactionError(err)
 	}
 
 	return t.fm.Append(filename)

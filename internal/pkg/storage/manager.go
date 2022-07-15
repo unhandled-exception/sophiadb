@@ -109,16 +109,16 @@ func (fm *Manager) Close() error {
 }
 
 // Read читает блок из файла в страницу page
-func (fm *Manager) Read(block *types.Block, page *types.Page) error {
+func (fm *Manager) Read(block types.Block, page *types.Page) error {
 	fm.Lock()
 	defer fm.Unlock()
 
-	file, err := fm.getFile(block.Filename())
+	file, err := fm.getFile(block.Filename)
 	if err != nil {
 		return err
 	}
 
-	_, err = file.Seek(int64(block.Number())*int64(fm.blockSize), io.SeekStart)
+	_, err = file.Seek(int64(block.Number)*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
 		return errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
@@ -132,16 +132,16 @@ func (fm *Manager) Read(block *types.Block, page *types.Page) error {
 }
 
 // Write записывает блок в файл из страницы page
-func (fm *Manager) Write(block *types.Block, page *types.Page) error {
+func (fm *Manager) Write(block types.Block, page *types.Page) error {
 	fm.Lock()
 	defer fm.Unlock()
 
-	file, err := fm.getFile(block.Filename())
+	file, err := fm.getFile(block.Filename)
 	if err != nil {
 		return err
 	}
 
-	_, err = file.Seek(int64(block.Number())*int64(fm.blockSize), io.SeekStart)
+	_, err = file.Seek(int64(block.Number)*int64(fm.blockSize), io.SeekStart)
 	if err != nil {
 		return errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
@@ -155,34 +155,36 @@ func (fm *Manager) Write(block *types.Block, page *types.Page) error {
 }
 
 // Append добавляет новый блок в файл
-func (fm *Manager) Append(filename string) (*types.Block, error) {
+func (fm *Manager) Append(filename string) (types.Block, error) {
 	fm.Lock()
 	defer fm.Unlock()
 
+	block := types.Block{}
+
 	blkNum, err := fm.Length(filename)
 	if err != nil {
-		return nil, err
+		return block, err
 	}
 
-	blockID := types.NewBlock(filename, blkNum)
+	block.Filename = filename
+	block.Number = blkNum
+
 	blockData := make([]byte, fm.blockSize)
 
-	file, err := fm.getFile(blockID.Filename())
+	file, err := fm.getFile(block.Filename)
 	if err != nil {
-		return nil, err
+		return block, err
 	}
 
-	_, err = file.Seek(0, io.SeekEnd)
-	if err != nil {
-		return nil, errors.WithMessage(ErrFileManagerIO, err.Error())
+	if _, err := file.Seek(0, io.SeekEnd); err != nil {
+		return block, errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
-	_, err = file.Write(blockData)
-	if err != nil {
-		return nil, errors.WithMessage(ErrFileManagerIO, err.Error())
+	if _, err := file.Write(blockData); err != nil {
+		return block, errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
-	return blockID, nil
+	return block, nil
 }
 
 // Length возвращает размер файла в блоках
