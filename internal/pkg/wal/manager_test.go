@@ -76,8 +76,8 @@ func (ts *WalManagerTestSuite) TestCreateManagerExistsLogFile() {
 	p.SetUint32(0, 4)
 
 	for i := 0; i < 2; i++ {
-		_, err := fm.Append(walFile)
-		ts.Require().NoError(err)
+		_, nerr := fm.Append(walFile)
+		ts.Require().NoError(nerr)
 	}
 
 	ts.Require().Equal(int64(800), testutil.GetFileSize(ts, walPath))

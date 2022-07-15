@@ -6,30 +6,29 @@ type CheckpointLogRecord struct {
 	BaseLogRecord
 }
 
-func NewCheckpointLogRecord() *CheckpointLogRecord {
-	return &CheckpointLogRecord{
+func NewCheckpointLogRecord() CheckpointLogRecord {
+	return CheckpointLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op: CheckpointOp,
 		},
 	}
 }
 
-func NewCheckpointLogRecordFromBytes(rawRecord []byte) (*CheckpointLogRecord, error) {
+func NewCheckpointLogRecordFromBytes(rawRecord []byte) (CheckpointLogRecord, error) {
 	r := CheckpointLogRecord{}
 
-	err := r.unmarshalBytes(rawRecord)
-	if err != nil {
-		return nil, err
+	if err := r.unmarshalBytes(rawRecord); err != nil {
+		return r, err
 	}
 
-	return &r, nil
+	return r, nil
 }
 
-func (lr *CheckpointLogRecord) String() string {
+func (lr CheckpointLogRecord) String() string {
 	return `<CHECKPOINT>`
 }
 
-func (lr *CheckpointLogRecord) MarshalBytes() []byte {
+func (lr CheckpointLogRecord) MarshalBytes() []byte {
 	oppos := uint32(0)
 	recLen := oppos + int32Size
 

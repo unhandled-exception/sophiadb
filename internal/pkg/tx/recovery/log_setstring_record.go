@@ -14,8 +14,8 @@ type SetStringLogRecord struct {
 	block  types.Block
 }
 
-func NewSetStringLogRecord(txnum types.TRX, block types.Block, offset uint32, value string) *SetStringLogRecord {
-	return &SetStringLogRecord{
+func NewSetStringLogRecord(txnum types.TRX, block types.Block, offset uint32, value string) SetStringLogRecord {
+	return SetStringLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    SetStringOp,
 			txnum: txnum,
@@ -26,18 +26,17 @@ func NewSetStringLogRecord(txnum types.TRX, block types.Block, offset uint32, va
 	}
 }
 
-func NewSetStringLogRecordFromBytes(rawRecord []byte) (*SetStringLogRecord, error) {
+func NewSetStringLogRecordFromBytes(rawRecord []byte) (SetStringLogRecord, error) {
 	r := SetStringLogRecord{}
 
-	err := r.unmarshalBytes(rawRecord)
-	if err != nil {
-		return nil, err
+	if err := r.unmarshalBytes(rawRecord); err != nil {
+		return r, err
 	}
 
-	return &r, nil
+	return r, nil
 }
 
-func (lr *SetStringLogRecord) Undo(tx trxInt) error {
+func (lr SetStringLogRecord) Undo(tx trxInt) error {
 	if err := tx.Pin(lr.block); err != nil {
 		return err
 	}
@@ -51,7 +50,7 @@ func (lr *SetStringLogRecord) Undo(tx trxInt) error {
 	return nil
 }
 
-func (lr *SetStringLogRecord) String() string {
+func (lr SetStringLogRecord) String() string {
 	return fmt.Sprintf(
 		`<SET_STRING, %d, block: %s, offset: %d, value: "%s">`,
 		lr.TXNum(),
@@ -61,7 +60,7 @@ func (lr *SetStringLogRecord) String() string {
 	)
 }
 
-func (lr *SetStringLogRecord) MarshalBytes() []byte {
+func (lr SetStringLogRecord) MarshalBytes() []byte {
 	blockFilename := lr.block.Filename
 
 	oppos := uint32(0)
