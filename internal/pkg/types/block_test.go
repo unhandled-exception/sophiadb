@@ -19,8 +19,8 @@ func (ts *BlockTestSuite) TestCreateBlock() {
 	filename := "block_filename"
 	blkNum := int32(12345)
 	block := types.NewBlock(filename, blkNum)
-	ts.Equal(filename, block.Filename())
-	ts.Equal(blkNum, block.Number())
+	ts.Equal(filename, block.Filename)
+	ts.Equal(blkNum, block.Number)
 	ts.Equal("[file block_filename, block 12345]", block.String())
 	ts.Equal("[block_filename][12345]", block.HashKey())
 }

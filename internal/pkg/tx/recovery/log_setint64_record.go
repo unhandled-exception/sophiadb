@@ -11,10 +11,10 @@ type SetInt64LogRecord struct {
 
 	offset uint32
 	value  int64
-	block  *types.Block
+	block  types.Block
 }
 
-func NewSetInt64LogRecord(txnum types.TRX, block *types.Block, offset uint32, value int64) *SetInt64LogRecord {
+func NewSetInt64LogRecord(txnum types.TRX, block types.Block, offset uint32, value int64) *SetInt64LogRecord {
 	return &SetInt64LogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    SetInt64Op,
@@ -62,7 +62,7 @@ func (lr *SetInt64LogRecord) String() string {
 }
 
 func (lr *SetInt64LogRecord) MarshalBytes() []byte {
-	blockFilename := lr.block.Filename()
+	blockFilename := lr.block.Filename
 
 	oppos := uint32(0)
 	txpos := oppos + int32Size
@@ -77,7 +77,7 @@ func (lr *SetInt64LogRecord) MarshalBytes() []byte {
 	p.SetUint32(oppos, lr.op)
 	p.SetInt32(txpos, int32(lr.txnum))
 	p.SetString(fpos, blockFilename)
-	p.SetInt32(bpos, lr.block.Number())
+	p.SetInt32(bpos, lr.block.Number)
 	p.SetUint32(ofpos, lr.offset)
 	p.SetInt64(vpos, lr.value)
 

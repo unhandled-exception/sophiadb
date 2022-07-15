@@ -69,7 +69,7 @@ func (bp *BuffersPool) FlushAll(txnum types.TRX) error {
 }
 
 // FindExistingBuffer ищет существующий буфер, соотоветсвующий блоку
-func (bp *BuffersPool) FindExistingBuffer(block *types.Block) *Buffer {
+func (bp *BuffersPool) FindExistingBuffer(block types.Block) *Buffer {
 	bp.mu.Lock()
 	defer bp.mu.Unlock()
 
@@ -98,15 +98,13 @@ func (bp *BuffersPool) ChooseUnpinnedBuffer() *Buffer {
 }
 
 // AssignBufferToBlock связывает буфер с блоком на диске
-func (bp *BuffersPool) AssignBufferToBlock(buf *Buffer, block *types.Block) error {
+func (bp *BuffersPool) AssignBufferToBlock(buf *Buffer, block types.Block) error {
 	bp.mu.Lock()
 	defer bp.mu.Unlock()
 
 	bp.blocksToBuffers[block.HashKey()] = buf
 
-	if oldBlock := buf.Block(); oldBlock != nil {
-		delete(bp.blocksToBuffers, buf.Block().HashKey())
-	}
+	delete(bp.blocksToBuffers, buf.Block().HashKey())
 
 	return buf.AssignToBlock(block)
 }

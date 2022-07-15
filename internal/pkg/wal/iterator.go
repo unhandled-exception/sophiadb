@@ -9,14 +9,14 @@ import (
 // Iterator — итератор по журналу
 type Iterator struct {
 	fm         *storage.Manager
-	blk        *types.Block
+	blk        types.Block
 	p          *types.Page
 	currentPos uint32
 	boundary   uint32
 }
 
 // NewIterator создает новый объект итератора по журналу
-func NewIterator(fm *storage.Manager, blk *types.Block) (*Iterator, error) {
+func NewIterator(fm *storage.Manager, blk types.Block) (*Iterator, error) {
 	it := &Iterator{
 		fm:  fm,
 		blk: blk,
@@ -32,13 +32,13 @@ func NewIterator(fm *storage.Manager, blk *types.Block) (*Iterator, error) {
 
 // HasNext возвращает признак возможности следующей итерации
 func (it *Iterator) HasNext() bool {
-	return it.currentPos < it.fm.BlockSize() || it.blk.Number() > 0
+	return it.currentPos < it.fm.BlockSize() || it.blk.Number > 0
 }
 
 // Next достает следующею запись из лога
 func (it *Iterator) Next() ([]byte, error) {
 	if it.currentPos == it.fm.BlockSize() {
-		it.blk = types.NewBlock(it.blk.Filename(), it.blk.Number()-1)
+		it.blk = types.NewBlock(it.blk.Filename, it.blk.Number-1)
 
 		err := it.moveToBlock(it.blk)
 		if err != nil {
@@ -53,7 +53,7 @@ func (it *Iterator) Next() ([]byte, error) {
 }
 
 // Перемещаем итератор на следующий блок
-func (it *Iterator) moveToBlock(blk *types.Block) error {
+func (it *Iterator) moveToBlock(blk types.Block) error {
 	if err := it.fm.Read(blk, it.p); err != nil {
 		return err
 	}

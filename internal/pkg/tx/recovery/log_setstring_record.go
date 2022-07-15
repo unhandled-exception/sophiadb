@@ -11,10 +11,10 @@ type SetStringLogRecord struct {
 
 	offset uint32
 	value  string
-	block  *types.Block
+	block  types.Block
 }
 
-func NewSetStringLogRecord(txnum types.TRX, block *types.Block, offset uint32, value string) *SetStringLogRecord {
+func NewSetStringLogRecord(txnum types.TRX, block types.Block, offset uint32, value string) *SetStringLogRecord {
 	return &SetStringLogRecord{
 		BaseLogRecord: BaseLogRecord{
 			op:    SetStringOp,
@@ -62,7 +62,7 @@ func (lr *SetStringLogRecord) String() string {
 }
 
 func (lr *SetStringLogRecord) MarshalBytes() []byte {
-	blockFilename := lr.block.Filename()
+	blockFilename := lr.block.Filename
 
 	oppos := uint32(0)
 	txpos := oppos + int32Size
@@ -77,7 +77,7 @@ func (lr *SetStringLogRecord) MarshalBytes() []byte {
 	p.SetUint32(oppos, lr.op)
 	p.SetInt32(txpos, int32(lr.txnum))
 	p.SetString(fpos, blockFilename)
-	p.SetInt32(bpos, lr.block.Number())
+	p.SetInt32(bpos, lr.block.Number)
 	p.SetUint32(ofpos, lr.offset)
 	p.SetString(vpos, lr.value)
 

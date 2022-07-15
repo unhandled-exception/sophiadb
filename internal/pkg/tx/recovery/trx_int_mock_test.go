@@ -17,20 +17,20 @@ import (
 type TrxIntMock struct {
 	t minimock.Tester
 
-	funcPin          func(block *types.Block) (err error)
-	inspectFuncPin   func(block *types.Block)
+	funcPin          func(block types.Block) (err error)
+	inspectFuncPin   func(block types.Block)
 	afterPinCounter  uint64
 	beforePinCounter uint64
 	PinMock          mTrxIntMockPin
 
-	funcSetInt64          func(block *types.Block, offset uint32, value int64, okToLog bool) (err error)
-	inspectFuncSetInt64   func(block *types.Block, offset uint32, value int64, okToLog bool)
+	funcSetInt64          func(block types.Block, offset uint32, value int64, okToLog bool) (err error)
+	inspectFuncSetInt64   func(block types.Block, offset uint32, value int64, okToLog bool)
 	afterSetInt64Counter  uint64
 	beforeSetInt64Counter uint64
 	SetInt64Mock          mTrxIntMockSetInt64
 
-	funcSetString          func(block *types.Block, offset uint32, value string, okToLog bool) (err error)
-	inspectFuncSetString   func(block *types.Block, offset uint32, value string, okToLog bool)
+	funcSetString          func(block types.Block, offset uint32, value string, okToLog bool) (err error)
+	inspectFuncSetString   func(block types.Block, offset uint32, value string, okToLog bool)
 	afterSetStringCounter  uint64
 	beforeSetStringCounter uint64
 	SetStringMock          mTrxIntMockSetString
@@ -41,8 +41,8 @@ type TrxIntMock struct {
 	beforeTXNumCounter uint64
 	TXNumMock          mTrxIntMockTXNum
 
-	funcUnpin          func(block *types.Block)
-	inspectFuncUnpin   func(block *types.Block)
+	funcUnpin          func(block types.Block)
+	inspectFuncUnpin   func(block types.Block)
 	afterUnpinCounter  uint64
 	beforeUnpinCounter uint64
 	UnpinMock          mTrxIntMockUnpin
@@ -91,7 +91,7 @@ type TrxIntMockPinExpectation struct {
 
 // TrxIntMockPinParams contains parameters of the trxInt.Pin
 type TrxIntMockPinParams struct {
-	block *types.Block
+	block types.Block
 }
 
 // TrxIntMockPinResults contains results of the trxInt.Pin
@@ -100,7 +100,7 @@ type TrxIntMockPinResults struct {
 }
 
 // Expect sets up expected params for trxInt.Pin
-func (mmPin *mTrxIntMockPin) Expect(block *types.Block) *mTrxIntMockPin {
+func (mmPin *mTrxIntMockPin) Expect(block types.Block) *mTrxIntMockPin {
 	if mmPin.mock.funcPin != nil {
 		mmPin.mock.t.Fatalf("TrxIntMock.Pin mock is already set by Set")
 	}
@@ -120,7 +120,7 @@ func (mmPin *mTrxIntMockPin) Expect(block *types.Block) *mTrxIntMockPin {
 }
 
 // Inspect accepts an inspector function that has same arguments as the trxInt.Pin
-func (mmPin *mTrxIntMockPin) Inspect(f func(block *types.Block)) *mTrxIntMockPin {
+func (mmPin *mTrxIntMockPin) Inspect(f func(block types.Block)) *mTrxIntMockPin {
 	if mmPin.mock.inspectFuncPin != nil {
 		mmPin.mock.t.Fatalf("Inspect function is already set for TrxIntMock.Pin")
 	}
@@ -144,7 +144,7 @@ func (mmPin *mTrxIntMockPin) Return(err error) *TrxIntMock {
 }
 
 //Set uses given function f to mock the trxInt.Pin method
-func (mmPin *mTrxIntMockPin) Set(f func(block *types.Block) (err error)) *TrxIntMock {
+func (mmPin *mTrxIntMockPin) Set(f func(block types.Block) (err error)) *TrxIntMock {
 	if mmPin.defaultExpectation != nil {
 		mmPin.mock.t.Fatalf("Default expectation is already set for the trxInt.Pin method")
 	}
@@ -159,7 +159,7 @@ func (mmPin *mTrxIntMockPin) Set(f func(block *types.Block) (err error)) *TrxInt
 
 // When sets expectation for the trxInt.Pin which will trigger the result defined by the following
 // Then helper
-func (mmPin *mTrxIntMockPin) When(block *types.Block) *TrxIntMockPinExpectation {
+func (mmPin *mTrxIntMockPin) When(block types.Block) *TrxIntMockPinExpectation {
 	if mmPin.mock.funcPin != nil {
 		mmPin.mock.t.Fatalf("TrxIntMock.Pin mock is already set by Set")
 	}
@@ -179,7 +179,7 @@ func (e *TrxIntMockPinExpectation) Then(err error) *TrxIntMock {
 }
 
 // Pin implements trxInt
-func (mmPin *TrxIntMock) Pin(block *types.Block) (err error) {
+func (mmPin *TrxIntMock) Pin(block types.Block) (err error) {
 	mm_atomic.AddUint64(&mmPin.beforePinCounter, 1)
 	defer mm_atomic.AddUint64(&mmPin.afterPinCounter, 1)
 
@@ -306,7 +306,7 @@ type TrxIntMockSetInt64Expectation struct {
 
 // TrxIntMockSetInt64Params contains parameters of the trxInt.SetInt64
 type TrxIntMockSetInt64Params struct {
-	block   *types.Block
+	block   types.Block
 	offset  uint32
 	value   int64
 	okToLog bool
@@ -318,7 +318,7 @@ type TrxIntMockSetInt64Results struct {
 }
 
 // Expect sets up expected params for trxInt.SetInt64
-func (mmSetInt64 *mTrxIntMockSetInt64) Expect(block *types.Block, offset uint32, value int64, okToLog bool) *mTrxIntMockSetInt64 {
+func (mmSetInt64 *mTrxIntMockSetInt64) Expect(block types.Block, offset uint32, value int64, okToLog bool) *mTrxIntMockSetInt64 {
 	if mmSetInt64.mock.funcSetInt64 != nil {
 		mmSetInt64.mock.t.Fatalf("TrxIntMock.SetInt64 mock is already set by Set")
 	}
@@ -338,7 +338,7 @@ func (mmSetInt64 *mTrxIntMockSetInt64) Expect(block *types.Block, offset uint32,
 }
 
 // Inspect accepts an inspector function that has same arguments as the trxInt.SetInt64
-func (mmSetInt64 *mTrxIntMockSetInt64) Inspect(f func(block *types.Block, offset uint32, value int64, okToLog bool)) *mTrxIntMockSetInt64 {
+func (mmSetInt64 *mTrxIntMockSetInt64) Inspect(f func(block types.Block, offset uint32, value int64, okToLog bool)) *mTrxIntMockSetInt64 {
 	if mmSetInt64.mock.inspectFuncSetInt64 != nil {
 		mmSetInt64.mock.t.Fatalf("Inspect function is already set for TrxIntMock.SetInt64")
 	}
@@ -362,7 +362,7 @@ func (mmSetInt64 *mTrxIntMockSetInt64) Return(err error) *TrxIntMock {
 }
 
 //Set uses given function f to mock the trxInt.SetInt64 method
-func (mmSetInt64 *mTrxIntMockSetInt64) Set(f func(block *types.Block, offset uint32, value int64, okToLog bool) (err error)) *TrxIntMock {
+func (mmSetInt64 *mTrxIntMockSetInt64) Set(f func(block types.Block, offset uint32, value int64, okToLog bool) (err error)) *TrxIntMock {
 	if mmSetInt64.defaultExpectation != nil {
 		mmSetInt64.mock.t.Fatalf("Default expectation is already set for the trxInt.SetInt64 method")
 	}
@@ -377,7 +377,7 @@ func (mmSetInt64 *mTrxIntMockSetInt64) Set(f func(block *types.Block, offset uin
 
 // When sets expectation for the trxInt.SetInt64 which will trigger the result defined by the following
 // Then helper
-func (mmSetInt64 *mTrxIntMockSetInt64) When(block *types.Block, offset uint32, value int64, okToLog bool) *TrxIntMockSetInt64Expectation {
+func (mmSetInt64 *mTrxIntMockSetInt64) When(block types.Block, offset uint32, value int64, okToLog bool) *TrxIntMockSetInt64Expectation {
 	if mmSetInt64.mock.funcSetInt64 != nil {
 		mmSetInt64.mock.t.Fatalf("TrxIntMock.SetInt64 mock is already set by Set")
 	}
@@ -397,7 +397,7 @@ func (e *TrxIntMockSetInt64Expectation) Then(err error) *TrxIntMock {
 }
 
 // SetInt64 implements trxInt
-func (mmSetInt64 *TrxIntMock) SetInt64(block *types.Block, offset uint32, value int64, okToLog bool) (err error) {
+func (mmSetInt64 *TrxIntMock) SetInt64(block types.Block, offset uint32, value int64, okToLog bool) (err error) {
 	mm_atomic.AddUint64(&mmSetInt64.beforeSetInt64Counter, 1)
 	defer mm_atomic.AddUint64(&mmSetInt64.afterSetInt64Counter, 1)
 
@@ -524,7 +524,7 @@ type TrxIntMockSetStringExpectation struct {
 
 // TrxIntMockSetStringParams contains parameters of the trxInt.SetString
 type TrxIntMockSetStringParams struct {
-	block   *types.Block
+	block   types.Block
 	offset  uint32
 	value   string
 	okToLog bool
@@ -536,7 +536,7 @@ type TrxIntMockSetStringResults struct {
 }
 
 // Expect sets up expected params for trxInt.SetString
-func (mmSetString *mTrxIntMockSetString) Expect(block *types.Block, offset uint32, value string, okToLog bool) *mTrxIntMockSetString {
+func (mmSetString *mTrxIntMockSetString) Expect(block types.Block, offset uint32, value string, okToLog bool) *mTrxIntMockSetString {
 	if mmSetString.mock.funcSetString != nil {
 		mmSetString.mock.t.Fatalf("TrxIntMock.SetString mock is already set by Set")
 	}
@@ -556,7 +556,7 @@ func (mmSetString *mTrxIntMockSetString) Expect(block *types.Block, offset uint3
 }
 
 // Inspect accepts an inspector function that has same arguments as the trxInt.SetString
-func (mmSetString *mTrxIntMockSetString) Inspect(f func(block *types.Block, offset uint32, value string, okToLog bool)) *mTrxIntMockSetString {
+func (mmSetString *mTrxIntMockSetString) Inspect(f func(block types.Block, offset uint32, value string, okToLog bool)) *mTrxIntMockSetString {
 	if mmSetString.mock.inspectFuncSetString != nil {
 		mmSetString.mock.t.Fatalf("Inspect function is already set for TrxIntMock.SetString")
 	}
@@ -580,7 +580,7 @@ func (mmSetString *mTrxIntMockSetString) Return(err error) *TrxIntMock {
 }
 
 //Set uses given function f to mock the trxInt.SetString method
-func (mmSetString *mTrxIntMockSetString) Set(f func(block *types.Block, offset uint32, value string, okToLog bool) (err error)) *TrxIntMock {
+func (mmSetString *mTrxIntMockSetString) Set(f func(block types.Block, offset uint32, value string, okToLog bool) (err error)) *TrxIntMock {
 	if mmSetString.defaultExpectation != nil {
 		mmSetString.mock.t.Fatalf("Default expectation is already set for the trxInt.SetString method")
 	}
@@ -595,7 +595,7 @@ func (mmSetString *mTrxIntMockSetString) Set(f func(block *types.Block, offset u
 
 // When sets expectation for the trxInt.SetString which will trigger the result defined by the following
 // Then helper
-func (mmSetString *mTrxIntMockSetString) When(block *types.Block, offset uint32, value string, okToLog bool) *TrxIntMockSetStringExpectation {
+func (mmSetString *mTrxIntMockSetString) When(block types.Block, offset uint32, value string, okToLog bool) *TrxIntMockSetStringExpectation {
 	if mmSetString.mock.funcSetString != nil {
 		mmSetString.mock.t.Fatalf("TrxIntMock.SetString mock is already set by Set")
 	}
@@ -615,7 +615,7 @@ func (e *TrxIntMockSetStringExpectation) Then(err error) *TrxIntMock {
 }
 
 // SetString implements trxInt
-func (mmSetString *TrxIntMock) SetString(block *types.Block, offset uint32, value string, okToLog bool) (err error) {
+func (mmSetString *TrxIntMock) SetString(block types.Block, offset uint32, value string, okToLog bool) (err error) {
 	mm_atomic.AddUint64(&mmSetString.beforeSetStringCounter, 1)
 	defer mm_atomic.AddUint64(&mmSetString.afterSetStringCounter, 1)
 
@@ -885,11 +885,11 @@ type TrxIntMockUnpinExpectation struct {
 
 // TrxIntMockUnpinParams contains parameters of the trxInt.Unpin
 type TrxIntMockUnpinParams struct {
-	block *types.Block
+	block types.Block
 }
 
 // Expect sets up expected params for trxInt.Unpin
-func (mmUnpin *mTrxIntMockUnpin) Expect(block *types.Block) *mTrxIntMockUnpin {
+func (mmUnpin *mTrxIntMockUnpin) Expect(block types.Block) *mTrxIntMockUnpin {
 	if mmUnpin.mock.funcUnpin != nil {
 		mmUnpin.mock.t.Fatalf("TrxIntMock.Unpin mock is already set by Set")
 	}
@@ -909,7 +909,7 @@ func (mmUnpin *mTrxIntMockUnpin) Expect(block *types.Block) *mTrxIntMockUnpin {
 }
 
 // Inspect accepts an inspector function that has same arguments as the trxInt.Unpin
-func (mmUnpin *mTrxIntMockUnpin) Inspect(f func(block *types.Block)) *mTrxIntMockUnpin {
+func (mmUnpin *mTrxIntMockUnpin) Inspect(f func(block types.Block)) *mTrxIntMockUnpin {
 	if mmUnpin.mock.inspectFuncUnpin != nil {
 		mmUnpin.mock.t.Fatalf("Inspect function is already set for TrxIntMock.Unpin")
 	}
@@ -933,7 +933,7 @@ func (mmUnpin *mTrxIntMockUnpin) Return() *TrxIntMock {
 }
 
 //Set uses given function f to mock the trxInt.Unpin method
-func (mmUnpin *mTrxIntMockUnpin) Set(f func(block *types.Block)) *TrxIntMock {
+func (mmUnpin *mTrxIntMockUnpin) Set(f func(block types.Block)) *TrxIntMock {
 	if mmUnpin.defaultExpectation != nil {
 		mmUnpin.mock.t.Fatalf("Default expectation is already set for the trxInt.Unpin method")
 	}
@@ -947,7 +947,7 @@ func (mmUnpin *mTrxIntMockUnpin) Set(f func(block *types.Block)) *TrxIntMock {
 }
 
 // Unpin implements trxInt
-func (mmUnpin *TrxIntMock) Unpin(block *types.Block) {
+func (mmUnpin *TrxIntMock) Unpin(block types.Block) {
 	mm_atomic.AddUint64(&mmUnpin.beforeUnpinCounter, 1)
 	defer mm_atomic.AddUint64(&mmUnpin.afterUnpinCounter, 1)
 

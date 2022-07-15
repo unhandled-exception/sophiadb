@@ -151,7 +151,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	defer fm.Close()
 
 	// Создаем блоки
-	blocks := make([]*types.Block, 10)
+	blocks := make([]types.Block, 10)
 
 	for i := 0; i < len(blocks); i++ {
 		filenum := i % 2
@@ -201,7 +201,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	ts.Equal(p2.Content(), pd.Content())
 
 	// Проверяем содержимое файла
-	fc, err := ioutil.ReadFile(filepath.Join(path, blocks[0].Filename()))
+	fc, err := ioutil.ReadFile(filepath.Join(path, blocks[0].Filename))
 	ts.Require().NoError(err)
 	ts.Require().Len(fc, int(5*blockSize))
 	ts.Equal(p1.Content(), fc[0:blockSize])

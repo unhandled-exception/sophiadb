@@ -19,36 +19,36 @@ func NewBuffersList(bm buffersManager) *BufferList {
 	}
 }
 
-func (bl *BufferList) GetBuffer(block *types.Block) *buffers.Buffer {
-	buf := bl.buffers[*block]
+func (bl *BufferList) GetBuffer(block types.Block) *buffers.Buffer {
+	buf := bl.buffers[block]
 
 	return buf
 }
 
-func (bl *BufferList) Pin(block *types.Block) error {
+func (bl *BufferList) Pin(block types.Block) error {
 	buf, err := bl.bm.Pin(block)
 	if err != nil {
 		return err
 	}
 
-	bl.buffers[*block] = buf
+	bl.buffers[block] = buf
 
-	bl.pins[*block] = bl.pins[*block] + 1
+	bl.pins[block] = bl.pins[block] + 1
 
 	return nil
 }
 
-func (bl *BufferList) Unpin(block *types.Block) {
-	buf := bl.buffers[*block]
+func (bl *BufferList) Unpin(block types.Block) {
+	buf := bl.buffers[block]
 	if buf == nil {
 		return
 	}
 
 	bl.bm.Unpin(buf)
 
-	bl.pins[*block] = bl.pins[*block] - 1
-	if bl.pins[*block] <= 0 {
-		delete(bl.buffers, *block)
+	bl.pins[block] = bl.pins[block] - 1
+	if bl.pins[block] <= 0 {
+		delete(bl.buffers, block)
 	}
 }
 

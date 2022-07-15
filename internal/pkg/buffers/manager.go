@@ -94,7 +94,7 @@ func (bm *Manager) Unpin(buf *Buffer) {
 }
 
 // Pin — закрепляет блок в памяти
-func (bm *Manager) Pin(block *types.Block) (*Buffer, error) {
+func (bm *Manager) Pin(block types.Block) (*Buffer, error) {
 	buf, err := bm.tryToPin(block)
 	if err != nil && !errors.Is(err, ErrNoAvailableBuffers) {
 		return nil, err
@@ -123,7 +123,7 @@ func (bm *Manager) Pin(block *types.Block) (*Buffer, error) {
 	return buf, nil
 }
 
-func (bm *Manager) tryToPin(block *types.Block) (*Buffer, error) {
+func (bm *Manager) tryToPin(block types.Block) (*Buffer, error) {
 	bm.mu.Lock()
 	defer bm.mu.Unlock()
 

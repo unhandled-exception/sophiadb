@@ -222,7 +222,7 @@ func (ts *RecoveryManagerTestSuite) TestRollback_RollbackDataOk() {
 	value2 := int64(2000333)
 	value3 := int64(3000333)
 
-	trx.SetInt64Mock.Inspect(func(block *types.Block, offset uint32, value int64, okToLog bool) {
+	trx.SetInt64Mock.Inspect(func(block types.Block, offset uint32, value int64, okToLog bool) {
 		buf.Content().SetInt64(offset, value)
 	}).Return(nil)
 
@@ -293,7 +293,7 @@ func (ts *RecoveryManagerTestSuite) TestRecovery_RecoveryDataOk() {
 	buf, err := bm.Pin(block)
 	require.NoError(t, err)
 
-	trx.SetInt64Mock.Inspect(func(block *types.Block, offset uint32, value int64, okToLog bool) {
+	trx.SetInt64Mock.Inspect(func(block types.Block, offset uint32, value int64, okToLog bool) {
 		buf.Content().SetInt64(offset, value)
 	}).Return(nil)
 

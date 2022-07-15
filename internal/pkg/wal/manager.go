@@ -20,7 +20,7 @@ type Manager struct {
 	fm           *storage.Manager
 	logFileName  string
 	logPage      *types.Page
-	currentBlock *types.Block
+	currentBlock types.Block
 	latestLSN    types.LSN
 	lastSavedLSN types.LSN
 }
@@ -60,7 +60,7 @@ func (lm *Manager) StorageManager() *storage.Manager {
 }
 
 // CurrentBlock возвращает текущий блок
-func (lm *Manager) CurrentBlock() *types.Block {
+func (lm *Manager) CurrentBlock() types.Block {
 	return lm.currentBlock
 }
 
@@ -136,17 +136,16 @@ func (lm *Manager) Append(logRec []byte) (types.LSN, error) {
 }
 
 // appendNewBlock добавляет новый блок в журнал
-func (lm *Manager) appendNewBlock() (*types.Block, error) {
+func (lm *Manager) appendNewBlock() (types.Block, error) {
 	blk, err := lm.fm.Append(lm.logFileName)
 	if err != nil {
-		return nil, err
+		return blk, err
 	}
 
 	lm.logPage.SetUint32(blockStart, lm.fm.BlockSize())
 
-	err = lm.fm.Write(blk, lm.logPage)
-	if err != nil {
-		return nil, err
+	if err = lm.fm.Write(blk, lm.logPage); err != nil {
+		return blk, err
 	}
 
 	return blk, nil

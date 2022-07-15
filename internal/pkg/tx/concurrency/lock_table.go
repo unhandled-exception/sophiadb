@@ -46,23 +46,23 @@ func WithLockWaitTimeout(timeout time.Duration) lockTableOpt {
 	}
 }
 
-func (lt *LockTable) LocksCount(block *types.Block) int32 {
-	lCount := lt.locks[*block]
+func (lt *LockTable) LocksCount(block types.Block) int32 {
+	lCount := lt.locks[block]
 
 	return lCount
 }
 
-func (lt *LockTable) HasXLock(block *types.Block) bool {
+func (lt *LockTable) HasXLock(block types.Block) bool {
 	return lt.LocksCount(block) == XLockValue
 }
 
-func (lt *LockTable) HasOtherSLock(block *types.Block) bool {
+func (lt *LockTable) HasOtherSLock(block types.Block) bool {
 	// Менеджер конкуренции берет slock перед xlock, поэтому единица равна ровно одной блокировке и можно брать xlock
 	return lt.LocksCount(block) > 1
 }
 
 // SLock устанавливает разделеяемую блокировку для блока (shared lock)
-func (lt *LockTable) SLock(block *types.Block) error {
+func (lt *LockTable) SLock(block types.Block) error {
 	deadline := time.Now().Add(lt.lockWaitTimeout)
 
 	lt.locksCond.L.Lock()
@@ -89,19 +89,19 @@ func (lt *LockTable) SLock(block *types.Block) error {
 	return err
 }
 
-func (lt *LockTable) tryToSLock(block *types.Block) error {
+func (lt *LockTable) tryToSLock(block types.Block) error {
 	if lt.HasXLock(block) {
 		return errors.WithMessagef(ErrLockAbort, "slock: block %s has xlock", block)
 	}
 
-	lCount := lt.locks[*block]
-	lt.locks[*block] = lCount + 1
+	lCount := lt.locks[block]
+	lt.locks[block] = lCount + 1
 
 	return nil
 }
 
 // XLock устанавливает эксклюзивную блокировку для блока (shared lock)
-func (lt *LockTable) XLock(block *types.Block) error {
+func (lt *LockTable) XLock(block types.Block) error {
 	deadline := time.Now().Add(lt.lockWaitTimeout)
 
 	lt.locksCond.L.Lock()
@@ -128,24 +128,24 @@ func (lt *LockTable) XLock(block *types.Block) error {
 	return err
 }
 
-func (lt *LockTable) tryToXLock(block *types.Block) error {
+func (lt *LockTable) tryToXLock(block types.Block) error {
 	if lt.HasOtherSLock(block) {
 		return errors.WithMessagef(ErrLockAbort, "xlock: block %s has other %d slock", block, lt.LocksCount(block))
 	}
 
-	lt.locks[*block] = XLockValue
+	lt.locks[block] = XLockValue
 
 	return nil
 }
 
 // Unlock снимает блокировку для блока
-func (lt *LockTable) Unlock(block *types.Block) {
+func (lt *LockTable) Unlock(block types.Block) {
 	lt.L.Lock()
 
-	if lCount := lt.locks[*block]; lCount > 1 {
-		lt.locks[*block] = lCount - 1
+	if lCount := lt.locks[block]; lCount > 1 {
+		lt.locks[block] = lCount - 1
 	} else {
-		delete(lt.locks, *block)
+		delete(lt.locks, block)
 	}
 
 	lt.L.Unlock()

@@ -11,25 +11,25 @@ import (
 
 // Buffer — страница в пуле буферов
 type Buffer struct {
-	fm       *storage.Manager
-	lm       *wal.Manager
-	contents *types.Page
-	block    *types.Block
-	pins     int
-	txnum    types.TRX
-	lsn      types.LSN
-	mu       sync.Mutex
+	fm      *storage.Manager
+	lm      *wal.Manager
+	content *types.Page
+	block   *types.Block
+	pins    int
+	txnum   types.TRX
+	lsn     types.LSN
+	mu      sync.Mutex
 }
 
 // NewBuffer создает новый объект буфера
 func NewBuffer(fm *storage.Manager, lm *wal.Manager) *Buffer {
 	buf := &Buffer{
-		fm:       fm,
-		lm:       lm,
-		contents: types.NewPage(fm.BlockSize()),
-		pins:     0,
-		txnum:    -1,
-		lsn:      -1,
+		fm:      fm,
+		lm:      lm,
+		content: types.NewPage(fm.BlockSize()),
+		pins:    0,
+		txnum:   -1,
+		lsn:     -1,
 	}
 
 	return buf
@@ -37,12 +37,16 @@ func NewBuffer(fm *storage.Manager, lm *wal.Manager) *Buffer {
 
 // Content возвращает страницу с соlержимым буфера
 func (buf *Buffer) Content() *types.Page {
-	return buf.contents
+	return buf.content
 }
 
-// Block возвращает ссылку на блок
-func (buf *Buffer) Block() *types.Block {
-	return buf.block
+// Block возвращает блок
+func (buf *Buffer) Block() types.Block {
+	if buf.block == nil {
+		return types.Block{}
+	}
+
+	return *buf.block
 }
 
 // SetModified устанавливает указатели транзакции и лога
@@ -90,16 +94,14 @@ func (buf *Buffer) Pins() int {
 }
 
 // AssignToBlock cвязывает страницу буфера со странице на диске
-func (buf *Buffer) AssignToBlock(block *types.Block) error {
-	err := buf.Flush()
-	if err != nil {
+func (buf *Buffer) AssignToBlock(block types.Block) error {
+	if err := buf.Flush(); err != nil {
 		return errors.WithMessage(ErrFailedToAssignBlockToBuffer, err.Error())
 	}
 
-	buf.block = block
+	buf.block = &block
 
-	err = buf.fm.Read(buf.block, buf.contents)
-	if err != nil {
+	if err := buf.fm.Read(buf.Block(), buf.Content()); err != nil {
 		return errors.WithMessage(ErrFailedToAssignBlockToBuffer, err.Error())
 	}
 
@@ -108,22 +110,22 @@ func (buf *Buffer) AssignToBlock(block *types.Block) error {
 
 // Flush сбрасывает страницу из памяти на диск
 func (buf *Buffer) Flush() error {
-	if buf.txnum >= 0 {
-		buf.mu.Lock()
-		defer buf.mu.Unlock()
-
-		err := buf.lm.Flush(buf.lsn, false)
-		if err != nil {
-			return err
-		}
-
-		err = buf.fm.Write(buf.block, buf.contents)
-		if err != nil {
-			return err
-		}
-
-		buf.txnum = -1
+	if buf.txnum < 0 {
+		return nil
 	}
+
+	buf.mu.Lock()
+	defer buf.mu.Unlock()
+
+	if err := buf.lm.Flush(buf.LSN(), false); err != nil {
+		return err
+	}
+
+	if err := buf.fm.Write(buf.Block(), buf.Content()); err != nil {
+		return err
+	}
+
+	buf.txnum = -1
 
 	return nil
 }

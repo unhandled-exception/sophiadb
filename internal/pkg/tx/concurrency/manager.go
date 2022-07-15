@@ -23,8 +23,8 @@ func NewManager(lockTable Lockers) *Manager {
 	}
 }
 
-func (m *Manager) SLock(block *types.Block) error {
-	if _, ok := m.locks[*block]; ok {
+func (m *Manager) SLock(block types.Block) error {
+	if _, ok := m.locks[block]; ok {
 		return nil
 	}
 
@@ -33,12 +33,12 @@ func (m *Manager) SLock(block *types.Block) error {
 		return err
 	}
 
-	m.locks[*block] = slockType
+	m.locks[block] = slockType
 
 	return nil
 }
 
-func (m *Manager) XLock(block *types.Block) error {
+func (m *Manager) XLock(block types.Block) error {
 	if m.HasXlock(block) {
 		return nil
 	}
@@ -55,27 +55,27 @@ func (m *Manager) XLock(block *types.Block) error {
 		return err
 	}
 
-	m.locks[*block] = xlockType
+	m.locks[block] = xlockType
 
 	return nil
 }
 
 func (m *Manager) Release() {
 	for block := range m.locks {
-		m.lockTable.Unlock(&block)
+		m.lockTable.Unlock(block)
 	}
 
 	m.locks = make(map[types.Block]lockType)
 }
 
-func (m *Manager) HasXlock(block *types.Block) bool {
-	lock, ok := m.locks[*block]
+func (m *Manager) HasXlock(block types.Block) bool {
+	lock, ok := m.locks[block]
 
 	return ok && lock == xlockType
 }
 
-func (m *Manager) HasSlock(block *types.Block) bool {
-	lock, ok := m.locks[*block]
+func (m *Manager) HasSlock(block types.Block) bool {
+	lock, ok := m.locks[block]
 
 	return ok && lock == slockType
 }
