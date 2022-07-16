@@ -24,7 +24,7 @@ type OpenFilesMap map[string]*os.File
 
 // Manager управляет чтением и записью блоков на диске
 type Manager struct {
-	sync.Mutex
+	mu sync.Mutex
 
 	path      string
 	blockSize uint32
@@ -110,8 +110,8 @@ func (fm *Manager) Close() error {
 
 // Read читает блок из файла в страницу page
 func (fm *Manager) Read(block types.Block, page *types.Page) error {
-	fm.Lock()
-	defer fm.Unlock()
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
 
 	file, err := fm.getFile(block.Filename)
 	if err != nil {
@@ -133,8 +133,8 @@ func (fm *Manager) Read(block types.Block, page *types.Page) error {
 
 // Write записывает блок в файл из страницы page
 func (fm *Manager) Write(block types.Block, page *types.Page) error {
-	fm.Lock()
-	defer fm.Unlock()
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
 
 	file, err := fm.getFile(block.Filename)
 	if err != nil {
@@ -156,8 +156,8 @@ func (fm *Manager) Write(block types.Block, page *types.Page) error {
 
 // Append добавляет новый блок в файл
 func (fm *Manager) Append(filename string) (types.Block, error) {
-	fm.Lock()
-	defer fm.Unlock()
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
 
 	block := types.Block{}
 

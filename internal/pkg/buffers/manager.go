@@ -16,7 +16,8 @@ var defaultMaxPinTime time.Duration = 10 * time.Second
 
 // Manager менеджер буферов в памяти
 type Manager struct {
-	mu      sync.Mutex
+	mu sync.Mutex
+
 	pinLock *utils.Cond
 
 	fm *storage.Manager

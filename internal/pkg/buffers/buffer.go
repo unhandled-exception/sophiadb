@@ -11,14 +11,16 @@ import (
 
 // Buffer — страница в пуле буферов
 type Buffer struct {
-	fm      *storage.Manager
-	lm      *wal.Manager
+	mu sync.Mutex
+
+	fm *storage.Manager
+	lm *wal.Manager
+
 	content *types.Page
 	block   *types.Block
 	pins    int
 	txnum   types.TRX
 	lsn     types.LSN
-	mu      sync.Mutex
 }
 
 // NewBuffer создает новый объект буфера
