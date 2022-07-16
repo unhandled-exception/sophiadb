@@ -22,7 +22,6 @@ func (ts *BlockTestSuite) TestCreateBlock() {
 	ts.Equal(filename, block.Filename)
 	ts.Equal(blkNum, block.Number)
 	ts.Equal("[file block_filename, block 12345]", block.String())
-	ts.Equal("[block_filename][12345]", block.HashKey())
 }
 
 func (ts *BlockTestSuite) TestBlockEquals() {

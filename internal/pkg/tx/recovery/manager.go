@@ -158,15 +158,13 @@ func (m *Manager) doRollback() error {
 			return err
 		}
 
-		lri, _ := lr.(LogRecord)
-
 		switch {
-		case lri.TXNum() != txnum:
+		case lr.TXNum() != txnum:
 			continue
-		case lri.Op() == StartOp:
+		case lr.Op() == StartOp:
 			break
 		default:
-			if err := lri.Undo(m.trx); err != nil {
+			if err := lr.Undo(m.trx); err != nil {
 				return err
 			}
 		}
@@ -195,17 +193,15 @@ func (m *Manager) doRecover() error {
 			return err
 		}
 
-		lri, _ := lr.(LogRecord)
-
 		switch {
-		case lri.Op() == CheckpointOp:
+		case lr.Op() == CheckpointOp:
 			foundCheckpoint = true
-		case lri.Op() == CommitOp || lri.Op() == RollbackOp:
-			finishedTrxs[lri.TXNum()] = struct{}{}
+		case lr.Op() == CommitOp || lr.Op() == RollbackOp:
+			finishedTrxs[lr.TXNum()] = struct{}{}
 		default:
-			_, ok := finishedTrxs[lri.TXNum()]
+			_, ok := finishedTrxs[lr.TXNum()]
 			if !ok {
-				if err := lri.Undo(m.trx); err != nil {
+				if err := lr.Undo(m.trx); err != nil {
 					return err
 				}
 			}

@@ -10,8 +10,8 @@ import (
 type BuffersPool struct {
 	mu sync.Mutex
 
-	ring            *ring.Ring         // Буферы храним в кольце, чтобы реализовать круговую стратегию поиска свобоных буферов
-	blocksToBuffers map[string]*Buffer // Для ускорения поиска блоков используем словарь с ключем BlockID.HashKey()
+	ring            *ring.Ring              // Буферы храним в кольце, чтобы реализовать круговую стратегию поиска свобоных буферов
+	blocksToBuffers map[types.Block]*Buffer // Для ускорения поиска блоков используем словарь с ключем BlockID.HashKey()
 	len             int
 }
 
@@ -21,7 +21,7 @@ type newBufferFunc func() *Buffer
 func NewBuffersPool(bLen int, nbf newBufferFunc) *BuffersPool {
 	bp := &BuffersPool{
 		len:             bLen,
-		blocksToBuffers: make(map[string]*Buffer, bLen),
+		blocksToBuffers: make(map[types.Block]*Buffer, bLen),
 		ring:            ring.New(bLen),
 	}
 
@@ -73,7 +73,7 @@ func (bp *BuffersPool) FindExistingBuffer(block types.Block) *Buffer {
 	bp.mu.Lock()
 	defer bp.mu.Unlock()
 
-	if buf, ok := bp.blocksToBuffers[block.HashKey()]; ok {
+	if buf, ok := bp.blocksToBuffers[block]; ok {
 		return buf
 	}
 
@@ -102,9 +102,9 @@ func (bp *BuffersPool) AssignBufferToBlock(buf *Buffer, block types.Block) error
 	bp.mu.Lock()
 	defer bp.mu.Unlock()
 
-	bp.blocksToBuffers[block.HashKey()] = buf
+	bp.blocksToBuffers[block] = buf
 
-	delete(bp.blocksToBuffers, buf.Block().HashKey())
+	delete(bp.blocksToBuffers, buf.Block())
 
 	return buf.AssignToBlock(block)
 }

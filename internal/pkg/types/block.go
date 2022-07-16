@@ -10,15 +10,10 @@ type Block struct {
 
 // Equals сравнивает два блока на равенство
 func (b Block) Equals(another Block) bool {
-	return b.Filename == another.Filename && b.Number == another.Number
+	return b == another
 }
 
 // String форматирует BlockID в строку
 func (b Block) String() string {
 	return fmt.Sprintf("[file %s, block %d]", b.Filename, b.Number)
-}
-
-// HashKey формирует строку с ключем для словарей
-func (b Block) HashKey() string {
-	return fmt.Sprintf("[%s][%d]", b.Filename, b.Number)
 }

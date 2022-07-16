@@ -68,9 +68,7 @@ func (ts *TransactionTestSuite) fetchWAL(t *testing.T, trxMan *transaction.TRXMa
 		lr, err := recovery.NewLogRecordFromBytes(raw)
 		require.NoError(t, err)
 
-		lri, _ := lr.(recovery.LogRecord)
-
-		result = append([]string{lri.String()}, result...)
+		result = append([]string{lr.String()}, result...)
 	}
 
 	return result
