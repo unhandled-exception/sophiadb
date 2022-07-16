@@ -30,7 +30,7 @@ const (
 	SetStringOp  uint32 = 5
 )
 
-func NewLogRecordFromBytes(rawRecord []byte) (interface{}, error) {
+func NewLogRecordFromBytes(rawRecord []byte) (LogRecord, error) { //nolint:ireturn
 	if len(rawRecord) == 0 {
 		return nil, ErrEmptyLogRecord
 	}
