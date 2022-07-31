@@ -11,6 +11,7 @@ const (
 	BoolFalseMark byte = 0x0f
 	Int32Size          = 4
 	Int64Size          = 8
+	Int8Size           = 1
 )
 
 // Page – страница базы в памяти
@@ -24,9 +25,14 @@ func PageStringBytesLen(length int) uint32 {
 	return uint32(Int32Size + length*4) // длина строки + 4 байта на символ в utf-8
 }
 
-// PageStringBytesLen возвращает предельный размер строки на странице в байтах
+// PageInt64BytesLen возвращает предельный размер int64 на странице в байтах
 func PageInt64BytesLen() uint32 {
 	return Int64Size
+}
+
+// PageInt8BytesLen возвращает предельный размер int8 на странице в байтах
+func PageInt8BytesLen() uint32 {
+	return Int8Size
 }
 
 // NewPage создает новую страницу в памяти размером size байт
@@ -163,4 +169,14 @@ func (p *Page) SetBool(offset uint32, value bool) {
 	}
 
 	p.bb[offset] = bValue
+}
+
+// GetInt8 возвращает значение int8 по смещению offset
+func (p *Page) GetInt8(offset uint32) int8 {
+	return int8(p.bb[offset])
+}
+
+// SetInt8 записывает значение int8 по смещению offset
+func (p *Page) SetInt8(offset uint32, value int8) {
+	p.bb[offset] = byte(value)
 }

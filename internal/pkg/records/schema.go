@@ -12,6 +12,7 @@ type FieldType int
 const (
 	Int64Field FieldType = iota + 1
 	StringField
+	Int8Field
 )
 
 type FieldInfo struct {
@@ -21,6 +22,8 @@ type FieldInfo struct {
 
 func (fi FieldInfo) BytesLen() uint32 {
 	switch fi.Type {
+	case Int8Field:
+		return types.PageInt8BytesLen()
 	case Int64Field:
 		return types.PageInt64BytesLen()
 	case StringField:
@@ -92,6 +95,10 @@ func (s *Schema) AddInt64Field(name string) {
 	s.addField(name, Int64Field, 0)
 }
 
+func (s *Schema) AddInt8Field(name string) {
+	s.addField(name, Int8Field, 0)
+}
+
 func (s *Schema) AddStringField(name string, length int) {
 	s.addField(name, StringField, length)
 }
@@ -113,6 +120,8 @@ func (s Schema) String() string {
 		field := s.info[name]
 
 		switch field.Type {
+		case Int8Field:
+			str = fmt.Sprintf("[%s: int8]", name)
 		case Int64Field:
 			str = fmt.Sprintf("[%s: int64]", name)
 		case StringField:

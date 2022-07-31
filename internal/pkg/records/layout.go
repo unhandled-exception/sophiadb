@@ -14,7 +14,7 @@ func NewLayout(schema Schema) Layout {
 		Offsets: make(map[string]uint32),
 	}
 
-	size := uint32(types.BoolSize)
+	size := uint32(types.Int8Size)
 	for _, name := range schema.Fields() {
 		l.Offsets[name] = size
 

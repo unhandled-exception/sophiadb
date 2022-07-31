@@ -88,6 +88,39 @@ func (t *Transaction) Unpin(block types.Block) {
 	t.buffers.Unpin(block)
 }
 
+func (t *Transaction) GetInt8(block types.Block, offset uint32) (int8, error) {
+	if err := t.cm.SLock(block); err != nil {
+		return 0, t.wrapTransactionError(err)
+	}
+
+	buf := t.buffers.GetBuffer(block)
+
+	return buf.Content().GetInt8(offset), nil
+}
+
+func (t *Transaction) SetInt8(block types.Block, offset uint32, value int8, okToLog bool) error {
+	if err := t.cm.XLock(block); err != nil {
+		return t.wrapTransactionError(err)
+	}
+
+	buf := t.buffers.GetBuffer(block)
+	lsn := types.LSN(-1)
+
+	if okToLog {
+		var err error
+
+		lsn, err = t.rm.SetInt8(buf, offset, value)
+		if err != nil {
+			return t.wrapTransactionError(err)
+		}
+	}
+
+	buf.Content().SetInt8(offset, value)
+	buf.SetModified(t.txNum, lsn)
+
+	return nil
+}
+
 func (t *Transaction) GetInt64(block types.Block, offset uint32) (int64, error) {
 	if err := t.cm.SLock(block); err != nil {
 		return 0, t.wrapTransactionError(err)
@@ -96,16 +129,6 @@ func (t *Transaction) GetInt64(block types.Block, offset uint32) (int64, error) 
 	buf := t.buffers.GetBuffer(block)
 
 	return buf.Content().GetInt64(offset), nil
-}
-
-func (t *Transaction) GetString(block types.Block, offset uint32) (string, error) {
-	if err := t.cm.SLock(block); err != nil {
-		return "", t.wrapTransactionError(err)
-	}
-
-	buf := t.buffers.GetBuffer(block)
-
-	return buf.Content().GetString(offset), nil
 }
 
 func (t *Transaction) SetInt64(block types.Block, offset uint32, value int64, okToLog bool) error {
@@ -129,6 +152,16 @@ func (t *Transaction) SetInt64(block types.Block, offset uint32, value int64, ok
 	buf.SetModified(t.txNum, lsn)
 
 	return nil
+}
+
+func (t *Transaction) GetString(block types.Block, offset uint32) (string, error) {
+	if err := t.cm.SLock(block); err != nil {
+		return "", t.wrapTransactionError(err)
+	}
+
+	buf := t.buffers.GetBuffer(block)
+
+	return buf.Content().GetString(offset), nil
 }
 
 func (t *Transaction) SetString(block types.Block, offset uint32, value string, okToLog bool) error {

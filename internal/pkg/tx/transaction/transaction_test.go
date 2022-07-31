@@ -80,6 +80,9 @@ func (ts *TransactionTestSuite) TestSequenceCase() {
 	trxMan, fm := ts.newTRXManager(defaultLockTimeout)
 	defer fm.Close()
 
+	i8Val := int8(-65)
+	i8Offset := uint32(39)
+
 	iVal := int64(80)
 	iOffset := uint32(80)
 
@@ -100,12 +103,17 @@ func (ts *TransactionTestSuite) TestSequenceCase() {
 	require.NoError(t, tx1.Pin(block1))
 	require.NoError(t, tx1.SetInt64(block1, iOffset, iVal, false))
 	require.NoError(t, tx1.SetString(block1, sOffset, sVal, false))
+	require.NoError(t, tx1.SetInt8(block1, i8Offset, i8Val, false))
 	require.NoError(t, tx1.Commit())
 
 	// Тестируем новую удачную транзакцию с записью в лог
 	tx2, err := trxMan.Transaction()
 	require.NoError(t, err)
 	require.NoError(t, tx2.Pin(block1))
+
+	i8v, err := tx2.GetInt8(block1, i8Offset)
+	require.NoError(t, err)
+	require.Equal(t, i8v, i8Val)
 
 	iv, err := tx2.GetInt64(block1, iOffset)
 	require.NoError(t, err)
@@ -118,6 +126,7 @@ func (ts *TransactionTestSuite) TestSequenceCase() {
 	iVal = iv + 1
 	sVal = sv + " suffix"
 
+	require.NoError(t, tx2.SetInt8(block1, i8Offset, i8Val, true))
 	require.NoError(t, tx2.SetInt64(block1, iOffset, iVal, true))
 	require.NoError(t, tx2.SetString(block1, sOffset, sVal, true))
 	require.NoError(t, tx2.Commit())
@@ -164,6 +173,7 @@ func (ts *TransactionTestSuite) TestSequenceCase() {
 			"<START, 1001>",
 			"<COMMIT, 1001>",
 			"<START, 1002>",
+			"<SET_INT8, 1002, block: [file data.dat, block 0], offset: 39, value: -65>",
 			"<SET_INT64, 1002, block: [file data.dat, block 0], offset: 80, value: 80>",
 			"<SET_STRING, 1002, block: [file data.dat, block 0], offset: 40, value: \"first string\">",
 			"<COMMIT, 1002>",

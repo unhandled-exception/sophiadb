@@ -128,6 +128,17 @@ func (m *Manager) SetInt64(buf buffer, offset uint32, value int64) (types.LSN, e
 	return m.writeRecordToLog(lr)
 }
 
+func (m *Manager) SetInt8(buf buffer, offset uint32, value int8) (types.LSN, error) {
+	txnum := m.trx.TXNum()
+
+	oldValue := buf.Content().GetInt8(offset)
+	block := buf.Block()
+
+	lr := NewSetInt8LogRecord(txnum, block, offset, oldValue)
+
+	return m.writeRecordToLog(lr)
+}
+
 func (m *Manager) SetString(buf buffer, offset uint32, value string) (types.LSN, error) {
 	txnum := m.trx.TXNum()
 

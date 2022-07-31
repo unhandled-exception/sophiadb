@@ -132,3 +132,11 @@ func (ts *PageTestSuite) TestPageBytesLenFunctions() {
 	assert.EqualValues(t, 8, types.PageInt64BytesLen())
 	assert.EqualValues(t, 484, types.PageStringBytesLen(120))
 }
+
+func (ts *PageTestSuite) TestGetAndSetInt8() {
+	p := types.NewPage(24)
+	p.SetInt8(0, 127)
+	p.SetInt8(1, -127)
+	ts.Equal(int8(127), p.GetInt8(0))
+	ts.Equal(int8(-127), p.GetInt8(1))
+}
