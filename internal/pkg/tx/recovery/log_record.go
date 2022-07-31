@@ -32,7 +32,7 @@ const (
 	SetInt8Op    uint32 = 6
 )
 
-func NewLogRecordFromBytes(rawRecord []byte) (LogRecord, error) { //nolint:ireturn
+func NewLogRecordFromBytes(rawRecord []byte) (LogRecord, error) { // nolint:ireturn
 	if len(rawRecord) == 0 {
 		return nil, ErrEmptyLogRecord
 	}
