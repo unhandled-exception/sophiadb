@@ -15,6 +15,7 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/recovery"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
@@ -117,7 +118,7 @@ func (ts *RecordPageTestSuite) TestRecordPage() {
 	cnt := 20
 
 	for i := 0; i < cnt; i++ {
-		slot, err := sut.InsertAfter(records.SlotID(i - 1))
+		slot, err := sut.InsertAfter(types.SlotID(i - 1))
 		require.NoError(t, err)
 
 		require.NoError(t, sut.SetInt64(slot, "id", int64(slot+1)))
@@ -126,7 +127,7 @@ func (ts *RecordPageTestSuite) TestRecordPage() {
 	}
 
 	for i := 0; i < cnt; i++ {
-		slot, err := sut.NextAfter(records.SlotID(i - 1))
+		slot, err := sut.NextAfter(types.SlotID(i - 1))
 		require.NoError(t, err)
 
 		idVal, err := sut.GetInt64(slot, "id")
@@ -171,7 +172,7 @@ func (ts *RecordPageTestSuite) TestNoNewSlot() {
 	sut, _, clean := ts.newTestRecordPage(t)
 	defer clean()
 
-	_, err := sut.InsertAfter(records.SlotID(defaultTestBlockSize / sut.Layout.SlotSize))
+	_, err := sut.InsertAfter(types.SlotID(defaultTestBlockSize / sut.Layout.SlotSize))
 	require.Error(t, err)
 	assert.ErrorIs(t, err, records.ErrSlotNotFound)
 }

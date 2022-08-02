@@ -8,11 +8,10 @@ import (
 )
 
 type (
-	SlotID   int32
 	SlotFlag int8
 )
 
-var StartSlotID SlotID = -1
+var StartSlotID types.SlotID = -1
 
 const (
 	EmptySlot = 0
@@ -39,7 +38,7 @@ func NewRecordPage(trx trxInt, block types.Block, layout Layout) (*RecordPage, e
 	return rp, nil
 }
 
-func (rp *RecordPage) GetInt64(slot SlotID, fieldName string) (int64, error) {
+func (rp *RecordPage) GetInt64(slot types.SlotID, fieldName string) (int64, error) {
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	val, err := rp.TRX.GetInt64(rp.Block, offset)
@@ -50,7 +49,7 @@ func (rp *RecordPage) GetInt64(slot SlotID, fieldName string) (int64, error) {
 	return val, nil
 }
 
-func (rp *RecordPage) GetString(slot SlotID, fieldName string) (string, error) {
+func (rp *RecordPage) GetString(slot types.SlotID, fieldName string) (string, error) {
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	val, err := rp.TRX.GetString(rp.Block, offset)
@@ -61,7 +60,7 @@ func (rp *RecordPage) GetString(slot SlotID, fieldName string) (string, error) {
 	return val, nil
 }
 
-func (rp *RecordPage) GetInt8(slot SlotID, fieldName string) (int8, error) {
+func (rp *RecordPage) GetInt8(slot types.SlotID, fieldName string) (int8, error) {
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	val, err := rp.TRX.GetInt8(rp.Block, offset)
@@ -72,7 +71,7 @@ func (rp *RecordPage) GetInt8(slot SlotID, fieldName string) (int8, error) {
 	return val, nil
 }
 
-func (rp *RecordPage) SetInt64(slot SlotID, fieldName string, value int64) error {
+func (rp *RecordPage) SetInt64(slot types.SlotID, fieldName string, value int64) error {
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	if err := rp.TRX.SetInt64(rp.Block, offset, value, true); err != nil {
@@ -82,7 +81,7 @@ func (rp *RecordPage) SetInt64(slot SlotID, fieldName string, value int64) error
 	return nil
 }
 
-func (rp *RecordPage) SetString(slot SlotID, fieldName string, value string) error {
+func (rp *RecordPage) SetString(slot types.SlotID, fieldName string, value string) error {
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	if err := rp.TRX.SetString(rp.Block, offset, value, true); err != nil {
@@ -92,7 +91,7 @@ func (rp *RecordPage) SetString(slot SlotID, fieldName string, value string) err
 	return nil
 }
 
-func (rp *RecordPage) SetInt8(slot SlotID, fieldName string, value int8) error {
+func (rp *RecordPage) SetInt8(slot types.SlotID, fieldName string, value int8) error {
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	if err := rp.TRX.SetInt8(rp.Block, offset, value, true); err != nil {
@@ -103,7 +102,7 @@ func (rp *RecordPage) SetInt8(slot SlotID, fieldName string, value int8) error {
 }
 
 func (rp *RecordPage) Format() (int32, error) {
-	slot := SlotID(0)
+	slot := types.SlotID(0)
 	schema := rp.Layout.Schema
 
 	for rp.isValidSlot(slot) {
@@ -139,15 +138,15 @@ func (rp *RecordPage) Format() (int32, error) {
 	return int32(slot), nil
 }
 
-func (rp *RecordPage) Delete(slot SlotID) error {
+func (rp *RecordPage) Delete(slot types.SlotID) error {
 	return rp.setFlag(slot, EmptySlot)
 }
 
-func (rp *RecordPage) NextAfter(slot SlotID) (SlotID, error) {
+func (rp *RecordPage) NextAfter(slot types.SlotID) (types.SlotID, error) {
 	return rp.searchAfter(slot, UsedSlot)
 }
 
-func (rp *RecordPage) InsertAfter(slot SlotID) (SlotID, error) {
+func (rp *RecordPage) InsertAfter(slot types.SlotID) (types.SlotID, error) {
 	newSlot, err := rp.searchAfter(slot, EmptySlot)
 	if err != nil {
 		return 0, err
@@ -160,19 +159,19 @@ func (rp *RecordPage) InsertAfter(slot SlotID) (SlotID, error) {
 	return newSlot, nil
 }
 
-func (rp *RecordPage) offset(slot SlotID) uint32 {
+func (rp *RecordPage) offset(slot types.SlotID) uint32 {
 	return uint32(slot) * rp.Layout.SlotSize
 }
 
-func (rp *RecordPage) setFlag(slot SlotID, flag SlotFlag) error {
+func (rp *RecordPage) setFlag(slot types.SlotID, flag SlotFlag) error {
 	return rp.TRX.SetInt8(rp.Block, rp.offset(slot), int8(flag), true)
 }
 
-func (rp *RecordPage) isValidSlot(slot SlotID) bool {
+func (rp *RecordPage) isValidSlot(slot types.SlotID) bool {
 	return rp.offset(slot+1) <= rp.TRX.BlockSize()
 }
 
-func (rp *RecordPage) searchAfter(slot SlotID, flag SlotFlag) (SlotID, error) {
+func (rp *RecordPage) searchAfter(slot types.SlotID, flag SlotFlag) (types.SlotID, error) {
 	slot++
 	for rp.isValidSlot(slot) {
 		f, err := rp.TRX.GetInt8(rp.Block, rp.offset(slot))

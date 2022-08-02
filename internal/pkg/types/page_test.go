@@ -130,6 +130,7 @@ func (ts *PageTestSuite) TestPageBytesLenFunctions() {
 	t := ts.T()
 
 	assert.EqualValues(t, 8, types.PageInt64BytesLen())
+	assert.EqualValues(t, 1, types.PageInt8BytesLen())
 	assert.EqualValues(t, 484, types.PageStringBytesLen(120))
 }
 
