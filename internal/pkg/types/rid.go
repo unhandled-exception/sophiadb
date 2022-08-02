@@ -5,7 +5,7 @@ import "fmt"
 type SlotID int32
 
 type RID struct {
-	BlockNumber int32
+	BlockNumber BlockID
 	Slot        SlotID
 }
 

@@ -13,7 +13,7 @@ type logManager interface {
 
 type storageManager interface {
 	BlockSize() uint32
-	Length(filename string) (int32, error)
+	Length(filename string) (types.BlockID, error)
 	Append(filename string) (types.Block, error)
 }
 

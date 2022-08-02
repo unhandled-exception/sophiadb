@@ -149,11 +149,11 @@ func (rp *RecordPage) NextAfter(slot types.SlotID) (types.SlotID, error) {
 func (rp *RecordPage) InsertAfter(slot types.SlotID) (types.SlotID, error) {
 	newSlot, err := rp.searchAfter(slot, EmptySlot)
 	if err != nil {
-		return 0, err
+		return StartSlotID, err
 	}
 
 	if err := rp.setFlag(newSlot, UsedSlot); err != nil {
-		return 0, err
+		return StartSlotID, err
 	}
 
 	return newSlot, nil

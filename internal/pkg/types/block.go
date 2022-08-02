@@ -2,10 +2,12 @@ package types
 
 import "fmt"
 
+type BlockID int32
+
 // Block описание блока хранилишща
 type Block struct {
 	Filename string
-	Number   int32
+	Number   BlockID
 }
 
 // Equals сравнивает два блока на равенство

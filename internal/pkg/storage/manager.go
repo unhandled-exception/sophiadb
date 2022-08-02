@@ -188,7 +188,7 @@ func (fm *Manager) Append(filename string) (types.Block, error) {
 }
 
 // Length возвращает размер файла в блоках
-func (fm *Manager) Length(filename string) (int32, error) {
+func (fm *Manager) Length(filename string) (types.BlockID, error) {
 	file, err := fm.getFile(filename)
 	if err != nil {
 		return 0, err
@@ -199,7 +199,7 @@ func (fm *Manager) Length(filename string) (int32, error) {
 		return 0, errors.WithMessage(ErrFileManagerIO, err.Error())
 	}
 
-	return int32(stat.Size() / int64(fm.blockSize)), nil
+	return types.BlockID(int32(stat.Size() / int64(fm.blockSize))), nil
 }
 
 // getFile возвращает файл из списка открытых или

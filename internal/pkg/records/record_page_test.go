@@ -2,87 +2,26 @@ package records_test
 
 import (
 	"fmt"
-	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/recovery"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
-)
-
-const (
-	testDataFile              = "data.dat"
-	testWALFile               = "record_page_wal.dat"
-	defaultTestBlockSize      = 4000
-	defaultTestBuffersPoolLen = 100
-	defaultLockTimeout        = 100 * time.Millisecond
 )
 
 type RecordPageTestSuite struct {
-	testutil.Suite
+	Suite
 }
 
 func TestRecordPageTestsuite(t *testing.T) {
 	suite.Run(t, new(RecordPageTestSuite))
 }
 
-func (ts *RecordPageTestSuite) newTRXManager(lockTimeout time.Duration) (*transaction.TRXManager, *storage.Manager) {
-	path := ts.CreateTestTemporaryDir()
-
-	fm, err := storage.NewFileManager(path, defaultTestBlockSize)
-	ts.Require().NoError(err)
-	ts.Require().NotNil(fm)
-
-	lm, err := wal.NewManager(fm, testWALFile)
-	ts.Require().NoError(err)
-	ts.Require().FileExists(filepath.Join(path, testWALFile))
-
-	bm := buffers.NewManager(fm, lm, defaultTestBuffersPoolLen)
-
-	m := transaction.NewTRXManager(fm, bm, lm, transaction.WithLockTimeout(lockTimeout))
-
-	return m, fm
-}
-
-func (ts *RecordPageTestSuite) fetchWAL(t *testing.T, trxMan *transaction.TRXManager) []string {
-	it, err := trxMan.LogManager().Iterator()
-	require.NoError(t, err)
-
-	result := make([]string, 0)
-
-	for it.HasNext() {
-		raw, err := it.Next()
-		require.NoError(t, err)
-
-		lr, err := recovery.NewLogRecordFromBytes(raw)
-		require.NoError(t, err)
-
-		result = append([]string{lr.String()}, result...)
-	}
-
-	return result
-}
-
-func (ts *RecordPageTestSuite) testLayout() records.Layout {
-	schema := records.NewSchema()
-	schema.AddInt64Field("id")
-	schema.AddStringField("name", 25)
-	schema.AddInt8Field("age")
-
-	return records.NewLayout(schema)
-}
-
 func (ts *RecordPageTestSuite) newTestRecordPage(t *testing.T) (*records.RecordPage, *transaction.Transaction, func()) {
-	trxMan, fm := ts.newTRXManager(defaultLockTimeout)
+	trxMan, fm := ts.newTRXManager(defaultLockTimeout, "")
 
 	trx, err := trxMan.Transaction()
 	require.NoError(t, err)

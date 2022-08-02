@@ -7,7 +7,7 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
-const endOfFileBlock int32 = -1
+const endOfFileBlock types.BlockID = -1
 
 type Transaction struct {
 	txNum   types.TRX
@@ -195,7 +195,7 @@ func (t *Transaction) AvailableBuffersCount() int {
 	return t.bm.Available()
 }
 
-func (t *Transaction) Size(filename string) (int32, error) {
+func (t *Transaction) Size(filename string) (types.BlockID, error) {
 	dummyBlock := types.Block{Filename: filename, Number: endOfFileBlock}
 
 	if err := t.cm.SLock(dummyBlock); err != nil {
