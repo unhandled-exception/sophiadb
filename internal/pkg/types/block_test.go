@@ -17,7 +17,7 @@ func TestBlockTestSuite(t *testing.T) {
 
 func (ts *BlockTestSuite) TestCreateBlock() {
 	filename := "block_filename"
-	blkNum := int32(12345)
+	blkNum := types.BlockID(12345)
 	block := types.Block{Filename: filename, Number: blkNum}
 	ts.Equal(filename, block.Filename)
 	ts.Equal(blkNum, block.Number)

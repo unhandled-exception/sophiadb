@@ -10,6 +10,7 @@ type RecoveryManager interface {
 	Rollback() error
 	Recover() error
 	SetInt64(buf buffer, offset uint32, value int64) (types.LSN, error)
+	SetInt8(buf buffer, offset uint32, value int8) (types.LSN, error)
 	SetString(buf buffer, offset uint32, value string) (types.LSN, error)
 }
 
@@ -18,6 +19,7 @@ type trxInt interface {
 	Unpin(block types.Block)
 	SetString(block types.Block, offset uint32, value string, okToLog bool) error
 	SetInt64(block types.Block, offset uint32, value int64, okToLog bool) error
+	SetInt8(block types.Block, offset uint32, value int8, okToLog bool) error
 	TXNum() types.TRX
 }
 

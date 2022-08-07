@@ -125,3 +125,19 @@ func (ts *PageTestSuite) TestGetAndSetBool() {
 	ts.Equal(true, p.GetBool(2))
 	ts.Equal([]byte{types.BoolTrueMark, types.BoolFalseMark, types.BoolTrueMark, 0x0}, p.Content())
 }
+
+func (ts *PageTestSuite) TestPageBytesLenFunctions() {
+	t := ts.T()
+
+	assert.EqualValues(t, 8, types.PageInt64BytesLen())
+	assert.EqualValues(t, 1, types.PageInt8BytesLen())
+	assert.EqualValues(t, 484, types.PageStringBytesLen(120))
+}
+
+func (ts *PageTestSuite) TestGetAndSetInt8() {
+	p := types.NewPage(24)
+	p.SetInt8(0, 127)
+	p.SetInt8(1, -127)
+	ts.Equal(int8(127), p.GetInt8(0))
+	ts.Equal(int8(-127), p.GetInt8(1))
+}

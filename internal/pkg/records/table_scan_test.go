@@ -1,0 +1,230 @@
+package records_test
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/gojuno/minimock/v3"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
+)
+
+type TableScanTestSuite struct {
+	Suite
+}
+
+func TestTableScanTestsuite(t *testing.T) {
+	suite.Run(t, new(TableScanTestSuite))
+}
+
+func (ts *TableScanTestSuite) newTableScan(testPath string) (*records.TableScan, *transaction.Transaction, *storage.Manager, func()) {
+	t := ts.T()
+
+	trxMan, fm := ts.newTRXManager(defaultLockTimeout, testPath)
+
+	trx, err := trxMan.Transaction()
+	require.NoError(t, err)
+
+	sut, err := records.NewTableScan(trx, testDataFile, ts.testLayout())
+	require.NoError(t, err)
+
+	return sut, trx, fm, func() {
+		fm.Close()
+	}
+}
+
+func (ts *TableScanTestSuite) TestGetAndSetValues() {
+	t := ts.T()
+	testPath := t.TempDir()
+
+	wsut, wtx, fm, wsutClean := ts.newTableScan(testPath)
+	defer wsutClean()
+
+	const blocks = 5
+	cnt := (defaultTestBlockSize / wsut.Layout.SlotSize) * blocks
+
+	require.NoError(t, wsut.BeforeFirst())
+
+	// Заполняем странички
+	for i := 0; i < int(cnt); i++ {
+		require.NoErrorf(t, wsut.Insert(), "write insert i == %d", i)
+
+		require.NoErrorf(t, wsut.SetInt64("id", int64(i+1)), "write int64 i == %d", i)
+		require.NoErrorf(t, wsut.SetInt8("age", int8(i+2)), "write int8 i == %d", i)
+		require.NoErrorf(t, wsut.SetString("name", fmt.Sprintf("user %d", i)), "write string i == %d", i)
+	}
+
+	wsut.Close()
+	require.NoError(t, wtx.Commit())
+
+	fLen, err := fm.Length(wsut.Filename)
+	require.NoError(t, err)
+	assert.EqualValues(t, blocks, fLen)
+
+	rsut, rtx, fm, rsutClean := ts.newTableScan(testPath)
+	defer rsutClean()
+
+	require.NoError(t, rsut.BeforeFirst())
+
+	fLen, err = fm.Length(rsut.Filename)
+	require.NoError(t, err)
+	assert.EqualValues(t, blocks, fLen)
+
+	// Сканируем таблицу
+	for i := 0; i < int(cnt); i++ {
+		ok, werr := rsut.Next()
+		require.NoErrorf(t, werr, "read next i=%d", i)
+		require.Truef(t, ok, "read next i=%d", i)
+
+		idVal, werr := rsut.GetInt64("id")
+		require.NoErrorf(t, werr, "read int64 i=%d", i)
+		assert.EqualValues(t, int64(i+1), idVal)
+
+		ageVal, werr := rsut.GetInt8("age")
+		require.NoErrorf(t, werr, "read int8 i=%d", i)
+		assert.EqualValues(t, int8(i+2), ageVal)
+
+		nameVal, werr := rsut.GetString("name")
+		require.NoErrorf(t, werr, "read string i=%d", i)
+		assert.EqualValues(t, fmt.Sprintf("user %d", i), nameVal)
+	}
+
+	ok, err := rsut.Next()
+	assert.NoError(t, err)
+	assert.False(t, ok)
+
+	rsut.Close()
+	require.NoError(t, rtx.Commit())
+}
+
+func (ts *TableScanTestSuite) TestDelete() {
+	t := ts.T()
+
+	sut, tx, _, clean := ts.newTableScan("")
+	defer clean()
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	const blocks = 2
+	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+
+	for i := 0; i < int(cnt); i++ {
+		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
+
+		require.NoErrorf(t, sut.SetInt64("id", int64(i+1)), "write int64 i == %d", i)
+		require.NoErrorf(t, sut.SetInt8("age", int8(i+2)), "write int8 i == %d", i)
+		require.NoErrorf(t, sut.SetString("name", fmt.Sprintf("user %d", i)), "write string i == %d", i)
+	}
+
+	_ = sut.BeforeFirst()
+	for i := 0; i < int(cnt-3); i++ {
+		_, _ = sut.Next()
+	}
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 31}, sut.RID())
+
+	require.NoError(t, sut.Delete())
+
+	_ = sut.BeforeFirst()
+	require.NoError(t, sut.Insert())
+
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 31}, sut.RID())
+}
+
+func (ts *TableScanTestSuite) TestRID() {
+	t := ts.T()
+
+	sut, tx, _, clean := ts.newTableScan("")
+	defer clean()
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	const blocks = 2
+	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+
+	for i := 0; i < int(cnt); i++ {
+		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
+
+		require.NoErrorf(t, sut.SetInt64("id", int64(i+1)), "write int64 i == %d", i)
+		require.NoErrorf(t, sut.SetInt8("age", int8(i+2)), "write int8 i == %d", i)
+		require.NoErrorf(t, sut.SetString("name", fmt.Sprintf("user %d", i)), "write string i == %d", i)
+	}
+
+	_ = sut.BeforeFirst()
+
+	assert.NoError(t, sut.MoveToRID(types.RID{
+		BlockNumber: 1,
+		Slot:        15,
+	}))
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 15}, sut.RID())
+}
+
+func (ts *TableScanTestSuite) TestGetAndSetConstants() {
+	t := ts.T()
+
+	mc := minimock.NewController(t)
+
+	sut, tx, _, clean := ts.newTableScan("")
+	defer clean()
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	const blocks = 4
+	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+
+	for i := 0; i < int(cnt); i++ {
+		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
+
+		require.NoErrorf(t, sut.SetVal("id", types.NewInt64Constant(int64(i+1))), "write int64 i == %d", i)
+		require.NoErrorf(t, sut.SetVal("age", types.NewInt8Constant(int8(i+2))), "write int8 i == %d", i)
+		require.NoErrorf(t, sut.SetVal("name", types.NewStringConstant(fmt.Sprintf("user %d", i))), "write string i == %d", i)
+	}
+
+	require.NoError(t, sut.MoveToRID(types.RID{BlockNumber: 0, Slot: 0}))
+	require.ErrorIs(t, sut.SetVal("id", records.NewConstantMock(mc).ValueMock.Return(struct{}{})), records.ErrTableScan)
+	require.ErrorIs(t, sut.SetVal("age", records.NewConstantMock(mc).ValueMock.Return(struct{}{})), records.ErrTableScan)
+	require.ErrorIs(t, sut.SetVal("name", records.NewConstantMock(mc).ValueMock.Return(struct{}{})), records.ErrTableScan)
+
+	require.ErrorIs(t, sut.SetVal("unknown", records.NewConstantMock(mc).ValueMock.Return(struct{}{})), records.ErrTableScan)
+
+	require.NoError(t, sut.BeforeFirst())
+
+	for i := 0; i < int(cnt); i++ {
+		_, err := sut.Next()
+		require.NoErrorf(t, err, "wread next i == %d", i)
+
+		idVal, err := sut.GetVal("id")
+		require.NoErrorf(t, err, "read int64 i=%d", i)
+		assert.EqualValues(t, int64(i+1), idVal.Value())
+
+		ageVal, err := sut.GetVal("age")
+		require.NoErrorf(t, err, "read int8 i=%d", i)
+		assert.EqualValues(t, int8(i+2), ageVal.Value())
+
+		nameVal, err := sut.GetVal("name")
+		require.NoErrorf(t, err, "read string i=%d", i)
+		assert.EqualValues(t, fmt.Sprintf("user %d", i), nameVal.Value())
+	}
+
+	_, err := sut.GetVal("unknown")
+	require.ErrorIs(t, err, records.ErrTableScan)
+}
+
+func (ts *TableScanTestSuite) TestHasField() {
+	t := ts.T()
+
+	sut, tx, _, clean := ts.newTableScan("")
+	defer clean()
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	assert.False(t, sut.HasField("unknown"))
+}

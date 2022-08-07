@@ -11,6 +11,7 @@ import (
 const (
 	int32Size = 4
 	int64Size = 8
+	int8Size  = 1
 )
 
 type LogRecord interface {
@@ -28,9 +29,10 @@ const (
 	RollbackOp   uint32 = 3
 	SetInt64Op   uint32 = 4
 	SetStringOp  uint32 = 5
+	SetInt8Op    uint32 = 6
 )
 
-func NewLogRecordFromBytes(rawRecord []byte) (LogRecord, error) { //nolint:ireturn
+func NewLogRecordFromBytes(rawRecord []byte) (LogRecord, error) { // nolint:ireturn
 	if len(rawRecord) == 0 {
 		return nil, ErrEmptyLogRecord
 	}
@@ -51,6 +53,8 @@ func NewLogRecordFromBytes(rawRecord []byte) (LogRecord, error) { //nolint:iretu
 		return NewSetStringLogRecordFromBytes(rawRecord)
 	case SetInt64Op:
 		return NewSetInt64LogRecordFromBytes(rawRecord)
+	case SetInt8Op:
+		return NewSetInt8LogRecordFromBytes(rawRecord)
 	default:
 		return nil, errors.WithMessagef(ErrUnknownLogRecord, "%d is an unknown op", op)
 	}
