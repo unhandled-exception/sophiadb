@@ -13,7 +13,7 @@ type trxInt interface {
 	SetInt8(block types.Block, offset uint32, value int8, okToLog bool) error
 }
 
-type tsTRXInt interface {
+type TSTRXInt interface {
 	Append(filename string) (types.Block, error)
 	Pin(block types.Block) error
 	Unpin(block types.Block)

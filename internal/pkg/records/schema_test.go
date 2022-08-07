@@ -38,6 +38,8 @@ func (ts SchemaTestSuite) TestCreateSchema() {
 
 	assert.True(t, sut.HasField("id"))
 	assert.False(t, sut.HasField("unexistant"))
+
+	assert.EqualValues(t, 4, sut.Count())
 }
 
 func (ts SchemaTestSuite) TestAddSchema() {

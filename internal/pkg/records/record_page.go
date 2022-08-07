@@ -39,6 +39,10 @@ func NewRecordPage(trx trxInt, block types.Block, layout Layout) (*RecordPage, e
 }
 
 func (rp *RecordPage) GetInt64(slot types.SlotID, fieldName string) (int64, error) {
+	if !rp.Layout.Schema.HasField(fieldName) {
+		return 0, errors.WithMessagef(ErrFieldNotFound, "field %s", fieldName)
+	}
+
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	val, err := rp.TRX.GetInt64(rp.Block, offset)
@@ -50,6 +54,10 @@ func (rp *RecordPage) GetInt64(slot types.SlotID, fieldName string) (int64, erro
 }
 
 func (rp *RecordPage) GetString(slot types.SlotID, fieldName string) (string, error) {
+	if !rp.Layout.Schema.HasField(fieldName) {
+		return "", errors.WithMessagef(ErrFieldNotFound, "field %s", fieldName)
+	}
+
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	val, err := rp.TRX.GetString(rp.Block, offset)
@@ -61,6 +69,10 @@ func (rp *RecordPage) GetString(slot types.SlotID, fieldName string) (string, er
 }
 
 func (rp *RecordPage) GetInt8(slot types.SlotID, fieldName string) (int8, error) {
+	if !rp.Layout.Schema.HasField(fieldName) {
+		return 0, errors.WithMessagef(ErrFieldNotFound, "field %s", fieldName)
+	}
+
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	val, err := rp.TRX.GetInt8(rp.Block, offset)
@@ -72,6 +84,10 @@ func (rp *RecordPage) GetInt8(slot types.SlotID, fieldName string) (int8, error)
 }
 
 func (rp *RecordPage) SetInt64(slot types.SlotID, fieldName string, value int64) error {
+	if !rp.Layout.Schema.HasField(fieldName) {
+		return errors.WithMessagef(ErrFieldNotFound, "field %s", fieldName)
+	}
+
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	if err := rp.TRX.SetInt64(rp.Block, offset, value, true); err != nil {
@@ -82,6 +98,10 @@ func (rp *RecordPage) SetInt64(slot types.SlotID, fieldName string, value int64)
 }
 
 func (rp *RecordPage) SetString(slot types.SlotID, fieldName string, value string) error {
+	if !rp.Layout.Schema.HasField(fieldName) {
+		return errors.WithMessagef(ErrFieldNotFound, "field %s", fieldName)
+	}
+
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	if err := rp.TRX.SetString(rp.Block, offset, value, true); err != nil {
@@ -92,6 +112,10 @@ func (rp *RecordPage) SetString(slot types.SlotID, fieldName string, value strin
 }
 
 func (rp *RecordPage) SetInt8(slot types.SlotID, fieldName string, value int8) error {
+	if !rp.Layout.Schema.HasField(fieldName) {
+		return errors.WithMessagef(ErrFieldNotFound, "field %s", fieldName)
+	}
+
 	offset := rp.offset(slot) + rp.Layout.Offset(fieldName)
 
 	if err := rp.TRX.SetInt8(rp.Block, offset, value, true); err != nil {
