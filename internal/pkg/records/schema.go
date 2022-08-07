@@ -45,6 +45,10 @@ func NewSchema() Schema {
 	}
 }
 
+func (s Schema) Count() int {
+	return len(s.fields)
+}
+
 func (s Schema) HasField(name string) bool {
 	_, ok := s.info[name]
 
@@ -83,7 +87,7 @@ func (s Schema) Length(name string) int {
 	return fieldLen
 }
 
-func (s *Schema) addField(name string, t FieldType, length int) {
+func (s *Schema) AddField(name string, t FieldType, length int) {
 	s.fields = append(s.fields, name)
 	s.info[name] = FieldInfo{
 		Type:   t,
@@ -92,22 +96,22 @@ func (s *Schema) addField(name string, t FieldType, length int) {
 }
 
 func (s *Schema) AddInt64Field(name string) {
-	s.addField(name, Int64Field, 0)
+	s.AddField(name, Int64Field, 0)
 }
 
 func (s *Schema) AddInt8Field(name string) {
-	s.addField(name, Int8Field, 0)
+	s.AddField(name, Int8Field, 0)
 }
 
 func (s *Schema) AddStringField(name string, length int) {
-	s.addField(name, StringField, length)
+	s.AddField(name, StringField, length)
 }
 
 func (s *Schema) AddAll(schema Schema) {
 	for _, name := range schema.Fields() {
 		field, ok := schema.Field(name)
 		if ok {
-			s.addField(name, field.Type, field.Length)
+			s.AddField(name, field.Type, field.Length)
 		}
 	}
 }

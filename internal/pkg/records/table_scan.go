@@ -9,7 +9,7 @@ import (
 const tableSuffix = ".tbl"
 
 type TableScan struct {
-	trx      tsTRXInt
+	trx      TSTRXInt
 	Filename string
 	Layout   Layout
 
@@ -17,7 +17,7 @@ type TableScan struct {
 	currentSlot types.SlotID
 }
 
-func NewTableScan(trx tsTRXInt, filename string, layout Layout) (*TableScan, error) {
+func NewTableScan(trx TSTRXInt, filename string, layout Layout) (*TableScan, error) {
 	filename = filename + tableSuffix
 
 	ts := &TableScan{

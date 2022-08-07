@@ -86,6 +86,29 @@ func (ts *RecordPageTestSuite) TestRecordPage() {
 	require.NoError(t, trx.Commit())
 }
 
+func (ts *RecordPageTestSuite) TestGetAndSetUnknownFieldsWithError() {
+	t := ts.T()
+
+	sut, trx, clean := ts.newTestRecordPage(t)
+	defer clean()
+
+	require.ErrorIs(t, sut.SetInt64(0, "unknown", 0), records.ErrFieldNotFound)
+	require.ErrorIs(t, sut.SetInt8(0, "unknown", 0), records.ErrFieldNotFound)
+	require.ErrorIs(t, sut.SetString(0, "unknown", ""), records.ErrFieldNotFound)
+
+	_, err := sut.GetInt64(0, "unknown")
+	require.ErrorIs(t, err, records.ErrFieldNotFound)
+
+	_, err = sut.GetInt8(0, "unknown")
+	require.ErrorIs(t, err, records.ErrFieldNotFound)
+
+	_, err = sut.GetString(0, "unknown")
+	require.ErrorIs(t, err, records.ErrFieldNotFound)
+
+	trx.Unpin(sut.Block)
+	require.NoError(t, trx.Commit())
+}
+
 func (ts *RecordPageTestSuite) TestDeleteSlot() {
 	t := ts.T()
 

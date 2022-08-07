@@ -11,7 +11,7 @@ type Layout struct {
 func NewLayout(schema Schema) Layout {
 	l := Layout{
 		Schema:  schema,
-		Offsets: make(map[string]uint32),
+		Offsets: make(map[string]uint32, schema.Count()),
 	}
 
 	size := uint32(types.Int8Size)
