@@ -1,4 +1,3 @@
-//nolint:ireturn
 package types
 
 // TODO: Доделать при программировании образов сканирования
