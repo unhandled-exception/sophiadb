@@ -50,6 +50,88 @@ func (ts *TableScan) Close() {
 	}
 }
 
+func (ts *TableScan) ForEach(call func() (stop bool, err error)) error {
+	if err := ts.BeforeFirst(); err != nil {
+		return err
+	}
+
+	for {
+		ok, err := ts.Next()
+		if !ok {
+			if err != nil {
+				return err
+			}
+
+			break
+		}
+
+		stop, err := call()
+		if err != nil {
+			return err
+		}
+
+		if stop {
+			break
+		}
+	}
+
+	return nil
+}
+
+func (ts *TableScan) ForEachField(call func(name string, fieldType FieldType) (stop bool, err error)) error {
+	for _, name := range ts.Layout.Schema.fields {
+		fieldType := ts.Layout.Schema.Type(name)
+
+		stop, err := call(name, fieldType)
+		if err != nil {
+			return err
+		}
+
+		if stop {
+			break
+		}
+	}
+
+	return nil
+}
+
+func (ts *TableScan) ForEachValue(call func(name string, fieldType FieldType, value interface{}) (stop bool, err error)) error {
+	for _, name := range ts.Layout.Schema.fields {
+		fieldType := ts.Layout.Schema.Type(name)
+
+		var (
+			value interface{}
+			err   error
+		)
+
+		switch fieldType {
+		case Int64Field:
+			value, err = ts.GetInt64(name)
+		case Int8Field:
+			value, err = ts.GetInt8(name)
+		case StringField:
+			value, err = ts.GetString(name)
+		default:
+			err = ErrUnknownFieldType
+		}
+
+		if err != nil {
+			return err
+		}
+
+		stop, err := call(name, fieldType, value)
+		if err != nil {
+			return err
+		}
+
+		if stop {
+			break
+		}
+	}
+
+	return nil
+}
+
 func (ts *TableScan) BeforeFirst() error {
 	return ts.moveToBlock(0)
 }

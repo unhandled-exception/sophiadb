@@ -228,3 +228,201 @@ func (ts *TableScanTestSuite) TestHasField() {
 
 	assert.False(t, sut.HasField("unknown"))
 }
+
+func (ts *TableScanTestSuite) TestForeEachField_Ok() {
+	t := ts.T()
+
+	sut, _, _, clean := ts.newTableScan("")
+	defer clean()
+
+	type fStruct struct {
+		Name string
+		Type records.FieldType
+	}
+
+	fields := make([]fStruct, 0, sut.Layout.Schema.Count())
+
+	require.NoError(t, sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+		fields = append(fields, fStruct{
+			Name: name,
+			Type: fieldType,
+		})
+
+		return false, nil
+	}))
+
+	assert.Equal(t,
+		[]fStruct{
+			{Name: "id", Type: records.Int64Field},
+			{Name: "name", Type: records.StringField},
+			{Name: "age", Type: records.Int8Field},
+		},
+		fields,
+	)
+}
+
+func (ts *TableScanTestSuite) TestForeEachField_Errors() {
+	t := ts.T()
+
+	sut, _, _, clean := ts.newTableScan("")
+	defer clean()
+
+	i := 0
+	err := sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+		i++
+
+		return false, fmt.Errorf("fail caller %d", i)
+	})
+	require.EqualError(t, err, "fail caller 1")
+
+	i = 0
+
+	require.NoError(t, sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+		i++
+		if i > 1 {
+			return true, nil
+		}
+
+		return false, nil
+	}))
+
+	assert.Equal(t, 2, i)
+}
+
+func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
+	t := ts.T()
+
+	sut, tx, _, clean := ts.newTableScan("")
+	defer clean()
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	const blocks = 2
+	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+
+	for i := 0; i < int(cnt); i++ {
+		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
+
+		require.NoErrorf(t, sut.SetInt64("id", int64(i+1)), "write int64 i == %d", i)
+		require.NoErrorf(t, sut.SetInt8("age", int8(i+2)), "write int8 i == %d", i)
+		require.NoErrorf(t, sut.SetString("name", fmt.Sprintf("user %d", i)), "write string i == %d", i)
+	}
+
+	i := 0
+	f := map[string]int{}
+
+	require.NoError(t, sut.ForEach(func() (bool, error) {
+		require.NoError(t, sut.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+			switch name {
+			case "id":
+				assert.EqualValues(t, records.Int64Field, fieldType)
+				assert.EqualValues(t, i+1, value.(int64)) //nolint:forcetypeassert
+			case "name":
+				assert.EqualValues(t, records.StringField, fieldType)
+				assert.EqualValues(t, fmt.Sprintf("user %d", i), value.(string)) //nolint:forcetypeassert
+			case "age":
+				assert.EqualValues(t, records.Int8Field, fieldType)
+				assert.EqualValues(t, i+2, value.(int8)) //nolint:forcetypeassert
+			}
+
+			f[name]++
+
+			return false, nil
+		}))
+
+		i++
+
+		return false, nil
+	}))
+
+	assert.EqualValues(t, cnt, i)
+	assert.Equal(t,
+		map[string]int{
+			"age":  int(cnt),
+			"id":   int(cnt),
+			"name": int(cnt),
+		},
+		f,
+	)
+}
+
+func (ts *TableScanTestSuite) TestForEach_Stop() {
+	t := ts.T()
+
+	sut, tx, _, clean := ts.newTableScan("")
+	defer clean()
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	const blocks = 2
+	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+
+	for i := 0; i < int(cnt); i++ {
+		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
+
+		require.NoErrorf(t, sut.SetInt64("id", int64(i+1)), "write int64 i == %d", i)
+		require.NoErrorf(t, sut.SetInt8("age", int8(i+2)), "write int8 i == %d", i)
+		require.NoErrorf(t, sut.SetString("name", fmt.Sprintf("user %d", i)), "write string i == %d", i)
+	}
+
+	i := 0
+
+	require.NoError(t, sut.ForEach(func() (bool, error) {
+		if i == int(cnt/2) {
+			return true, nil
+		}
+
+		i++
+
+		return false, nil
+	}))
+
+	assert.EqualValues(t, cnt/2, i)
+}
+
+func (ts *TableScanTestSuite) TestForEachAndForEachValue_Errors() {
+	t := ts.T()
+
+	sut, tx, _, clean := ts.newTableScan("")
+	defer clean()
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	const blocks = 2
+	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+
+	for i := 0; i < int(cnt); i++ {
+		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
+
+		require.NoErrorf(t, sut.SetInt64("id", int64(i+1)), "write int64 i == %d", i)
+		require.NoErrorf(t, sut.SetInt8("age", int8(i+2)), "write int8 i == %d", i)
+		require.NoErrorf(t, sut.SetString("name", fmt.Sprintf("user %d", i)), "write string i == %d", i)
+	}
+
+	i := 0
+	vErr := fmt.Errorf("foreach stop")
+
+	require.EqualError(t, sut.ForEach(func() (bool, error) {
+		err := sut.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+			if i == int(cnt/2) {
+				return false, vErr
+			}
+
+			return false, nil
+		})
+		if err != nil {
+			require.EqualError(t, err, vErr.Error())
+
+			return false, err
+		}
+
+		i++
+
+		return false, nil
+	}), vErr.Error())
+
+	assert.EqualValues(t, cnt/2, i)
+}
