@@ -72,8 +72,6 @@ func newFcatLayout() records.Layout {
 }
 
 func (t *Tables) CreateTable(tableName string, schema records.Schema, trx records.TSTRXInt) error {
-	var err error
-
 	tcat, err := records.NewTableScan(trx, t.tcatTable, t.tcatLayout)
 	if err != nil {
 		return t.wrapError(err, tableName, ErrFailedToCreateTable)
@@ -88,48 +86,57 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx record
 
 	layout := records.NewLayout(schema)
 
-	if err = tcat.Insert(); err != nil {
-		goto errs
+	if err := tcat.Insert(); err != nil {
+		return t.wrapError(err, tableName, ErrFailedToCreateTable)
 	}
 
-	if err = tcat.SetString(tcatTableNameField, tableName); err != nil {
-		goto errs
-	}
+	if err := tcat.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+		var err error
 
-	if err = tcat.SetInt64(tcatSlotsizeField, int64(layout.SlotSize)); err != nil {
-		goto errs
+		switch name {
+		case tcatTableNameField:
+			err = tcat.SetString(tcatTableNameField, tableName)
+		case tcatSlotsizeField:
+			err = tcat.SetInt64(tcatSlotsizeField, int64(layout.SlotSize))
+		}
+
+		return false, err
+	}); err != nil {
+		return t.wrapError(err, tableName, ErrFailedToCreateTable)
 	}
 
 	for _, fieldName := range schema.Fields() {
-		if err = fcat.Insert(); err != nil {
-			goto errs
+		if err := fcat.Insert(); err != nil {
+			return t.wrapError(err, tableName, ErrFailedToCreateTable)
 		}
 
-		if err = fcat.SetString(fcatTableNameField, tableName); err != nil {
-			goto errs
-		}
+		if err := fcat.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+			var err error
 
-		if err = fcat.SetString(fcatFieldNameField, fieldName); err != nil {
-			goto errs
-		}
+			switch name {
+			case fcatTableNameField:
+				err = fcat.SetString(fcatTableNameField, tableName)
+			case fcatFieldNameField:
+				err = fcat.SetString(fcatFieldNameField, fieldName)
+			case fcatTypeField:
+				err = fcat.SetInt8(fcatTypeField, int8(schema.Type(fieldName)))
+			case fcatLengthField:
+				err = fcat.SetInt64(fcatLengthField, int64(schema.Length(fieldName)))
+			case fcatOffsetField:
+				err = fcat.SetInt64(fcatOffsetField, int64(layout.Offset(fieldName)))
+			}
 
-		if err = fcat.SetInt8(fcatTypeField, int8(schema.Type(fieldName))); err != nil {
-			goto errs
-		}
+			if err != nil {
+				return true, err
+			}
 
-		if err = fcat.SetInt64(fcatLengthField, int64(schema.Length(fieldName))); err != nil {
-			goto errs
-		}
-
-		if err = fcat.SetInt64(fcatOffsetField, int64(layout.Offset(fieldName))); err != nil {
-			goto errs
+			return false, err
+		}); err != nil {
+			return err
 		}
 	}
 
 	return nil
-
-errs:
-	return t.wrapError(err, tableName, ErrFailedToCreateTable)
 }
 
 func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout, error) {
@@ -152,82 +159,92 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 
 	found := false
 
-	for {
-		ok, terr := tcat.Next()
-		if !ok {
-			if terr != nil {
-				return layout, t.wrapError(terr, tableName, nil)
+	if err := tcat.ForEach(func() (bool, error) {
+		tableInfo := struct {
+			Name     string
+			SlotSize int64
+		}{}
+
+		if err := tcat.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+			var ok bool
+
+			switch name {
+			case tcatTableNameField:
+				tableInfo.Name, ok = value.(string)
+			case tcatSlotsizeField:
+				tableInfo.SlotSize, ok = value.(int64)
 			}
 
-			break
+			if !ok {
+				return true, errors.WithMessage(ErrTablesMetadata, records.ErrUnknownFieldType.Error())
+			}
+
+			return false, nil
+		}); err != nil {
+			return true, err
 		}
 
-		tName, terr := tcat.GetString(tcatTableNameField)
-		if terr != nil {
-			return layout, t.wrapError(terr, tableName, nil)
-		}
-
-		if tName != tableName {
-			continue
+		if tableInfo.Name != tableName {
+			return false, nil
 		}
 
 		found = true
 
-		tSlotSize, terr := tcat.GetInt64(tcatSlotsizeField)
-		if terr != nil {
-			return layout, t.wrapError(terr, tableName, nil)
-		}
+		layout.SlotSize = uint32(tableInfo.SlotSize)
 
-		layout.SlotSize = uint32(tSlotSize)
-
-		break
+		return false, nil
+	}); err != nil {
+		return layout, err
 	}
 
 	if !found {
 		return layout, ErrTableNotFound
 	}
 
-	for {
-		ok, ferr := fcat.Next()
-		if !ok {
-			if ferr != nil {
-				return layout, t.wrapError(ferr, tableName, nil)
+	if err := fcat.ForEach(func() (bool, error) {
+		fieldInfo := struct {
+			TableName string
+			FieldName string
+			FieldType int8
+			Length    int64
+			Offset    int64
+		}{}
+
+		if err := fcat.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+			var ok bool
+
+			switch name {
+			case fcatTableNameField:
+				fieldInfo.TableName, ok = value.(string)
+			case fcatFieldNameField:
+				fieldInfo.FieldName, ok = value.(string)
+			case fcatTypeField:
+				fieldInfo.FieldType, ok = value.(int8)
+			case fcatLengthField:
+				fieldInfo.Length, ok = value.(int64)
+			case fcatOffsetField:
+				fieldInfo.Offset, ok = value.(int64)
 			}
 
-			break
+			if !ok {
+				return true, errors.WithMessage(ErrTablesMetadata, records.ErrUnknownFieldType.Error())
+			}
+
+			return false, nil
+		}); err != nil {
+			return true, err
 		}
 
-		tName, ferr := fcat.GetString(fcatTableNameField)
-		if ferr != nil {
-			return layout, t.wrapError(ferr, tableName, nil)
+		if fieldInfo.TableName != tableName {
+			return false, nil
 		}
 
-		if tName != tableName {
-			continue
-		}
+		layout.Schema.AddField(fieldInfo.FieldName, records.FieldType(fieldInfo.FieldType), int(fieldInfo.Length))
+		layout.Offsets[fieldInfo.FieldName] = uint32(fieldInfo.Offset)
 
-		fName, ferr := fcat.GetString(fcatFieldNameField)
-		if ferr != nil {
-			return layout, t.wrapError(ferr, tableName, nil)
-		}
-
-		fType, ferr := fcat.GetInt8(fcatTypeField)
-		if ferr != nil {
-			return layout, t.wrapError(ferr, tableName, nil)
-		}
-
-		fLength, ferr := fcat.GetInt64(fcatLengthField)
-		if ferr != nil {
-			return layout, t.wrapError(ferr, tableName, nil)
-		}
-
-		fOffset, ferr := fcat.GetInt64(fcatOffsetField)
-		if ferr != nil {
-			return layout, t.wrapError(ferr, tableName, nil)
-		}
-
-		layout.Schema.AddField(fName, records.FieldType(fType), int(fLength))
-		layout.Offsets[fName] = uint32(fOffset)
+		return false, nil
+	}); err != nil {
+		return layout, err
 	}
 
 	if layout.Schema.Count() == 0 {

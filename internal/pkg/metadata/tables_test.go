@@ -53,6 +53,7 @@ func (ts *TablesTestSuite) TestCreateAndFetchTable() {
 	require.NoError(t, err)
 
 	assert.Equal(t, "[id: int64], [name: string(25)], [age: int8]", layout.Schema.String())
+	assert.EqualValues(t, 114, layout.SlotSize)
 
 	require.NoError(t, trx2.Commit())
 }
