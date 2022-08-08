@@ -16,7 +16,7 @@ func TestSchemaTestSuite(t *testing.T) {
 	suite.Run(t, new(SchemaTestSuite))
 }
 
-func (ts SchemaTestSuite) TestCreateSchema() {
+func (ts *SchemaTestSuite) TestCreateSchema() {
 	t := ts.T()
 
 	sut := records.NewSchema()
@@ -42,7 +42,7 @@ func (ts SchemaTestSuite) TestCreateSchema() {
 	assert.EqualValues(t, 4, sut.Count())
 }
 
-func (ts SchemaTestSuite) TestAddSchema() {
+func (ts *SchemaTestSuite) TestAddSchema() {
 	t := ts.T()
 
 	schema := records.NewSchema()
