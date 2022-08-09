@@ -2,7 +2,6 @@ package storage_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -201,7 +200,7 @@ func (ts *FileManagerTestSuite) TestReadAndWriteBlocks() {
 	ts.Equal(p2.Content(), pd.Content())
 
 	// Проверяем содержимое файла
-	fc, err := ioutil.ReadFile(filepath.Join(path, blocks[0].Filename))
+	fc, err := os.ReadFile(filepath.Join(path, blocks[0].Filename))
 	ts.Require().NoError(err)
 	ts.Require().Len(fc, int(5*blockSize))
 	ts.Equal(p1.Content(), fc[0:blockSize])

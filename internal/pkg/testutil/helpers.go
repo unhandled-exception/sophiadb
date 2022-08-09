@@ -1,7 +1,6 @@
 package testutil
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -14,7 +13,7 @@ type testSuite interface {
 }
 
 func CreateSuiteTemporaryDir(ts testSuite, name string) string {
-	suiteDir, err := ioutil.TempDir("", name+"_")
+	suiteDir, err := os.MkdirTemp("", name+"_")
 	if err != nil {
 		ts.FailNow("dont create temporary folder: %s", err.Error())
 	}
@@ -34,7 +33,7 @@ func RemoveSuiteTemporaryDir(ts testSuite) {
 }
 
 func CreateTestTemporaryDir(ts testSuite) string {
-	path, err := ioutil.TempDir(ts.SuiteDir(), strings.ReplaceAll(ts.T().Name(), "/", "_")+"_")
+	path, err := os.MkdirTemp(ts.SuiteDir(), strings.ReplaceAll(ts.T().Name(), "/", "_")+"_")
 	if err != nil {
 		ts.FailNow("dont create test temporary dir: %s", err.Error())
 	}
