@@ -21,7 +21,7 @@ func TestTablesTestSuite(t *testing.T) {
 func (ts *TablesTestSuite) TestCreateAndFetchTable() {
 	t := ts.T()
 
-	trxMan, clean := ts.newTRXManager(defaultLockTimeout, "")
+	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
 	defer clean()
 
 	trx1, err := trxMan.Transaction()
@@ -58,10 +58,73 @@ func (ts *TablesTestSuite) TestCreateAndFetchTable() {
 	require.NoError(t, trx2.Commit())
 }
 
+func (ts *TablesTestSuite) TestCreateTable_TableExists() {
+	t := ts.T()
+
+	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
+	defer clean()
+
+	trx, err := trxMan.Transaction()
+	require.NoError(t, err)
+
+	sut, err := metadata.NewTables(true, trx)
+	require.NoError(t, err)
+	assert.NotNil(t, sut)
+
+	const testTable = "test_table"
+
+	schema := records.NewSchema()
+	schema.AddInt64Field("id")
+	schema.AddStringField("name", 25)
+	schema.AddInt8Field("age")
+
+	err = sut.CreateTable(testTable, schema, trx)
+	require.NoError(t, err)
+
+	err = sut.CreateTable(testTable, schema, trx)
+	require.ErrorIs(t, err, metadata.ErrTableExists)
+
+	require.NoError(t, trx.Commit())
+}
+
+func (ts *TablesTestSuite) TestTableExists() {
+	t := ts.T()
+
+	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
+	defer clean()
+
+	trx, err := trxMan.Transaction()
+	require.NoError(t, err)
+
+	sut, err := metadata.NewTables(true, trx)
+	require.NoError(t, err)
+	assert.NotNil(t, sut)
+
+	const testTable = "test_table"
+
+	schema := records.NewSchema()
+	schema.AddInt64Field("id")
+	schema.AddStringField("name", 25)
+	schema.AddInt8Field("age")
+
+	err = sut.CreateTable(testTable, schema, trx)
+	require.NoError(t, err)
+
+	exists, err := sut.TableExists(testTable, trx)
+	require.NoError(t, err)
+	assert.True(t, exists)
+
+	exists, err = sut.TableExists("unexistant", trx)
+	require.NoError(t, err)
+	assert.False(t, exists)
+
+	require.NoError(t, trx.Commit())
+}
+
 func (ts *TablesTestSuite) TestTableNotFound() {
 	t := ts.T()
 
-	trxMan, clean := ts.newTRXManager(defaultLockTimeout, "")
+	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
 	defer clean()
 
 	trx, err := trxMan.Transaction()
@@ -80,7 +143,7 @@ func (ts *TablesTestSuite) TestTableNotFound() {
 func (ts *TablesTestSuite) TestSchemaNotFound() {
 	t := ts.T()
 
-	trxMan, clean := ts.newTRXManager(defaultLockTimeout, "")
+	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
 	defer clean()
 
 	trx, err := trxMan.Transaction()

@@ -44,7 +44,7 @@ func NewTables(isNew bool, trx records.TSTRXInt) (*Tables, error) {
 			return nil, err
 		}
 
-		if err := t.CreateTable(t.tcatTable, t.tcatLayout.Schema, trx); err != nil {
+		if err := t.CreateTable(t.fcatTable, t.fcatLayout.Schema, trx); err != nil {
 			return nil, err
 		}
 	}
@@ -71,17 +71,47 @@ func newFcatLayout() records.Layout {
 	return records.NewLayout(schema)
 }
 
+func (t *Tables) TableExists(tableName string, trx records.TSTRXInt) (bool, error) {
+	tcat, err := t.newTableCatalogTableScan(trx)
+	if err != nil {
+		return false, t.wrapError(err, tableName, nil)
+	}
+
+	found := false
+
+	if err := tcat.ForEach(func() (bool, error) {
+		name, err := tcat.GetString(tcatTableNameField)
+		if err != nil {
+			return true, err
+		}
+
+		found = (name == tableName)
+
+		return found, nil
+	}); err != nil {
+		return false, t.wrapError(err, tableName, nil)
+	}
+
+	return found, nil
+}
+
 func (t *Tables) CreateTable(tableName string, schema records.Schema, trx records.TSTRXInt) error {
-	tcat, err := records.NewTableScan(trx, t.tcatTable, t.tcatLayout)
+	tableExists, err := t.TableExists(tableName, trx)
+	if tableExists || err != nil {
+		if err != nil {
+			return t.wrapError(err, tableName, ErrFailedToCreateTable)
+		}
+
+		if tableExists {
+			return ErrTableExists
+		}
+	}
+
+	tcat, fcat, err := t.newCatalogTableScan(trx)
 	if err != nil {
 		return t.wrapError(err, tableName, ErrFailedToCreateTable)
 	}
 	defer tcat.Close()
-
-	fcat, err := records.NewTableScan(trx, t.fcatTable, t.fcatLayout)
-	if err != nil {
-		return t.wrapError(err, tableName, ErrFailedToCreateTable)
-	}
 	defer fcat.Close()
 
 	layout := records.NewLayout(schema)
@@ -145,16 +175,11 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 		Offsets: make(map[string]uint32, 16), //nolint:gomnd
 	}
 
-	tcat, err := records.NewTableScan(trx, t.tcatTable, t.tcatLayout)
+	tcat, fcat, err := t.newCatalogTableScan(trx)
 	if err != nil {
-		return layout, t.wrapError(err, tableName, nil)
+		return layout, t.wrapError(err, tableName, ErrFailedToCreateTable)
 	}
 	defer tcat.Close()
-
-	fcat, err := records.NewTableScan(trx, t.fcatTable, t.fcatLayout)
-	if err != nil {
-		return layout, t.wrapError(err, tableName, nil)
-	}
 	defer fcat.Close()
 
 	found := false
@@ -252,6 +277,28 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 	}
 
 	return layout, nil
+}
+
+func (t *Tables) newTableCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
+	return records.NewTableScan(trx, t.tcatTable, t.tcatLayout)
+}
+
+func (t *Tables) newFieldsCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
+	return records.NewTableScan(trx, t.fcatTable, t.fcatLayout)
+}
+
+func (t *Tables) newCatalogTableScan(trx records.TSTRXInt) (*records.TableScan /* tcat */, *records.TableScan /* fcat */, error) {
+	tcat, err := t.newTableCatalogTableScan(trx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	fcat, err := t.newFieldsCatalogTableScan(trx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return tcat, fcat, err
 }
 
 func (t *Tables) wrapError(err error, tableName string, baseError error) error {

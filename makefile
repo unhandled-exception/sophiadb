@@ -24,11 +24,11 @@ vendor:
 
 .PHONY: lint
 lint:
-	golangci-lint run ./... --timeout=120s --max-same-issues=0 --sort-results --go=$(go_version)
+	golangci-lint run ./... --timeout=120s --max-same-issues=0 --sort-results --go=$(go_version) --new=false --new-from-rev=
 
 .PHONY: lint_ci
 lint_ci:
-	golangci-lint run ./... --timeout=120s --max-same-issues=0 --sort-results --go=$(go_version) -v
+	golangci-lint run ./... --timeout=120s --max-same-issues=0 --sort-results --go=$(go_version) --new=false --new-from-rev= -v
 
 .PHONY: upgrade
 upgrade_deps:
