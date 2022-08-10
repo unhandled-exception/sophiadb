@@ -289,6 +289,7 @@ func (ts *TableScan) SetVal(fieldName string, value types.Constant) error {
 
 func (ts *TableScan) Insert() error {
 	currentSlot, err := ts.rp.InsertAfter(ts.currentSlot)
+
 	if err != nil && !errors.Is(err, ErrSlotNotFound) {
 		return err
 	}
@@ -312,7 +313,7 @@ func (ts *TableScan) Insert() error {
 		}
 
 		currentSlot, err := ts.rp.InsertAfter(ts.currentSlot)
-		if err != nil {
+		if err != nil && !errors.Is(err, ErrSlotNotFound) {
 			return err
 		}
 

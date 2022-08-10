@@ -1,6 +1,7 @@
 package metadata_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/metadata"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
 )
 
 type TablesTestSuite struct {
@@ -18,50 +20,12 @@ func TestTablesTestSuite(t *testing.T) {
 	suite.Run(t, new(TablesTestSuite))
 }
 
-func (ts *TablesTestSuite) TestCreateAndFetchTable() {
-	t := ts.T()
+func (ts *TablesTestSuite) newSUT(t *testing.T, path string) (*metadata.Tables, *transaction.Transaction, func()) {
+	if path == "" {
+		path = t.TempDir()
+	}
 
-	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
-	defer clean()
-
-	trx1, err := trxMan.Transaction()
-	require.NoError(t, err)
-
-	sut1, err := metadata.NewTables(true, trx1)
-	require.NoError(t, err)
-	assert.NotNil(t, sut1)
-
-	const testTable = "test_table"
-
-	schema := records.NewSchema()
-	schema.AddInt64Field("id")
-	schema.AddStringField("name", 25)
-	schema.AddInt8Field("age")
-
-	err = sut1.CreateTable(testTable, schema, trx1)
-	require.NoError(t, err)
-
-	require.NoError(t, trx1.Commit())
-
-	trx2, err := trxMan.Transaction()
-	require.NoError(t, err)
-
-	sut2, err := metadata.NewTables(false, trx2)
-	require.NoError(t, err)
-
-	layout, err := sut2.Layout(testTable, trx2)
-	require.NoError(t, err)
-
-	assert.Equal(t, "[id: int64], [name: string(25)], [age: int8]", layout.Schema.String())
-	assert.EqualValues(t, 114, layout.SlotSize)
-
-	require.NoError(t, trx2.Commit())
-}
-
-func (ts *TablesTestSuite) TestCreateTable_TableExists() {
-	t := ts.T()
-
-	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
+	trxMan, clean := ts.newTRXManager(defaultLockTimeout, path)
 	defer clean()
 
 	trx, err := trxMan.Transaction()
@@ -69,7 +33,136 @@ func (ts *TablesTestSuite) TestCreateTable_TableExists() {
 
 	sut, err := metadata.NewTables(true, trx)
 	require.NoError(t, err)
-	assert.NotNil(t, sut)
+
+	return sut, trx, func() {
+		clean()
+	}
+}
+
+func (ts *TablesTestSuite) TestCreateTable_Ok() {
+	t := ts.T()
+
+	path := t.TempDir()
+
+	sut, trx, clean := ts.newSUT(t, path)
+	defer clean()
+
+	schema := records.NewSchema()
+	schema.AddInt64Field("id")
+	schema.AddStringField("name", 25)
+	schema.AddInt8Field("age")
+
+	layout := records.NewLayout(schema)
+
+	for i := 0; i < 100; i++ {
+		err := sut.CreateTable(fmt.Sprintf("test_table_%d", i), schema, trx)
+		require.NoError(t, err)
+	}
+
+	require.NoError(t, trx.Commit())
+
+	recs, err := records.NewTableScan(trx, sut.TcatTable, sut.TcatLayout)
+	require.NoError(t, err)
+
+	i := 0
+
+	require.NoError(t, recs.ForEach(func() (bool, error) {
+		tn, ierr := recs.GetString(metadata.TcatTableNameField)
+		require.NoError(t, ierr)
+
+		// Пропускаем две служебные таблички
+		if tn == sut.TcatTable || tn == sut.FcatTable {
+			return false, nil
+		}
+
+		tss, ierr := recs.GetInt64(metadata.TcatSlotsizeField)
+		assert.NoError(t, ierr)
+
+		assert.Equal(t, fmt.Sprintf("test_table_%d", i), tn)
+		assert.EqualValues(t, layout.SlotSize, tss)
+
+		i++
+
+		return false, nil
+	}))
+
+	assert.Equal(t, 100, i)
+
+	recs, err = records.NewTableScan(trx, sut.FcatTable, sut.FcatLayout)
+	require.NoError(t, err)
+
+	i = -1
+	lt := ""
+
+	require.NoError(t, recs.ForEach(func() (bool, error) {
+		type fieldInfo struct {
+			TableName string
+			FieldName string
+			FieldType int8
+			Length    int64
+			Offset    int64
+		}
+
+		fi := fieldInfo{}
+
+		tn, err := recs.GetString(metadata.TcatTableNameField)
+		require.NoError(t, err)
+
+		// Пропускаем две служебные таблички
+		if tn == sut.TcatTable || tn == sut.FcatTable {
+			return false, nil
+		}
+
+		if lt != tn {
+			i++
+			lt = tn
+		}
+
+		require.NoError(t, recs.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+			var ok bool
+
+			switch name {
+			case metadata.FcatTableNameField:
+				fi.TableName, ok = value.(string)
+			case metadata.FcatFieldNameField:
+				fi.FieldName, ok = value.(string)
+			case metadata.FcatTypeField:
+				fi.FieldType, ok = value.(int8)
+			case metadata.FcatLengthField:
+				fi.Length, ok = value.(int64)
+			case metadata.FcatOffsetField:
+				fi.Offset, ok = value.(int64)
+			}
+
+			if !ok {
+				return true, fmt.Errorf("failed to covert value for %s[%d]", name, fieldType)
+			}
+
+			return false, nil
+		}))
+
+		switch fi.FieldName {
+		case "id":
+			assert.Equal(t, fieldInfo{TableName: fmt.Sprintf("test_table_%d", i), FieldName: "id", FieldType: 1, Length: 0, Offset: 1}, fi)
+		case "name":
+			assert.Equal(t, fieldInfo{TableName: fmt.Sprintf("test_table_%d", i), FieldName: "name", FieldType: 2, Length: 25, Offset: 9}, fi)
+		case "age":
+			assert.Equal(t, fieldInfo{TableName: fmt.Sprintf("test_table_%d", i), FieldName: "age", FieldType: 3, Length: 0, Offset: 113}, fi)
+		default:
+			return true, fmt.Errorf("unknown field %s", fi.FieldName)
+		}
+
+		return false, nil
+	}))
+
+	assert.Equal(t, 99, i)
+}
+
+func (ts *TablesTestSuite) TestCreateTable_TableExists() {
+	t := ts.T()
+
+	sut, trx, clean := ts.newSUT(t, "")
+	defer clean()
 
 	const testTable = "test_table"
 
@@ -78,7 +171,7 @@ func (ts *TablesTestSuite) TestCreateTable_TableExists() {
 	schema.AddStringField("name", 25)
 	schema.AddInt8Field("age")
 
-	err = sut.CreateTable(testTable, schema, trx)
+	err := sut.CreateTable(testTable, schema, trx)
 	require.NoError(t, err)
 
 	err = sut.CreateTable(testTable, schema, trx)
@@ -87,18 +180,11 @@ func (ts *TablesTestSuite) TestCreateTable_TableExists() {
 	require.NoError(t, trx.Commit())
 }
 
-func (ts *TablesTestSuite) TestTableExists() {
+func (ts *TablesTestSuite) TestTableExists_Ok() {
 	t := ts.T()
 
-	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
+	sut, trx, clean := ts.newSUT(t, "")
 	defer clean()
-
-	trx, err := trxMan.Transaction()
-	require.NoError(t, err)
-
-	sut, err := metadata.NewTables(true, trx)
-	require.NoError(t, err)
-	assert.NotNil(t, sut)
 
 	const testTable = "test_table"
 
@@ -107,8 +193,13 @@ func (ts *TablesTestSuite) TestTableExists() {
 	schema.AddStringField("name", 25)
 	schema.AddInt8Field("age")
 
-	err = sut.CreateTable(testTable, schema, trx)
+	err := sut.CreateTable(testTable, schema, trx)
 	require.NoError(t, err)
+
+	for i := 0; i < 100; i++ {
+		err = sut.CreateTable(fmt.Sprintf("%s_%d", testTable, i), schema, trx)
+		require.NoError(t, err)
+	}
 
 	exists, err := sut.TableExists(testTable, trx)
 	require.NoError(t, err)
@@ -121,43 +212,56 @@ func (ts *TablesTestSuite) TestTableExists() {
 	require.NoError(t, trx.Commit())
 }
 
-func (ts *TablesTestSuite) TestTableNotFound() {
+func (ts *TablesTestSuite) TestLayout_Ok() {
 	t := ts.T()
 
-	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
+	path := t.TempDir()
+
+	sut, trx, clean := ts.newSUT(t, path)
 	defer clean()
 
-	trx, err := trxMan.Transaction()
-	require.NoError(t, err)
+	schema := records.NewSchema()
+	schema.AddInt64Field("id")
+	schema.AddStringField("name", 25)
+	schema.AddInt8Field("age")
 
-	sut, err := metadata.NewTables(true, trx)
-	require.NoError(t, err)
-	assert.NotNil(t, sut)
+	for i := 0; i < 100; i++ {
+		err := sut.CreateTable(fmt.Sprintf("test_table_%d", i), schema, trx)
+		require.NoError(t, err)
+	}
+
+	for i := 0; i < 100; i++ {
+		layout, err := sut.Layout(fmt.Sprintf("test_table_%d", i), trx)
+		require.NoError(t, err)
+
+		assert.Equal(t, "[id: int64], [name: string(25)], [age: int8]", layout.Schema.String())
+		assert.EqualValues(t, 114, layout.SlotSize)
+	}
+}
+
+func (ts *TablesTestSuite) TestLayout_TableNotFound() {
+	t := ts.T()
+
+	sut, trx, clean := ts.newSUT(t, "")
+	defer clean()
 
 	testTable := "test_table"
 
-	_, err = sut.Layout(testTable, trx)
+	_, err := sut.Layout(testTable, trx)
 	require.ErrorIs(t, err, metadata.ErrTableNotFound)
 }
 
-func (ts *TablesTestSuite) TestSchemaNotFound() {
+func (ts *TablesTestSuite) TestLayout_TestSchemaNotFound() {
 	t := ts.T()
 
-	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
+	sut, trx, clean := ts.newSUT(t, "")
 	defer clean()
-
-	trx, err := trxMan.Transaction()
-	require.NoError(t, err)
-
-	sut, err := metadata.NewTables(true, trx)
-	require.NoError(t, err)
-	assert.NotNil(t, sut)
 
 	testTable := "test_table"
 
 	schema := records.NewSchema()
 
-	err = sut.CreateTable(testTable, schema, trx)
+	err := sut.CreateTable(testTable, schema, trx)
 	require.NoError(t, err)
 
 	_, err = sut.Layout(testTable, trx)

@@ -210,5 +210,5 @@ func (rp *RecordPage) searchAfter(slot types.SlotID, flag SlotFlag) (types.SlotI
 		slot++
 	}
 
-	return -1, ErrSlotNotFound
+	return StartSlotID, ErrSlotNotFound
 }
