@@ -22,7 +22,7 @@ func TestTableScanTestsuite(t *testing.T) {
 	suite.Run(t, new(TableScanTestSuite))
 }
 
-func (ts *TableScanTestSuite) newTableScan(testPath string) (*records.TableScan, *transaction.Transaction, *storage.Manager, func()) {
+func (ts *TableScanTestSuite) newSUT(testPath string) (*records.TableScan, *transaction.Transaction, *storage.Manager, func()) {
 	t := ts.T()
 
 	trxMan, fm := ts.newTRXManager(defaultLockTimeout, testPath)
@@ -42,16 +42,17 @@ func (ts *TableScanTestSuite) TestGetAndSetValues() {
 	t := ts.T()
 	testPath := t.TempDir()
 
-	wsut, wtx, fm, wsutClean := ts.newTableScan(testPath)
+	wsut, wtx, fm, wsutClean := ts.newSUT(testPath)
 	defer wsutClean()
 
-	const blocks = 5
+	const blocks = 100
 	cnt := (defaultTestBlockSize / wsut.Layout.SlotSize) * blocks
 
 	require.NoError(t, wsut.BeforeFirst())
 
 	// Заполняем странички
 	for i := 0; i < int(cnt); i++ {
+		require.NoErrorf(t, wsut.BeforeFirst(), "before first i == %d", i)
 		require.NoErrorf(t, wsut.Insert(), "write insert i == %d", i)
 
 		require.NoErrorf(t, wsut.SetInt64("id", int64(i+1)), "write int64 i == %d", i)
@@ -66,7 +67,7 @@ func (ts *TableScanTestSuite) TestGetAndSetValues() {
 	require.NoError(t, err)
 	assert.EqualValues(t, blocks, fLen)
 
-	rsut, rtx, fm, rsutClean := ts.newTableScan(testPath)
+	rsut, rtx, fm, rsutClean := ts.newSUT(testPath)
 	defer rsutClean()
 
 	require.NoError(t, rsut.BeforeFirst())
@@ -105,7 +106,7 @@ func (ts *TableScanTestSuite) TestGetAndSetValues() {
 func (ts *TableScanTestSuite) TestDelete() {
 	t := ts.T()
 
-	sut, tx, _, clean := ts.newTableScan("")
+	sut, tx, _, clean := ts.newSUT("")
 	defer clean()
 	defer func() {
 		_ = tx.Commit()
@@ -139,7 +140,7 @@ func (ts *TableScanTestSuite) TestDelete() {
 func (ts *TableScanTestSuite) TestRID() {
 	t := ts.T()
 
-	sut, tx, _, clean := ts.newTableScan("")
+	sut, tx, _, clean := ts.newSUT("")
 	defer clean()
 	defer func() {
 		_ = tx.Commit()
@@ -170,7 +171,7 @@ func (ts *TableScanTestSuite) TestGetAndSetConstants() {
 
 	mc := minimock.NewController(t)
 
-	sut, tx, _, clean := ts.newTableScan("")
+	sut, tx, _, clean := ts.newSUT("")
 	defer clean()
 	defer func() {
 		_ = tx.Commit()
@@ -220,7 +221,7 @@ func (ts *TableScanTestSuite) TestGetAndSetConstants() {
 func (ts *TableScanTestSuite) TestHasField() {
 	t := ts.T()
 
-	sut, tx, _, clean := ts.newTableScan("")
+	sut, tx, _, clean := ts.newSUT("")
 	defer clean()
 	defer func() {
 		_ = tx.Commit()
@@ -232,7 +233,7 @@ func (ts *TableScanTestSuite) TestHasField() {
 func (ts *TableScanTestSuite) TestForeEachField_Ok() {
 	t := ts.T()
 
-	sut, _, _, clean := ts.newTableScan("")
+	sut, _, _, clean := ts.newSUT("")
 	defer clean()
 
 	type fStruct struct {
@@ -264,7 +265,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Ok() {
 func (ts *TableScanTestSuite) TestForeEachField_Errors() {
 	t := ts.T()
 
-	sut, _, _, clean := ts.newTableScan("")
+	sut, _, _, clean := ts.newSUT("")
 	defer clean()
 
 	i := 0
@@ -292,7 +293,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Errors() {
 func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 	t := ts.T()
 
-	sut, tx, _, clean := ts.newTableScan("")
+	sut, tx, _, clean := ts.newSUT("")
 	defer clean()
 	defer func() {
 		_ = tx.Commit()
@@ -350,7 +351,7 @@ func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 func (ts *TableScanTestSuite) TestForEach_Stop() {
 	t := ts.T()
 
-	sut, tx, _, clean := ts.newTableScan("")
+	sut, tx, _, clean := ts.newSUT("")
 	defer clean()
 	defer func() {
 		_ = tx.Commit()
@@ -385,7 +386,7 @@ func (ts *TableScanTestSuite) TestForEach_Stop() {
 func (ts *TableScanTestSuite) TestForEachAndForEachValue_Errors() {
 	t := ts.T()
 
-	sut, tx, _, clean := ts.newTableScan("")
+	sut, tx, _, clean := ts.newSUT("")
 	defer clean()
 	defer func() {
 		_ = tx.Commit()

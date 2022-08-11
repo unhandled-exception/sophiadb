@@ -5,46 +5,44 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
 )
 
-const MaxNameLength = 32
-
 const (
-	defaultTcatTable = "sdb_tables"
-	defaultFcatTable = "sbb_tables_fields"
-)
+	MaxTableNameLength = 32
 
-const (
-	tcatTableNameField = "tblname"
-	tcatSlotsizeField  = "slotsize"
+	tableCatalogTableName  = "sdb_tables"
+	fieldsCatalogTableName = "sbb_tables_fields"
 
-	fcatTableNameField = "tblname"
-	fcatFieldNameField = "fldname"
-	fcatTypeField      = "type"
-	fcatLengthField    = "length"
-	fcatOffsetField    = "offset"
+	TcatTableNameField = "tblname"
+	TcatSlotsizeField  = "slotsize"
+
+	FcatTableNameField = "tblname"
+	FcatFieldNameField = "fldname"
+	FcatTypeField      = "type"
+	FcatLengthField    = "length"
+	FcatOffsetField    = "offset"
 )
 
 type Tables struct {
-	tcatTable string
-	fcatTable string
+	TcatTable string
+	FcatTable string
 
-	tcatLayout records.Layout
-	fcatLayout records.Layout
+	TcatLayout records.Layout
+	FcatLayout records.Layout
 }
 
 func NewTables(isNew bool, trx records.TSTRXInt) (*Tables, error) {
 	t := &Tables{
-		tcatTable:  defaultTcatTable,
-		fcatTable:  defaultFcatTable,
-		tcatLayout: newTcatLayout(),
-		fcatLayout: newFcatLayout(),
+		TcatTable:  tableCatalogTableName,
+		FcatTable:  fieldsCatalogTableName,
+		TcatLayout: newTablesCatalogLayout(),
+		FcatLayout: newFieldsCatalogLayout(),
 	}
 
 	if isNew {
-		if err := t.CreateTable(t.tcatTable, t.tcatLayout.Schema, trx); err != nil {
+		if err := t.CreateTable(t.TcatTable, t.TcatLayout.Schema, trx); err != nil {
 			return nil, err
 		}
 
-		if err := t.CreateTable(t.fcatTable, t.fcatLayout.Schema, trx); err != nil {
+		if err := t.CreateTable(t.FcatTable, t.FcatLayout.Schema, trx); err != nil {
 			return nil, err
 		}
 	}
@@ -52,21 +50,21 @@ func NewTables(isNew bool, trx records.TSTRXInt) (*Tables, error) {
 	return t, nil
 }
 
-func newTcatLayout() records.Layout {
+func newTablesCatalogLayout() records.Layout {
 	schema := records.NewSchema()
-	schema.AddStringField(tcatTableNameField, MaxNameLength)
-	schema.AddInt64Field(tcatSlotsizeField)
+	schema.AddStringField(TcatTableNameField, MaxTableNameLength)
+	schema.AddInt64Field(TcatSlotsizeField)
 
 	return records.NewLayout(schema)
 }
 
-func newFcatLayout() records.Layout {
+func newFieldsCatalogLayout() records.Layout {
 	schema := records.NewSchema()
-	schema.AddStringField(fcatTableNameField, MaxNameLength)
-	schema.AddStringField(fcatFieldNameField, MaxNameLength)
-	schema.AddInt8Field(fcatTypeField)
-	schema.AddInt64Field(fcatLengthField)
-	schema.AddInt64Field(fcatOffsetField)
+	schema.AddStringField(FcatTableNameField, MaxTableNameLength)
+	schema.AddStringField(FcatFieldNameField, MaxTableNameLength)
+	schema.AddInt8Field(FcatTypeField)
+	schema.AddInt64Field(FcatLengthField)
+	schema.AddInt64Field(FcatOffsetField)
 
 	return records.NewLayout(schema)
 }
@@ -80,7 +78,7 @@ func (t *Tables) TableExists(tableName string, trx records.TSTRXInt) (bool, erro
 	found := false
 
 	if err := tcat.ForEach(func() (bool, error) {
-		name, err := tcat.GetString(tcatTableNameField)
+		name, err := tcat.GetString(TcatTableNameField)
 		if err != nil {
 			return true, err
 		}
@@ -124,10 +122,10 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx record
 		var err error
 
 		switch name {
-		case tcatTableNameField:
-			err = tcat.SetString(tcatTableNameField, tableName)
-		case tcatSlotsizeField:
-			err = tcat.SetInt64(tcatSlotsizeField, int64(layout.SlotSize))
+		case TcatTableNameField:
+			err = tcat.SetString(TcatTableNameField, tableName)
+		case TcatSlotsizeField:
+			err = tcat.SetInt64(TcatSlotsizeField, int64(layout.SlotSize))
 		}
 
 		return false, err
@@ -144,16 +142,16 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx record
 			var err error
 
 			switch name {
-			case fcatTableNameField:
-				err = fcat.SetString(fcatTableNameField, tableName)
-			case fcatFieldNameField:
-				err = fcat.SetString(fcatFieldNameField, fieldName)
-			case fcatTypeField:
-				err = fcat.SetInt8(fcatTypeField, int8(schema.Type(fieldName)))
-			case fcatLengthField:
-				err = fcat.SetInt64(fcatLengthField, int64(schema.Length(fieldName)))
-			case fcatOffsetField:
-				err = fcat.SetInt64(fcatOffsetField, int64(layout.Offset(fieldName)))
+			case FcatTableNameField:
+				err = fcat.SetString(FcatTableNameField, tableName)
+			case FcatFieldNameField:
+				err = fcat.SetString(FcatFieldNameField, fieldName)
+			case FcatTypeField:
+				err = fcat.SetInt8(FcatTypeField, int8(schema.Type(fieldName)))
+			case FcatLengthField:
+				err = fcat.SetInt64(FcatLengthField, int64(schema.Length(fieldName)))
+			case FcatOffsetField:
+				err = fcat.SetInt64(FcatOffsetField, int64(layout.Offset(fieldName)))
 			}
 
 			if err != nil {
@@ -194,9 +192,9 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 			var ok bool
 
 			switch name {
-			case tcatTableNameField:
+			case TcatTableNameField:
 				tableInfo.Name, ok = value.(string)
-			case tcatSlotsizeField:
+			case TcatSlotsizeField:
 				tableInfo.SlotSize, ok = value.(int64)
 			}
 
@@ -239,15 +237,15 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 			var ok bool
 
 			switch name {
-			case fcatTableNameField:
+			case FcatTableNameField:
 				fieldInfo.TableName, ok = value.(string)
-			case fcatFieldNameField:
+			case FcatFieldNameField:
 				fieldInfo.FieldName, ok = value.(string)
-			case fcatTypeField:
+			case FcatTypeField:
 				fieldInfo.FieldType, ok = value.(int8)
-			case fcatLengthField:
+			case FcatLengthField:
 				fieldInfo.Length, ok = value.(int64)
-			case fcatOffsetField:
+			case FcatOffsetField:
 				fieldInfo.Offset, ok = value.(int64)
 			}
 
@@ -280,11 +278,11 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 }
 
 func (t *Tables) newTableCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
-	return records.NewTableScan(trx, t.tcatTable, t.tcatLayout)
+	return records.NewTableScan(trx, t.TcatTable, t.TcatLayout)
 }
 
 func (t *Tables) newFieldsCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
-	return records.NewTableScan(trx, t.fcatTable, t.fcatLayout)
+	return records.NewTableScan(trx, t.FcatTable, t.FcatLayout)
 }
 
 func (t *Tables) newCatalogTableScan(trx records.TSTRXInt) (*records.TableScan /* tcat */, *records.TableScan /* fcat */, error) {
