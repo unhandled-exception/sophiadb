@@ -24,13 +24,18 @@ func (ts *ViewsTestSuite) newSUT(t *testing.T) (*metadata.Views, *transaction.Tr
 	trxMan, clean := ts.newTRXManager(defaultLockTimeout, t.TempDir())
 	defer clean()
 
+	strx, err := trxMan.Transaction()
+	require.NoError(t, err)
+
+	tables, err := metadata.NewTables(true, strx)
+	require.NoError(t, err)
+
+	sut, err := metadata.NewViews(tables, true, strx)
+	require.NoError(t, err)
+
+	require.NoError(t, strx.Commit())
+
 	trx, err := trxMan.Transaction()
-	require.NoError(t, err)
-
-	tables, err := metadata.NewTables(true, trx)
-	require.NoError(t, err)
-
-	sut, err := metadata.NewViews(tables, true, trx)
 	require.NoError(t, err)
 
 	return sut, trx, func() {

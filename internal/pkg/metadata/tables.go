@@ -8,7 +8,7 @@ import (
 const (
 	MaxTableNameLength = 32
 
-	tableCatalogTableName  = "sdb_tables"
+	TableCatalogTableName  = "sdb_tables"
 	fieldsCatalogTableName = "sbb_tables_fields"
 
 	TcatTableNameField = "tblname"
@@ -31,7 +31,7 @@ type Tables struct {
 
 func NewTables(isNew bool, trx records.TSTRXInt) (*Tables, error) {
 	t := &Tables{
-		TcatTable:  tableCatalogTableName,
+		TcatTable:  TableCatalogTableName,
 		FcatTable:  fieldsCatalogTableName,
 		TcatLayout: newTablesCatalogLayout(),
 		FcatLayout: newFieldsCatalogLayout(),
@@ -70,7 +70,7 @@ func newFieldsCatalogLayout() records.Layout {
 }
 
 func (t *Tables) TableExists(tableName string, trx records.TSTRXInt) (bool, error) {
-	tcat, err := t.newTableCatalogTableScan(trx)
+	tcat, err := t.NewTableCatalogTableScan(trx)
 	if err != nil {
 		return false, t.wrapError(err, tableName, nil)
 	}
@@ -105,7 +105,7 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx record
 		}
 	}
 
-	tcat, fcat, err := t.newCatalogTableScan(trx)
+	tcat, fcat, err := t.NewCatalogTableScan(trx)
 	if err != nil {
 		return t.wrapError(err, tableName, ErrFailedToCreateTable)
 	}
@@ -173,7 +173,7 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 		Offsets: make(map[string]uint32, 16), //nolint:gomnd
 	}
 
-	tcat, fcat, err := t.newCatalogTableScan(trx)
+	tcat, fcat, err := t.NewCatalogTableScan(trx)
 	if err != nil {
 		return layout, t.wrapError(err, tableName, ErrFailedToCreateTable)
 	}
@@ -277,26 +277,46 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 	return layout, nil
 }
 
-func (t *Tables) newTableCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
+func (t *Tables) NewTableCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
 	return records.NewTableScan(trx, t.TcatTable, t.TcatLayout)
 }
 
-func (t *Tables) newFieldsCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
+func (t *Tables) NewFieldsCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
 	return records.NewTableScan(trx, t.FcatTable, t.FcatLayout)
 }
 
-func (t *Tables) newCatalogTableScan(trx records.TSTRXInt) (*records.TableScan /* tcat */, *records.TableScan /* fcat */, error) {
-	tcat, err := t.newTableCatalogTableScan(trx)
+func (t *Tables) NewCatalogTableScan(trx records.TSTRXInt) (*records.TableScan /* tcat */, *records.TableScan /* fcat */, error) {
+	tcat, err := t.NewTableCatalogTableScan(trx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	fcat, err := t.newFieldsCatalogTableScan(trx)
+	fcat, err := t.NewFieldsCatalogTableScan(trx)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return tcat, fcat, err
+}
+
+func (t *Tables) ForEachTables(trx records.TSTRXInt, call func(tableName string) (bool, error)) error {
+	ts, err := t.NewTableCatalogTableScan(trx)
+	if err != nil {
+		return err
+	}
+
+	defer ts.Close()
+
+	err = ts.ForEach(func() (bool, error) {
+		tableName, werr := ts.GetString(TcatTableNameField)
+		if werr != nil {
+			return true, t.wrapError(werr, t.TcatTable, nil)
+		}
+
+		return call(tableName)
+	})
+
+	return err
 }
 
 func (t *Tables) wrapError(err error, tableName string, baseError error) error {
