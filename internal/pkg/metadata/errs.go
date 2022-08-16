@@ -12,4 +12,7 @@ var (
 	ErrViewsMetadata = errors.New("views metadata error")
 	ErrViewNotFound  = errors.Wrap(ErrViewsMetadata, "view not found")
 	ErrViewExists    = errors.Wrap(ErrViewsMetadata, "view already exists")
+
+	ErrStatsMetadata          = errors.New("stats metadata error")
+	ErrsStatsUnknownFieldType = errors.Wrap(ErrStatsMetadata, "unknown field type")
 )

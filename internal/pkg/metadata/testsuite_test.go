@@ -14,7 +14,7 @@ import (
 const (
 	testWALFile               = "record_page_wal.dat"
 	defaultTestBlockSize      = 4000
-	defaultTestBuffersPoolLen = 100
+	defaultTestBuffersPoolLen = 1000
 	defaultLockTimeout        = 100 * time.Millisecond
 )
 

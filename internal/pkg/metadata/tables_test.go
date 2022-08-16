@@ -28,10 +28,15 @@ func (ts *TablesTestSuite) newSUT(t *testing.T, path string) (*metadata.Tables, 
 	trxMan, clean := ts.newTRXManager(defaultLockTimeout, path)
 	defer clean()
 
-	trx, err := trxMan.Transaction()
+	strx, err := trxMan.Transaction()
 	require.NoError(t, err)
 
-	sut, err := metadata.NewTables(true, trx)
+	sut, err := metadata.NewTables(true, strx)
+	require.NoError(t, err)
+
+	require.NoError(t, strx.Commit())
+
+	trx, err := trxMan.Transaction()
 	require.NoError(t, err)
 
 	return sut, trx, func() {
@@ -266,4 +271,32 @@ func (ts *TablesTestSuite) TestLayout_TestSchemaNotFound() {
 
 	_, err = sut.Layout(testTable, trx)
 	require.ErrorIs(t, err, metadata.ErrTableSchemaNotFound)
+}
+
+func (ts *TablesTestSuite) TestForEachTables() {
+	t := ts.T()
+
+	const testTable = "test_table"
+
+	schema := records.NewSchema()
+	schema.AddInt64Field("id")
+	schema.AddStringField("name", 25)
+	schema.AddInt8Field("age")
+
+	sut, trx, clean := ts.newSUT(t, "")
+	defer clean()
+
+	err := sut.CreateTable(testTable, schema, trx)
+	require.NoError(t, err)
+
+	tables := []string{}
+
+	err = sut.ForEachTables(trx, func(tableName string) (bool, error) {
+		tables = append(tables, tableName)
+
+		return false, nil
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"sdb_tables", "sbb_tables_fields", "test_table"}, tables)
 }
