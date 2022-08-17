@@ -64,3 +64,4 @@ linters-settings:
       - Sqlmock
       - Constant
       - LogRecord
+      - Index

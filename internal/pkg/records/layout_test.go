@@ -29,4 +29,6 @@ func (ts *LayoutTestSuite) TestCreateLayout() {
 
 	assert.EqualValues(t, 1+8+(128*4+4)+(64*4+4)+8, sut.SlotSize)
 	assert.EqualValues(t, 1+8+(128*4+4), sut.Offset("job"))
+
+	assert.Equal(t, "schema: [id: int64], [username: string(128)], [job: string(64)], [age: int64], slot size: 793", sut.String())
 }

@@ -4,49 +4,12 @@ import (
 	"encoding/binary"
 	"sync"
 
-	"github.com/axiomhq/hyperloglog"
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
 const RefreshStatCalls = 100
-
-type StatInfo struct {
-	Blocks  int
-	Records int
-
-	distinctValues map[string]*hyperloglog.Sketch
-}
-
-func NewStatInfo(schema records.Schema) StatInfo {
-	si := StatInfo{
-		distinctValues: make(map[string]*hyperloglog.Sketch, schema.Count()),
-	}
-
-	for _, f := range schema.Fields() {
-		si.distinctValues[f] = hyperloglog.New()
-	}
-
-	return si
-}
-
-func (si StatInfo) DistinctValues(fieldName string) (int64, bool) {
-	dc, ok := si.distinctValues[fieldName]
-
-	if !ok {
-		return 0, false
-	}
-
-	return int64(dc.Estimate()), true
-}
-
-func (si *StatInfo) UpdateDistincValues(fieldName string, value []byte) {
-	dc, ok := si.distinctValues[fieldName]
-	if ok {
-		dc.Insert(value)
-	}
-}
 
 type Stats struct {
 	tables      *Tables
@@ -149,7 +112,7 @@ func (s *Stats) calcTableStat(tableName string, trx records.TSTRXInt) (StatInfo,
 
 	err = ts.ForEach(func() (bool, error) {
 		si.Records++
-		si.Blocks = int(ts.RID().BlockNumber) + 1
+		si.Blocks = int64(ts.RID().BlockNumber) + 1
 
 		return false, ts.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
 			var (

@@ -49,7 +49,7 @@ func (ts *TableScan) Close() {
 	}
 }
 
-func (ts *TableScan) ForEach(call func() (stop bool, err error)) error {
+func (ts *TableScan) ForEach(call func() (bool, error)) error {
 	if err := ts.BeforeFirst(); err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (ts *TableScan) ForEach(call func() (stop bool, err error)) error {
 	return nil
 }
 
-func (ts *TableScan) ForEachField(call func(name string, fieldType FieldType) (stop bool, err error)) error {
+func (ts *TableScan) ForEachField(call func(name string, fieldType FieldType) (bool, error)) error {
 	for _, name := range ts.Layout.Schema.fields {
 		fieldType := ts.Layout.Schema.Type(name)
 
@@ -94,7 +94,7 @@ func (ts *TableScan) ForEachField(call func(name string, fieldType FieldType) (s
 	return nil
 }
 
-func (ts *TableScan) ForEachValue(call func(name string, fieldType FieldType, value interface{}) (stop bool, err error)) error {
+func (ts *TableScan) ForEachValue(call func(name string, fieldType FieldType, value interface{}) (bool, error)) error {
 	for _, name := range ts.Layout.Schema.fields {
 		fieldType := ts.Layout.Schema.Type(name)
 

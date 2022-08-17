@@ -181,7 +181,7 @@ func (ts *StatsTestSuite) TestRecalcStatisticsIfTableStatsNotFound() {
 	si, err := sut.GetStatInfo(testStatTable, layout, trx)
 	require.NoError(t, err)
 
-	assert.Equal(t, 100, si.Records)
+	assert.EqualValues(t, 100, si.Records)
 }
 
 func (ts *StatsTestSuite) TestStatForUnexistantTable() {
