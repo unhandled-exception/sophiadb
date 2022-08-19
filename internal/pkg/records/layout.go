@@ -1,6 +1,10 @@
 package records
 
-import "github.com/unhandled-exception/sophiadb/internal/pkg/types"
+import (
+	"fmt"
+
+	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
+)
 
 type Layout struct {
 	Schema   Schema
@@ -25,6 +29,14 @@ func NewLayout(schema Schema) Layout {
 	l.SlotSize = size
 
 	return l
+}
+
+func (l Layout) String() string {
+	return fmt.Sprintf(
+		"schema: %s, slot size: %d",
+		l.Schema,
+		l.SlotSize,
+	)
 }
 
 func (l Layout) Offset(name string) uint32 {

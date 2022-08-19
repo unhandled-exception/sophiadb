@@ -3,16 +3,19 @@ package metadata
 import "github.com/pkg/errors"
 
 var (
-	ErrTablesMetadata      = errors.New("tables metadata error")
-	ErrFailedToCreateTable = errors.New("failed to create table")
-	ErrTableNotFound       = errors.Wrap(ErrTablesMetadata, "table not found")
-	ErrTableExists         = errors.Wrap(ErrTablesMetadata, "table already exists")
-	ErrTableSchemaNotFound = errors.Wrap(ErrTablesMetadata, "table schema not found")
-
-	ErrViewsMetadata = errors.New("views metadata error")
-	ErrViewNotFound  = errors.Wrap(ErrViewsMetadata, "view not found")
-	ErrViewExists    = errors.Wrap(ErrViewsMetadata, "view already exists")
-
-	ErrStatsMetadata          = errors.New("stats metadata error")
+	ErrMetadata               = errors.New("metadata error")
+	ErrTablesMetadata         = errors.Wrap(ErrMetadata, "tables error")
+	ErrFailedToCreateTable    = errors.Wrap(ErrMetadata, "failed to create table")
+	ErrTableNotFound          = errors.Wrap(ErrTablesMetadata, "table not found")
+	ErrTableExists            = errors.Wrap(ErrTablesMetadata, "table already exists")
+	ErrTableSchemaNotFound    = errors.Wrap(ErrTablesMetadata, "table schema not found")
+	ErrViewsMetadata          = errors.Wrap(ErrMetadata, "views error")
+	ErrViewNotFound           = errors.Wrap(ErrViewsMetadata, "view not found")
+	ErrViewExists             = errors.Wrap(ErrViewsMetadata, "view already exists")
+	ErrStatsMetadata          = errors.Wrap(ErrMetadata, "stats error")
 	ErrsStatsUnknownFieldType = errors.Wrap(ErrStatsMetadata, "unknown field type")
+	ErrIndexesMetadata        = errors.Wrap(ErrMetadata, "indexes error")
+	ErrUnknownIndexType       = errors.Wrap(ErrIndexesMetadata, "unknown index type")
+	ErrIndexExists            = errors.Wrap(ErrIndexesMetadata, "index already exists")
+	ErrFieldIndexed           = errors.Wrap(ErrIndexesMetadata, "field already indexed")
 )

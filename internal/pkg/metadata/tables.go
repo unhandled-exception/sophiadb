@@ -39,11 +39,11 @@ func NewTables(isNew bool, trx records.TSTRXInt) (*Tables, error) {
 
 	if isNew {
 		if err := t.CreateTable(t.TcatTable, t.TcatLayout.Schema, trx); err != nil {
-			return nil, err
+			return nil, t.wrapError(err, "", nil)
 		}
 
 		if err := t.CreateTable(t.FcatTable, t.FcatLayout.Schema, trx); err != nil {
-			return nil, err
+			return nil, t.wrapError(err, "", nil)
 		}
 	}
 
@@ -77,20 +77,18 @@ func (t *Tables) TableExists(tableName string, trx records.TSTRXInt) (bool, erro
 
 	found := false
 
-	if err := tcat.ForEach(func() (bool, error) {
-		name, err := tcat.GetString(TcatTableNameField)
-		if err != nil {
-			return true, err
+	err = tcat.ForEach(func() (bool, error) {
+		name, verr := tcat.GetString(TcatTableNameField)
+		if verr != nil {
+			return true, verr
 		}
 
 		found = (name == tableName)
 
 		return found, nil
-	}); err != nil {
-		return false, t.wrapError(err, tableName, nil)
-	}
+	})
 
-	return found, nil
+	return found, t.wrapError(err, tableName, nil)
 }
 
 func (t *Tables) CreateTable(tableName string, schema records.Schema, trx records.TSTRXInt) error {
@@ -152,10 +150,6 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx record
 				err = fcat.SetInt64(FcatLengthField, int64(schema.Length(fieldName)))
 			case FcatOffsetField:
 				err = fcat.SetInt64(FcatOffsetField, int64(layout.Offset(fieldName)))
-			}
-
-			if err != nil {
-				return true, err
 			}
 
 			return false, err
@@ -320,6 +314,14 @@ func (t *Tables) ForEachTables(trx records.TSTRXInt, call func(tableName string)
 }
 
 func (t *Tables) wrapError(err error, tableName string, baseError error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, ErrTablesMetadata) {
+		return err
+	}
+
 	if baseError == nil {
 		baseError = ErrTablesMetadata
 	}
