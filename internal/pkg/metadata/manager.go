@@ -51,6 +51,10 @@ func (m *Manager) Layout(tableName string, trx records.TSTRXInt) (records.Layout
 	return m.tables.Layout(tableName, trx)
 }
 
+func (m *Manager) ForEachTables(trx records.TSTRXInt, call func(tableName string) (bool, error)) error {
+	return m.tables.ForEachTables(trx, call)
+}
+
 func (m *Manager) CreateView(viewName string, viewDef string, trx records.TSTRXInt) error {
 	return m.views.CreateView(viewName, viewDef, trx)
 }

@@ -14,9 +14,9 @@ import (
 
 const (
 	// TempFilesPrefix — префикс для временных файлов
-	TempFilesPrefix = "temp"
+	TempFilesPrefix = "temp_"
 
-	defaultFilePermissions = 0o600
+	defaultFilePermissions = 0o700
 	syncedFilePermissions  = 0o755
 )
 
@@ -26,6 +26,8 @@ type OpenFilesMap map[string]*os.File
 type Manager struct {
 	mu sync.Mutex
 
+	IsNew bool
+
 	path      string
 	blockSize uint32
 	openFiles OpenFilesMap
@@ -33,21 +35,22 @@ type Manager struct {
 
 // NewFileManager создает новый объект FileManager
 func NewFileManager(path string, blockSize uint32) (*Manager, error) {
-	var err error
-
 	fm := &Manager{
 		path:      path,
 		blockSize: blockSize,
 		openFiles: make(OpenFilesMap),
+		IsNew:     true,
 	}
 
-	err = os.MkdirAll(path, defaultFilePermissions)
-	if err != nil {
+	if lstat, err := os.Lstat(path); err == nil && lstat.IsDir() {
+		fm.IsNew = false
+	}
+
+	if err := os.MkdirAll(path, defaultFilePermissions); err != nil {
 		return nil, errors.WithMessagef(ErrFileManagerIO, "cannot create data dir \"%s\": %v", path, err)
 	}
 
-	err = fm.cleanTemporaryFiles()
-	if err != nil {
+	if err := fm.cleanTemporaryFiles(); err != nil {
 		return nil, err
 	}
 

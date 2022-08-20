@@ -65,7 +65,7 @@ func (ts *BuffersManagerTestSuite) createBuffersManager(pLen int, opts ...buffer
 func (ts *BuffersManagerTestSuite) TestWaitToPinBuffer() {
 	t := ts.T()
 
-	sut, path := ts.createBuffersManager(1, buffers.WithMaxPinLockTime(100*time.Millisecond))
+	sut, path := ts.createBuffersManager(1, buffers.WithPinLockTimeout(100*time.Millisecond))
 	defer sut.StorageManager().Close()
 
 	testutil.CreateFile(ts, filepath.Join(path, testFile), make([]byte, 10*400))

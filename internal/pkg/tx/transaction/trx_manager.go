@@ -12,7 +12,7 @@ type TRXManager struct {
 	bm buffersManager
 	lm logManager
 
-	lockTimeout time.Duration
+	LockTimeout time.Duration
 	lockTable   concurrency.Lockers
 	trxGen      *TRXGenerator
 }
@@ -32,7 +32,7 @@ func NewTRXManager(fm storageManager, bm buffersManager, lm logManager, opts ...
 	}
 
 	m.lockTable = concurrency.NewLockTable(
-		concurrency.WithLockWaitTimeout(m.lockTimeout),
+		concurrency.WithLockWaitTimeout(m.LockTimeout),
 	)
 
 	return m
@@ -40,7 +40,7 @@ func NewTRXManager(fm storageManager, bm buffersManager, lm logManager, opts ...
 
 func WithLockTimeout(timoout time.Duration) trxManagerOpt {
 	return func(m *TRXManager) {
-		m.lockTimeout = timoout
+		m.LockTimeout = timoout
 	}
 }
 

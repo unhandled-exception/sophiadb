@@ -12,21 +12,21 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
-var defaultMaxPinTime time.Duration = 10 * time.Second
+var defaultMaxPinTimeout time.Duration = 10 * time.Second
 
 // Manager менеджер буферов в памяти
 type Manager struct {
 	mu sync.Mutex
 
-	pinLock *utils.Cond
+	Len            int
+	PinLockTimeout time.Duration
 
 	fm *storage.Manager
 	lm *wal.Manager
 
-	pool           *BuffersPool
-	len            int
-	available      int
-	maxPinLockTime time.Duration
+	pinLock   *utils.Cond
+	pool      *BuffersPool
+	available int
 }
 
 type ManagerOpt func(*Manager)
@@ -36,9 +36,9 @@ func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int, opts ...ManagerO
 	bm := &Manager{
 		fm:             fm,
 		lm:             lm,
-		len:            pLen,
+		Len:            pLen,
 		available:      pLen,
-		maxPinLockTime: defaultMaxPinTime,
+		PinLockTimeout: defaultMaxPinTimeout,
 		pinLock:        utils.NewCond(&sync.Mutex{}),
 	}
 
@@ -51,9 +51,9 @@ func NewManager(fm *storage.Manager, lm *wal.Manager, pLen int, opts ...ManagerO
 	return bm
 }
 
-func WithMaxPinLockTime(timeout time.Duration) ManagerOpt {
+func WithPinLockTimeout(pinLockTimeout time.Duration) ManagerOpt {
 	return func(m *Manager) {
-		m.maxPinLockTime = timeout
+		m.PinLockTimeout = pinLockTimeout
 	}
 }
 
@@ -68,7 +68,7 @@ func (bm *Manager) newBuffer() *Buffer {
 
 // SetMaxPinLockTime Задает максимальное время ожидания освобождения буферов
 func (bm *Manager) SetMaxPinLockTime(t time.Duration) {
-	bm.maxPinLockTime = t
+	bm.PinLockTimeout = t
 }
 
 // Available возвращает число доступных буферов
@@ -105,10 +105,10 @@ func (bm *Manager) Pin(block types.Block) (*Buffer, error) {
 		bm.pinLock.L.Lock()
 		defer bm.pinLock.L.Unlock()
 
-		deadline := time.Now().Add(bm.maxPinLockTime)
+		deadline := time.Now().Add(bm.PinLockTimeout)
 
 		for buf == nil && time.Now().Before(deadline) {
-			bm.pinLock.WaitWithTimeout(bm.maxPinLockTime)
+			bm.pinLock.WaitWithTimeout(bm.PinLockTimeout)
 
 			buf, err = bm.tryToPin(block)
 			if err != nil && !errors.Is(err, ErrNoAvailableBuffers) {

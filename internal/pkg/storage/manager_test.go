@@ -49,6 +49,22 @@ func (ts *FileManagerTestSuite) TestCreateFileManager() {
 	ts.Require().NotNil(fm)
 	ts.Equal(uint32(400), fm.BlockSize())
 	ts.Equal(path, fm.Path())
+	ts.True(fm.IsNew)
+}
+
+func (ts *FileManagerTestSuite) TestCreateFileManagerOnExistsFolder() {
+	path := filepath.Join(
+		testutil.CreateTestTemporaryDir(ts),
+		"data",
+	)
+	_, err := storage.NewFileManager(path, 400)
+	ts.Require().NoError(err)
+
+	ts.Require().DirExists(path)
+	sut, err := storage.NewFileManager(path, 400)
+	ts.Require().NoError(err)
+
+	ts.False(sut.IsNew)
 }
 
 func (ts *FileManagerTestSuite) TestRemoveTemporaryFiles() {
