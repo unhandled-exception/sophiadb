@@ -18,3 +18,5 @@
 .idea/
 /bin
 .vscode/
+
+/sdb_data/

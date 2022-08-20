@@ -4,7 +4,7 @@ github.com/axiomhq/hyperloglog
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc
+# github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140
 ## explicit
 github.com/dgryski/go-metro
 # github.com/gojuno/minimock/v3 v3.0.10
