@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/unhandled-exception/sophiadb/pkg/db"
 )
 
 const (
@@ -14,6 +16,16 @@ const (
 func main() {
 	logger := newLogger()
 	logger.Printf("Server %s starting", version())
+
+	db, err := db.NewDatabase("./sdb_data")
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	err = db.Close()
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	logger.Print("Server finished")
 }

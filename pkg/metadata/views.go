@@ -25,7 +25,7 @@ type Views struct {
 func NewViews(tables TablesManager, isNew bool, trx records.TSTRXInt) (*Views, error) {
 	v := &Views{
 		VcatTableName: viewsCatalogTableName,
-		VcatLayout:    newViewsCatalogSchema(),
+		VcatLayout:    newViewsCatalogLayout(),
 
 		tables: tables,
 	}
@@ -39,7 +39,7 @@ func NewViews(tables TablesManager, isNew bool, trx records.TSTRXInt) (*Views, e
 	return v, nil
 }
 
-func newViewsCatalogSchema() records.Layout {
+func newViewsCatalogLayout() records.Layout {
 	schema := records.NewSchema()
 	schema.AddStringField(VcatViewNameField, MaxViewNameLength)
 	schema.AddStringField(VcatViewDefField, MaxViewsDefLength)
