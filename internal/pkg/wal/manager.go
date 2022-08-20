@@ -17,8 +17,9 @@ const (
 type Manager struct {
 	m sync.Mutex
 
+	LogFileName string
+
 	fm           *storage.Manager
-	logFileName  string
 	logPage      *types.Page
 	currentBlock types.Block
 	latestLSN    types.LSN
@@ -29,7 +30,7 @@ type Manager struct {
 func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 	lm := &Manager{
 		fm:          fm,
-		logFileName: logFileName,
+		LogFileName: logFileName,
 		logPage:     types.NewPage(fm.BlockSize()),
 	}
 
@@ -44,7 +45,7 @@ func NewManager(fm *storage.Manager, logFileName string) (*Manager, error) {
 			return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())
 		}
 	} else {
-		lm.currentBlock = types.Block{Filename: lm.logFileName, Number: logSize - 1}
+		lm.currentBlock = types.Block{Filename: lm.LogFileName, Number: logSize - 1}
 		err = lm.fm.Read(lm.currentBlock, lm.logPage)
 		if err != nil {
 			return nil, errors.WithMessage(ErrFailedToCreateNewManager, err.Error())
@@ -137,7 +138,7 @@ func (lm *Manager) Append(logRec []byte) (types.LSN, error) {
 
 // appendNewBlock добавляет новый блок в журнал
 func (lm *Manager) appendNewBlock() (types.Block, error) {
-	blk, err := lm.fm.Append(lm.logFileName)
+	blk, err := lm.fm.Append(lm.LogFileName)
 	if err != nil {
 		return blk, err
 	}

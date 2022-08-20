@@ -1,6 +1,7 @@
 package metadata_test
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -73,6 +74,23 @@ func (ts *MetadataManagerTestSute) TestTablesMetadata() {
 	require.NoError(t, err)
 
 	assert.Equal(t, "schema: [id: int64], [name: string(25)], [age: int8], slot size: 114", layout.String())
+
+	tables := []string{}
+
+	require.NoError(t, sut.ForEachTables(trx, func(tableName string) (bool, error) {
+		tables = append(tables, tableName)
+
+		return false, nil
+	}))
+
+	sort.Strings(tables)
+	assert.Equal(t, []string{
+		"sbb_tables_fields",
+		"sdb_indexes",
+		"sdb_tables",
+		"sdb_views",
+		"test_table_1",
+	}, tables)
 }
 
 func (ts *MetadataManagerTestSute) TestViewsMetadata() {
