@@ -22,8 +22,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	err = db.Close()
-	if err != nil {
+	if err := db.Close(); err != nil {
 		logger.Fatal(err)
 	}
 
