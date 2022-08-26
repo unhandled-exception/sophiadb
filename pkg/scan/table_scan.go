@@ -11,7 +11,7 @@ const tableSuffix = ".tbl"
 type TableScan struct {
 	trx      TRXInt
 	Filename string
-	Layout   records.Layout
+	layout   records.Layout
 
 	rp          *records.RecordPage
 	currentSlot types.SlotID
@@ -23,7 +23,7 @@ func NewTableScan(trx TRXInt, filename string, layout records.Layout) (*TableSca
 	ts := &TableScan{
 		trx:      trx,
 		Filename: filename,
-		Layout:   layout,
+		layout:   layout,
 	}
 
 	size, err := trx.Size(filename)
@@ -44,6 +44,10 @@ func NewTableScan(trx TRXInt, filename string, layout records.Layout) (*TableSca
 	return ts, nil
 }
 
+func (ts *TableScan) Layout() records.Layout {
+	return ts.layout
+}
+
 func (ts *TableScan) Close() {
 	if ts.rp != nil {
 		ts.trx.Unpin(ts.rp.Block)
@@ -51,85 +55,15 @@ func (ts *TableScan) Close() {
 }
 
 func (ts *TableScan) ForEach(call func() (bool, error)) error {
-	if err := ts.BeforeFirst(); err != nil {
-		return err
-	}
-
-	for {
-		ok, err := ts.Next()
-		if !ok {
-			if err != nil {
-				return err
-			}
-
-			break
-		}
-
-		stop, err := call()
-		if err != nil {
-			return err
-		}
-
-		if stop {
-			break
-		}
-	}
-
-	return nil
+	return scanForEach(ts, call)
 }
 
 func (ts *TableScan) ForEachField(call func(name string, fieldType records.FieldType) (bool, error)) error {
-	for _, name := range ts.Layout.Schema.Fields() {
-		fieldType := ts.Layout.Schema.Type(name)
-
-		stop, err := call(name, fieldType)
-		if err != nil {
-			return err
-		}
-
-		if stop {
-			break
-		}
-	}
-
-	return nil
+	return scanForEachField(ts, call)
 }
 
 func (ts *TableScan) ForEachValue(call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error {
-	for _, name := range ts.Layout.Schema.Fields() {
-		fieldType := ts.Layout.Schema.Type(name)
-
-		var (
-			value interface{}
-			err   error
-		)
-
-		switch fieldType {
-		case records.Int64Field:
-			value, err = ts.GetInt64(name)
-		case records.Int8Field:
-			value, err = ts.GetInt8(name)
-		case records.StringField:
-			value, err = ts.GetString(name)
-		default:
-			err = ErrUnknownFieldType
-		}
-
-		if err != nil {
-			return err
-		}
-
-		stop, err := call(name, fieldType, value)
-		if err != nil {
-			return err
-		}
-
-		if stop {
-			break
-		}
-	}
-
-	return nil
+	return scanForEachValue(ts, call)
 }
 
 func (ts *TableScan) BeforeFirst() error {
@@ -197,7 +131,7 @@ func (ts *TableScan) GetString(fieldName string) (string, error) {
 }
 
 func (ts *TableScan) GetVal(fieldName string) (Constant, error) {
-	switch t := ts.Layout.Schema.Type(fieldName); t {
+	switch t := ts.Layout().Schema.Type(fieldName); t {
 	case records.Int64Field:
 		val, err := ts.GetInt64(fieldName)
 		if err != nil {
@@ -225,7 +159,7 @@ func (ts *TableScan) GetVal(fieldName string) (Constant, error) {
 }
 
 func (ts *TableScan) HasField(fieldName string) bool {
-	return ts.Layout.Schema.HasField(fieldName)
+	return ts.Layout().Schema.HasField(fieldName)
 }
 
 func (ts *TableScan) SetInt64(fieldName string, value int64) error {
@@ -253,7 +187,7 @@ func (ts *TableScan) SetString(fieldName string, value string) error {
 }
 
 func (ts *TableScan) SetVal(fieldName string, value Constant) error {
-	switch t := ts.Layout.Schema.Type(fieldName); t {
+	switch t := ts.Layout().Schema.Type(fieldName); t {
 	case records.Int64Field:
 		v, ok := value.Value().(int64)
 		if !ok {
@@ -340,7 +274,7 @@ func (ts *TableScan) MoveToRID(rid types.RID) error {
 		Number:   rid.BlockNumber,
 	}
 
-	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout)
+	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout())
 	if err != nil {
 		return errors.WithMessage(ErrTableScan, err.Error())
 	}
@@ -370,7 +304,7 @@ func (ts *TableScan) moveToBlock(blockNumber types.BlockID) error {
 		Number:   blockNumber,
 	}
 
-	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout)
+	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout())
 	if err != nil {
 		return errors.WithMessage(ErrTableScan, err.Error())
 	}
@@ -389,7 +323,7 @@ func (ts *TableScan) moveToNewBlock() error {
 		return errors.WithMessage(ErrTableScan, err.Error())
 	}
 
-	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout)
+	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout())
 	if err != nil {
 		return errors.WithMessage(ErrTableScan, err.Error())
 	}

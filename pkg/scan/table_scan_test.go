@@ -15,6 +15,12 @@ import (
 	"github.com/unhandled-exception/sophiadb/pkg/types"
 )
 
+var (
+	_ scan.Scan          = &scan.TableScan{}
+	_ scan.ScanIterators = &scan.TableScan{}
+	_ scan.UpdateScan    = &scan.TableScan{}
+)
+
 type TableScanTestSuite struct {
 	Suite
 }
@@ -47,7 +53,7 @@ func (ts *TableScanTestSuite) TestGetAndSetValues() {
 	defer wsutClean()
 
 	const blocks = 100
-	cnt := (defaultTestBlockSize / wsut.Layout.SlotSize) * blocks
+	cnt := (defaultTestBlockSize / wsut.Layout().SlotSize) * blocks
 
 	require.NoError(t, wsut.BeforeFirst())
 
@@ -114,7 +120,7 @@ func (ts *TableScanTestSuite) TestDelete() {
 	}()
 
 	const blocks = 2
-	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+	cnt := (defaultTestBlockSize / sut.Layout().SlotSize) * blocks
 
 	for i := 0; i < int(cnt); i++ {
 		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
@@ -148,7 +154,7 @@ func (ts *TableScanTestSuite) TestRID() {
 	}()
 
 	const blocks = 2
-	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+	cnt := (defaultTestBlockSize / sut.Layout().SlotSize) * blocks
 
 	for i := 0; i < int(cnt); i++ {
 		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
@@ -179,7 +185,7 @@ func (ts *TableScanTestSuite) TestGetAndSetConstants() {
 	}()
 
 	const blocks = 4
-	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+	cnt := (defaultTestBlockSize / sut.Layout().SlotSize) * blocks
 
 	for i := 0; i < int(cnt); i++ {
 		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
@@ -242,7 +248,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Ok() {
 		Type records.FieldType
 	}
 
-	fields := make([]fStruct, 0, sut.Layout.Schema.Count())
+	fields := make([]fStruct, 0, sut.Layout().Schema.Count())
 
 	require.NoError(t, sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
 		fields = append(fields, fStruct{
@@ -301,7 +307,7 @@ func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 	}()
 
 	const blocks = 2
-	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+	cnt := (defaultTestBlockSize / sut.Layout().SlotSize) * blocks
 
 	for i := 0; i < int(cnt); i++ {
 		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
@@ -359,7 +365,7 @@ func (ts *TableScanTestSuite) TestForEach_Stop() {
 	}()
 
 	const blocks = 2
-	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+	cnt := (defaultTestBlockSize / sut.Layout().SlotSize) * blocks
 
 	for i := 0; i < int(cnt); i++ {
 		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
@@ -394,7 +400,7 @@ func (ts *TableScanTestSuite) TestForEachAndForEachValue_Errors() {
 	}()
 
 	const blocks = 2
-	cnt := (defaultTestBlockSize / sut.Layout.SlotSize) * blocks
+	cnt := (defaultTestBlockSize / sut.Layout().SlotSize) * blocks
 
 	for i := 0; i < int(cnt); i++ {
 		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)

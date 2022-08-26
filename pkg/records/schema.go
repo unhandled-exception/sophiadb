@@ -65,7 +65,7 @@ func (s Schema) Field(name string) (FieldInfo, bool) {
 	return field, ok
 }
 
-func (s *Schema) Type(name string) FieldType {
+func (s Schema) Type(name string) FieldType {
 	var fieldType FieldType
 
 	field, ok := s.info[name]

@@ -1,6 +1,9 @@
 package scan
 
-import "github.com/unhandled-exception/sophiadb/pkg/types"
+import (
+	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/types"
+)
 
 type TRXInt interface {
 	Append(filename string) (types.Block, error)
@@ -14,4 +17,37 @@ type TRXInt interface {
 	SetInt64(block types.Block, offset uint32, value int64, okToLog bool) error
 	SetInt8(block types.Block, offset uint32, value int8, okToLog bool) error
 	Size(filename string) (types.BlockID, error)
+}
+
+type Scan interface {
+	Layout() records.Layout
+	Close()
+	BeforeFirst() error
+	Next() (bool, error)
+
+	HasField(fieldName string) bool
+	GetInt64(fieldName string) (int64, error)
+	GetInt8(fieldName string) (int8, error)
+	GetString(fieldName string) (string, error)
+	GetVal(fieldName string) (Constant, error)
+}
+
+type ScanIterators interface {
+	ForEach(call func() (bool, error)) error
+	ForEachField(call func(name string, fieldType records.FieldType) (bool, error)) error
+	ForEachValue(call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error
+}
+
+type UpdateScan interface {
+	Scan
+
+	SetInt64(fieldName string, value int64) error
+	SetInt8(fieldName string, value int8) error
+	SetString(fieldName string, value string) error
+	SetVal(fieldName string, value Constant) error
+
+	Insert() error
+	Delete() error
+	RID() types.RID
+	MoveToRID(rid types.RID) error
 }
