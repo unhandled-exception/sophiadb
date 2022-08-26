@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 	"github.com/unhandled-exception/sophiadb/pkg/types"
 )
 
@@ -20,7 +21,7 @@ type Stats struct {
 	calcMu sync.Mutex
 }
 
-func NewStats(tables *Tables, trx records.TSTRXInt) (*Stats, error) {
+func NewStats(tables *Tables, trx scan.TRXInt) (*Stats, error) {
 	s := &Stats{
 		tables:      tables,
 		stats:       map[string]StatInfo{},
@@ -43,7 +44,7 @@ func (s *Stats) HasStatInfo(tableName string) bool {
 	return ok
 }
 
-func (s *Stats) GetStatInfo(tableName string, layout records.Layout, trx records.TSTRXInt) (StatInfo, error) {
+func (s *Stats) GetStatInfo(tableName string, layout records.Layout, trx scan.TRXInt) (StatInfo, error) {
 	s.readMu.RLock()
 	si, ok := s.stats[tableName]
 	fetchCount := s.fetchCounts[tableName]
@@ -70,7 +71,7 @@ func (s *Stats) GetStatInfo(tableName string, layout records.Layout, trx records
 	return si, nil
 }
 
-func (s *Stats) refreshAllTablesStats(trx records.TSTRXInt) error {
+func (s *Stats) refreshAllTablesStats(trx scan.TRXInt) error {
 	err := s.tables.ForEachTables(trx, func(tableName string) (bool, error) {
 		si, err := s.calcTableStat(tableName, trx)
 		if err != nil {
@@ -88,7 +89,7 @@ func (s *Stats) refreshAllTablesStats(trx records.TSTRXInt) error {
 	return err
 }
 
-func (s *Stats) calcTableStat(tableName string, trx records.TSTRXInt) (StatInfo, error) {
+func (s *Stats) calcTableStat(tableName string, trx scan.TRXInt) (StatInfo, error) {
 	s.calcMu.Lock()
 	defer s.calcMu.Unlock()
 
@@ -103,7 +104,7 @@ func (s *Stats) calcTableStat(tableName string, trx records.TSTRXInt) (StatInfo,
 
 	si := NewStatInfo(layout.Schema)
 
-	ts, err := records.NewTableScan(trx, tableName, layout)
+	ts, err := scan.NewTableScan(trx, tableName, layout)
 	if err != nil {
 		return StatInfo{}, s.wrapError(err, tableName, nil)
 	}

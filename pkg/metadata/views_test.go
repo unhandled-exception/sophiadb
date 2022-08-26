@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/pkg/metadata"
-	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
 )
 
@@ -57,7 +57,7 @@ func (ts *ViewsTestSuite) TestCreateView_Ok() {
 		))
 	}
 
-	recs, err := records.NewTableScan(trx, sut.VcatTableName, sut.VcatLayout)
+	recs, err := scan.NewTableScan(trx, sut.VcatTableName, sut.VcatLayout)
 	require.NoError(t, err)
 
 	i := 0

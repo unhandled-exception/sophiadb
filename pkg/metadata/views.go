@@ -3,6 +3,7 @@ package metadata
 import (
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
 const (
@@ -22,7 +23,7 @@ type Views struct {
 	tables TablesManager
 }
 
-func NewViews(tables TablesManager, isNew bool, trx records.TSTRXInt) (*Views, error) {
+func NewViews(tables TablesManager, isNew bool, trx scan.TRXInt) (*Views, error) {
 	v := &Views{
 		VcatTableName: viewsCatalogTableName,
 		VcatLayout:    newViewsCatalogLayout(),
@@ -47,7 +48,7 @@ func newViewsCatalogLayout() records.Layout {
 	return records.NewLayout(schema)
 }
 
-func (v *Views) ViewExists(viewName string, trx records.TSTRXInt) (bool, error) {
+func (v *Views) ViewExists(viewName string, trx scan.TRXInt) (bool, error) {
 	found := false
 
 	vcat, err := v.newViewCatalogTableScan(trx)
@@ -73,7 +74,7 @@ func (v *Views) ViewExists(viewName string, trx records.TSTRXInt) (bool, error) 
 	return found, nil
 }
 
-func (v *Views) CreateView(viewName string, viewDef string, trx records.TSTRXInt) error {
+func (v *Views) CreateView(viewName string, viewDef string, trx scan.TRXInt) error {
 	exists, err := v.ViewExists(viewName, trx)
 	if err != nil {
 		return v.wrapError(err, viewName, nil)
@@ -112,7 +113,7 @@ func (v *Views) CreateView(viewName string, viewDef string, trx records.TSTRXInt
 	return nil
 }
 
-func (v *Views) ViewDef(viewName string, trx records.TSTRXInt) (string, error) {
+func (v *Views) ViewDef(viewName string, trx scan.TRXInt) (string, error) {
 	var viewDef string
 
 	found := false
@@ -153,8 +154,8 @@ func (v *Views) ViewDef(viewName string, trx records.TSTRXInt) (string, error) {
 	return viewDef, nil
 }
 
-func (v *Views) newViewCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
-	vcat, err := records.NewTableScan(trx, v.VcatTableName, v.VcatLayout)
+func (v *Views) newViewCatalogTableScan(trx scan.TRXInt) (*scan.TableScan, error) {
+	vcat, err := scan.NewTableScan(trx, v.VcatTableName, v.VcatLayout)
 	if err != nil {
 		return nil, err
 	}

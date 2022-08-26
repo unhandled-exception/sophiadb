@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/pkg/indexes"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
 const (
@@ -24,7 +25,7 @@ type Indexes struct {
 	catTableName string
 }
 
-func NewIndexes(tables *Tables, isNew bool, stats *Stats, trx records.TSTRXInt) (*Indexes, error) {
+func NewIndexes(tables *Tables, isNew bool, stats *Stats, trx scan.TRXInt) (*Indexes, error) {
 	i := &Indexes{
 		layout:       newIndexCatalogLayout(),
 		tables:       tables,
@@ -51,8 +52,8 @@ func newIndexCatalogLayout() records.Layout {
 	return records.NewLayout(schema)
 }
 
-func (i *Indexes) NewIndexCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
-	ts, err := records.NewTableScan(trx, i.catTableName, i.layout)
+func (i *Indexes) NewIndexCatalogTableScan(trx scan.TRXInt) (*scan.TableScan, error) {
+	ts, err := scan.NewTableScan(trx, i.catTableName, i.layout)
 	if err != nil {
 		return nil, i.wrapError(err, i.catTableName, nil)
 	}
@@ -60,7 +61,7 @@ func (i *Indexes) NewIndexCatalogTableScan(trx records.TSTRXInt) (*records.Table
 	return ts, nil
 }
 
-func (i *Indexes) CreateIndex(idxName string, tableName string, idxType indexes.IndexType, fieldName string, trx records.TSTRXInt) error {
+func (i *Indexes) CreateIndex(idxName string, tableName string, idxType indexes.IndexType, fieldName string, trx scan.TRXInt) error {
 	ts, err := i.NewIndexCatalogTableScan(trx)
 	if err != nil {
 		return err
@@ -123,7 +124,7 @@ func (i *Indexes) CreateIndex(idxName string, tableName string, idxType indexes.
 	return i.wrapError(err, tableName, nil)
 }
 
-func (i *Indexes) TableIndexes(tableName string, trx records.TSTRXInt) (IndexesMap, error) {
+func (i *Indexes) TableIndexes(tableName string, trx scan.TRXInt) (IndexesMap, error) {
 	layout, err := i.tables.Layout(tableName, trx)
 	if err != nil {
 		return nil, i.wrapError(err, tableName, nil)

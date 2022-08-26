@@ -6,7 +6,4 @@ var (
 	ErrRecordPage    = errors.New("record page error")
 	ErrSlotNotFound  = errors.Wrap(ErrRecordPage, "slot not found")
 	ErrFieldNotFound = errors.Wrap(ErrRecordPage, "field not found")
-
-	ErrTableScan        = errors.New("table scan failed")
-	ErrUnknownFieldType = errors.Wrap(ErrTableScan, "field not found")
 )

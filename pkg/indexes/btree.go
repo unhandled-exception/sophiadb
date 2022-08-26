@@ -4,13 +4,14 @@ import (
 	"math"
 
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
 type BTreeIndex struct {
 	*BaseIndex
 }
 
-func NewBTreeIndex(tx records.TSTRXInt, idxName string, idxLayout records.Layout) (Index, error) {
+func NewBTreeIndex(tx scan.TRXInt, idxName string, idxLayout records.Layout) (Index, error) {
 	return &BTreeIndex{
 		BaseIndex: &BaseIndex{
 			idxType:   BTreeIndexType,
