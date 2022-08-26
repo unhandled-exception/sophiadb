@@ -3,6 +3,7 @@ package metadata
 import (
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
 const (
@@ -29,7 +30,7 @@ type Tables struct {
 	FcatLayout records.Layout
 }
 
-func NewTables(isNew bool, trx records.TSTRXInt) (*Tables, error) {
+func NewTables(isNew bool, trx scan.TRXInt) (*Tables, error) {
 	t := &Tables{
 		TcatTable:  TableCatalogTableName,
 		FcatTable:  fieldsCatalogTableName,
@@ -69,7 +70,7 @@ func newFieldsCatalogLayout() records.Layout {
 	return records.NewLayout(schema)
 }
 
-func (t *Tables) TableExists(tableName string, trx records.TSTRXInt) (bool, error) {
+func (t *Tables) TableExists(tableName string, trx scan.TRXInt) (bool, error) {
 	tcat, err := t.NewTableCatalogTableScan(trx)
 	if err != nil {
 		return false, t.wrapError(err, tableName, nil)
@@ -91,7 +92,7 @@ func (t *Tables) TableExists(tableName string, trx records.TSTRXInt) (bool, erro
 	return found, t.wrapError(err, tableName, nil)
 }
 
-func (t *Tables) CreateTable(tableName string, schema records.Schema, trx records.TSTRXInt) error {
+func (t *Tables) CreateTable(tableName string, schema records.Schema, trx scan.TRXInt) error {
 	tableExists, err := t.TableExists(tableName, trx)
 	if tableExists || err != nil {
 		if err != nil {
@@ -161,7 +162,7 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx record
 	return nil
 }
 
-func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout, error) {
+func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, error) {
 	layout := records.Layout{
 		Schema:  records.NewSchema(),
 		Offsets: make(map[string]uint32, 16), //nolint:gomnd
@@ -193,7 +194,7 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 			}
 
 			if !ok {
-				return true, errors.WithMessage(ErrTablesMetadata, records.ErrUnknownFieldType.Error())
+				return true, errors.WithMessage(ErrTablesMetadata, scan.ErrUnknownFieldType.Error())
 			}
 
 			return false, nil
@@ -244,7 +245,7 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 			}
 
 			if !ok {
-				return true, errors.WithMessage(ErrTablesMetadata, records.ErrUnknownFieldType.Error())
+				return true, errors.WithMessage(ErrTablesMetadata, scan.ErrUnknownFieldType.Error())
 			}
 
 			return false, nil
@@ -271,15 +272,15 @@ func (t *Tables) Layout(tableName string, trx records.TSTRXInt) (records.Layout,
 	return layout, nil
 }
 
-func (t *Tables) NewTableCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
-	return records.NewTableScan(trx, t.TcatTable, t.TcatLayout)
+func (t *Tables) NewTableCatalogTableScan(trx scan.TRXInt) (*scan.TableScan, error) {
+	return scan.NewTableScan(trx, t.TcatTable, t.TcatLayout)
 }
 
-func (t *Tables) NewFieldsCatalogTableScan(trx records.TSTRXInt) (*records.TableScan, error) {
-	return records.NewTableScan(trx, t.FcatTable, t.FcatLayout)
+func (t *Tables) NewFieldsCatalogTableScan(trx scan.TRXInt) (*scan.TableScan, error) {
+	return scan.NewTableScan(trx, t.FcatTable, t.FcatLayout)
 }
 
-func (t *Tables) NewCatalogTableScan(trx records.TSTRXInt) (*records.TableScan /* tcat */, *records.TableScan /* fcat */, error) {
+func (t *Tables) NewCatalogTableScan(trx scan.TRXInt) (*scan.TableScan /* tcat */, *scan.TableScan /* fcat */, error) {
 	tcat, err := t.NewTableCatalogTableScan(trx)
 	if err != nil {
 		return nil, nil, err
@@ -293,7 +294,7 @@ func (t *Tables) NewCatalogTableScan(trx records.TSTRXInt) (*records.TableScan /
 	return tcat, fcat, err
 }
 
-func (t *Tables) ForEachTables(trx records.TSTRXInt, call func(tableName string) (bool, error)) error {
+func (t *Tables) ForEachTables(trx scan.TRXInt, call func(tableName string) (bool, error)) error {
 	ts, err := t.NewTableCatalogTableScan(trx)
 	if err != nil {
 		return err

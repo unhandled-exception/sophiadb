@@ -10,12 +10,12 @@ build:
 
 .PHONY: test
 test: gen
-	go test -timeout 60s -race -shuffle on -coverprofile=coverage.out -covermode atomic ./...
+	go test -timeout 120s -race -shuffle on -coverprofile=coverage.out -covermode atomic ./...
 	@go tool cover -func coverage.out | grep -E "^total:.+?\d+.\d+%"
 
 .PHONY: test_ci
 test_ci:
-	go test -timeout 60s -race -shuffle on -coverprofile=coverage.out -covermode atomic -count=1 -v ./...
+	go test -timeout 120s -race -shuffle on -coverprofile=coverage.out -covermode atomic -count=1 -v ./...
 	go tool cover -func coverage.out
 
 .PHONY: vendor

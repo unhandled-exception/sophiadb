@@ -1,4 +1,4 @@
-package records_test
+package scan_test
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 	"github.com/unhandled-exception/sophiadb/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
 	"github.com/unhandled-exception/sophiadb/pkg/types"
@@ -22,7 +23,7 @@ func TestTableScanTestsuite(t *testing.T) {
 	suite.Run(t, new(TableScanTestSuite))
 }
 
-func (ts *TableScanTestSuite) newSUT(testPath string) (*records.TableScan, *transaction.Transaction, *storage.Manager, func()) {
+func (ts *TableScanTestSuite) newSUT(testPath string) (*scan.TableScan, *transaction.Transaction, *storage.Manager, func()) {
 	t := ts.T()
 
 	trxMan, fm := ts.newTRXManager(defaultLockTimeout, testPath)
@@ -30,7 +31,7 @@ func (ts *TableScanTestSuite) newSUT(testPath string) (*records.TableScan, *tran
 	trx, err := trxMan.Transaction()
 	require.NoError(t, err)
 
-	sut, err := records.NewTableScan(trx, testDataFile, ts.testLayout())
+	sut, err := scan.NewTableScan(trx, testDataFile, ts.testLayout())
 	require.NoError(t, err)
 
 	return sut, trx, fm, func() {
@@ -183,17 +184,17 @@ func (ts *TableScanTestSuite) TestGetAndSetConstants() {
 	for i := 0; i < int(cnt); i++ {
 		require.NoErrorf(t, sut.Insert(), "write insert i == %d", i)
 
-		require.NoErrorf(t, sut.SetVal("id", types.NewInt64Constant(int64(i+1))), "write int64 i == %d", i)
-		require.NoErrorf(t, sut.SetVal("age", types.NewInt8Constant(int8(i+2))), "write int8 i == %d", i)
-		require.NoErrorf(t, sut.SetVal("name", types.NewStringConstant(fmt.Sprintf("user %d", i))), "write string i == %d", i)
+		require.NoErrorf(t, sut.SetVal("id", scan.NewInt64Constant(int64(i+1))), "write int64 i == %d", i)
+		require.NoErrorf(t, sut.SetVal("age", scan.NewInt8Constant(int8(i+2))), "write int8 i == %d", i)
+		require.NoErrorf(t, sut.SetVal("name", scan.NewStringConstant(fmt.Sprintf("user %d", i))), "write string i == %d", i)
 	}
 
 	require.NoError(t, sut.MoveToRID(types.RID{BlockNumber: 0, Slot: 0}))
-	require.ErrorIs(t, sut.SetVal("id", records.NewConstantMock(mc).ValueMock.Return(struct{}{})), records.ErrTableScan)
-	require.ErrorIs(t, sut.SetVal("age", records.NewConstantMock(mc).ValueMock.Return(struct{}{})), records.ErrTableScan)
-	require.ErrorIs(t, sut.SetVal("name", records.NewConstantMock(mc).ValueMock.Return(struct{}{})), records.ErrTableScan)
+	require.ErrorIs(t, sut.SetVal("id", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrTableScan)
+	require.ErrorIs(t, sut.SetVal("age", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrTableScan)
+	require.ErrorIs(t, sut.SetVal("name", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrTableScan)
 
-	require.ErrorIs(t, sut.SetVal("unknown", records.NewConstantMock(mc).ValueMock.Return(struct{}{})), records.ErrTableScan)
+	require.ErrorIs(t, sut.SetVal("unknown", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrTableScan)
 
 	require.NoError(t, sut.BeforeFirst())
 
@@ -215,7 +216,7 @@ func (ts *TableScanTestSuite) TestGetAndSetConstants() {
 	}
 
 	_, err := sut.GetVal("unknown")
-	require.ErrorIs(t, err, records.ErrTableScan)
+	require.ErrorIs(t, err, scan.ErrTableScan)
 }
 
 func (ts *TableScanTestSuite) TestHasField() {

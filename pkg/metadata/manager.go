@@ -3,6 +3,7 @@ package metadata
 import (
 	"github.com/unhandled-exception/sophiadb/pkg/indexes"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
 type Manager struct {
@@ -12,7 +13,7 @@ type Manager struct {
 	indexes *Indexes
 }
 
-func NewManager(isNew bool, trx records.TSTRXInt) (*Manager, error) {
+func NewManager(isNew bool, trx scan.TRXInt) (*Manager, error) {
 	tables, err := NewTables(isNew, trx)
 	if err != nil {
 		return nil, err
@@ -43,34 +44,34 @@ func NewManager(isNew bool, trx records.TSTRXInt) (*Manager, error) {
 	return m, nil
 }
 
-func (m *Manager) CreateTable(tableName string, schema records.Schema, trx records.TSTRXInt) error {
+func (m *Manager) CreateTable(tableName string, schema records.Schema, trx scan.TRXInt) error {
 	return m.tables.CreateTable(tableName, schema, trx)
 }
 
-func (m *Manager) Layout(tableName string, trx records.TSTRXInt) (records.Layout, error) {
+func (m *Manager) Layout(tableName string, trx scan.TRXInt) (records.Layout, error) {
 	return m.tables.Layout(tableName, trx)
 }
 
-func (m *Manager) ForEachTables(trx records.TSTRXInt, call func(tableName string) (bool, error)) error {
+func (m *Manager) ForEachTables(trx scan.TRXInt, call func(tableName string) (bool, error)) error {
 	return m.tables.ForEachTables(trx, call)
 }
 
-func (m *Manager) CreateView(viewName string, viewDef string, trx records.TSTRXInt) error {
+func (m *Manager) CreateView(viewName string, viewDef string, trx scan.TRXInt) error {
 	return m.views.CreateView(viewName, viewDef, trx)
 }
 
-func (m *Manager) ViewDef(viewName string, trx records.TSTRXInt) (string, error) {
+func (m *Manager) ViewDef(viewName string, trx scan.TRXInt) (string, error) {
 	return m.views.ViewDef(viewName, trx)
 }
 
-func (m *Manager) CreateIndex(idxName string, tableName string, idxType indexes.IndexType, fieldName string, trx records.TSTRXInt) error {
+func (m *Manager) CreateIndex(idxName string, tableName string, idxType indexes.IndexType, fieldName string, trx scan.TRXInt) error {
 	return m.indexes.CreateIndex(idxName, tableName, idxType, fieldName, trx)
 }
 
-func (m *Manager) TableIndexes(tableName string, trx records.TSTRXInt) (IndexesMap, error) {
+func (m *Manager) TableIndexes(tableName string, trx scan.TRXInt) (IndexesMap, error) {
 	return m.indexes.TableIndexes(tableName, trx)
 }
 
-func (m *Manager) GetStatInfo(tableName string, layout records.Layout, trx records.TSTRXInt) (StatInfo, error) {
+func (m *Manager) GetStatInfo(tableName string, layout records.Layout, trx scan.TRXInt) (StatInfo, error) {
 	return m.stats.GetStatInfo(tableName, layout, trx)
 }

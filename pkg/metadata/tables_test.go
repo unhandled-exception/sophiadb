@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/pkg/metadata"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
 )
 
@@ -66,7 +67,7 @@ func (ts *TablesTestSuite) TestCreateTable_Ok() {
 
 	require.NoError(t, trx.Commit())
 
-	recs, err := records.NewTableScan(trx, sut.TcatTable, sut.TcatLayout)
+	recs, err := scan.NewTableScan(trx, sut.TcatTable, sut.TcatLayout)
 	require.NoError(t, err)
 
 	i := 0
@@ -93,7 +94,7 @@ func (ts *TablesTestSuite) TestCreateTable_Ok() {
 
 	assert.Equal(t, 100, i)
 
-	recs, err = records.NewTableScan(trx, sut.FcatTable, sut.FcatLayout)
+	recs, err = scan.NewTableScan(trx, sut.FcatTable, sut.FcatLayout)
 	require.NoError(t, err)
 
 	i = -1

@@ -5,6 +5,7 @@ import (
 
 	"github.com/unhandled-exception/sophiadb/pkg/indexes"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
 const (
@@ -18,13 +19,13 @@ type IndexInfo struct {
 	tableName string
 	idxType   indexes.IndexType
 	fieldName string
-	trx       records.TSTRXInt
+	trx       scan.TRXInt
 	schema    records.Schema
 	idxLayout records.Layout
 	si        StatInfo
 }
 
-func NewIndexInfo(idxName string, tableName string, idxType indexes.IndexType, fieldName string, schema records.Schema, trx records.TSTRXInt, si StatInfo) *IndexInfo {
+func NewIndexInfo(idxName string, tableName string, idxType indexes.IndexType, fieldName string, schema records.Schema, trx scan.TRXInt, si StatInfo) *IndexInfo {
 	ii := &IndexInfo{
 		idxName:   idxName,
 		tableName: tableName,

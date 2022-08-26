@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/pkg/metadata"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
 )
 
@@ -55,7 +56,7 @@ func (ts *StatsTestSuite) newSUT(t *testing.T, createTestTables bool) (*metadata
 	}
 }
 
-func (ts *StatsTestSuite) createTestTable(t *testing.T, tables *metadata.Tables, trx records.TSTRXInt, recordsCount int) {
+func (ts *StatsTestSuite) createTestTable(t *testing.T, tables *metadata.Tables, trx scan.TRXInt, recordsCount int) {
 	schema := ts.newMethod()
 
 	if recordsCount == 0 {
@@ -70,7 +71,7 @@ func (ts *StatsTestSuite) createTestTable(t *testing.T, tables *metadata.Tables,
 		require.NoError(t, err)
 	}
 
-	tab, err := records.NewTableScan(trx, testStatTable, records.NewLayout(schema))
+	tab, err := scan.NewTableScan(trx, testStatTable, records.NewLayout(schema))
 	require.NoError(t, err)
 
 	defer tab.Close()

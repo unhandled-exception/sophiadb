@@ -1,8 +1,11 @@
 package metadata
 
-import "github.com/unhandled-exception/sophiadb/pkg/records"
+import (
+	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
+)
 
 type TablesManager interface {
-	CreateTable(tableName string, schema records.Schema, trx records.TSTRXInt) error
-	Layout(tableName string, trx records.TSTRXInt) (records.Layout, error)
+	CreateTable(tableName string, schema records.Schema, trx scan.TRXInt) error
+	Layout(tableName string, trx scan.TRXInt) (records.Layout, error)
 }

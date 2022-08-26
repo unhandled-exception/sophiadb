@@ -10,6 +10,7 @@ import (
 	"github.com/unhandled-exception/sophiadb/pkg/indexes"
 	"github.com/unhandled-exception/sophiadb/pkg/metadata"
 	"github.com/unhandled-exception/sophiadb/pkg/records"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
 )
 
@@ -51,7 +52,7 @@ func (ts *IndexesTestSuite) newSut() (*metadata.Indexes, *transaction.Transactio
 	}
 }
 
-func (ts *IndexesTestSuite) createNewTestTable(tables *metadata.Tables, trx records.TSTRXInt, recordsCount int) records.Layout {
+func (ts *IndexesTestSuite) createNewTestTable(tables *metadata.Tables, trx scan.TRXInt, recordsCount int) records.Layout {
 	t := ts.T()
 
 	schema := records.NewSchema()
@@ -63,7 +64,7 @@ func (ts *IndexesTestSuite) createNewTestTable(tables *metadata.Tables, trx reco
 
 	require.NoError(t, tables.CreateTable(testIndexesTestTable1, schema, trx))
 
-	tab1, err := records.NewTableScan(trx, testIndexesTestTable1, layout)
+	tab1, err := scan.NewTableScan(trx, testIndexesTestTable1, layout)
 	require.NoError(t, err)
 
 	defer tab1.Close()
@@ -76,7 +77,7 @@ func (ts *IndexesTestSuite) createNewTestTable(tables *metadata.Tables, trx reco
 		require.NoError(t, tab1.SetInt8("age", int8(i%256)))
 	}
 
-	tab2, err := records.NewTableScan(trx, testIndexesTestTable2, layout)
+	tab2, err := scan.NewTableScan(trx, testIndexesTestTable2, layout)
 	require.NoError(t, err)
 
 	defer tab2.Close()
