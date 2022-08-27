@@ -11,7 +11,7 @@ type BTreeIndex struct {
 	*BaseIndex
 }
 
-func NewBTreeIndex(tx scan.TRXInt, idxName string, idxLayout records.Layout) (Index, error) {
+func NewBTreeIndex(tx scan.TRXInt, idxName string, idxLayout records.Layout) (*BTreeIndex, error) {
 	return &BTreeIndex{
 		BaseIndex: &BaseIndex{
 			idxType:   BTreeIndexType,

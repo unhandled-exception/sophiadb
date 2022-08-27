@@ -9,11 +9,18 @@ import (
 	mm_time "time"
 
 	"github.com/gojuno/minimock/v3"
+	"github.com/unhandled-exception/sophiadb/pkg/records"
 )
 
 // ConstantMock implements Constant
 type ConstantMock struct {
 	t minimock.Tester
+
+	funcType          func() (f1 records.FieldType)
+	inspectFuncType   func()
+	afterTypeCounter  uint64
+	beforeTypeCounter uint64
+	TypeMock          mConstantMockType
 
 	funcValue          func() (p1 interface{})
 	inspectFuncValue   func()
@@ -29,9 +36,154 @@ func NewConstantMock(t minimock.Tester) *ConstantMock {
 		controller.RegisterMocker(m)
 	}
 
+	m.TypeMock = mConstantMockType{mock: m}
+
 	m.ValueMock = mConstantMockValue{mock: m}
 
 	return m
+}
+
+type mConstantMockType struct {
+	mock               *ConstantMock
+	defaultExpectation *ConstantMockTypeExpectation
+	expectations       []*ConstantMockTypeExpectation
+}
+
+// ConstantMockTypeExpectation specifies expectation struct of the Constant.Type
+type ConstantMockTypeExpectation struct {
+	mock *ConstantMock
+
+	results *ConstantMockTypeResults
+	Counter uint64
+}
+
+// ConstantMockTypeResults contains results of the Constant.Type
+type ConstantMockTypeResults struct {
+	f1 records.FieldType
+}
+
+// Expect sets up expected params for Constant.Type
+func (mmType *mConstantMockType) Expect() *mConstantMockType {
+	if mmType.mock.funcType != nil {
+		mmType.mock.t.Fatalf("ConstantMock.Type mock is already set by Set")
+	}
+
+	if mmType.defaultExpectation == nil {
+		mmType.defaultExpectation = &ConstantMockTypeExpectation{}
+	}
+
+	return mmType
+}
+
+// Inspect accepts an inspector function that has same arguments as the Constant.Type
+func (mmType *mConstantMockType) Inspect(f func()) *mConstantMockType {
+	if mmType.mock.inspectFuncType != nil {
+		mmType.mock.t.Fatalf("Inspect function is already set for ConstantMock.Type")
+	}
+
+	mmType.mock.inspectFuncType = f
+
+	return mmType
+}
+
+// Return sets up results that will be returned by Constant.Type
+func (mmType *mConstantMockType) Return(f1 records.FieldType) *ConstantMock {
+	if mmType.mock.funcType != nil {
+		mmType.mock.t.Fatalf("ConstantMock.Type mock is already set by Set")
+	}
+
+	if mmType.defaultExpectation == nil {
+		mmType.defaultExpectation = &ConstantMockTypeExpectation{mock: mmType.mock}
+	}
+	mmType.defaultExpectation.results = &ConstantMockTypeResults{f1}
+	return mmType.mock
+}
+
+//Set uses given function f to mock the Constant.Type method
+func (mmType *mConstantMockType) Set(f func() (f1 records.FieldType)) *ConstantMock {
+	if mmType.defaultExpectation != nil {
+		mmType.mock.t.Fatalf("Default expectation is already set for the Constant.Type method")
+	}
+
+	if len(mmType.expectations) > 0 {
+		mmType.mock.t.Fatalf("Some expectations are already set for the Constant.Type method")
+	}
+
+	mmType.mock.funcType = f
+	return mmType.mock
+}
+
+// Type implements Constant
+func (mmType *ConstantMock) Type() (f1 records.FieldType) {
+	mm_atomic.AddUint64(&mmType.beforeTypeCounter, 1)
+	defer mm_atomic.AddUint64(&mmType.afterTypeCounter, 1)
+
+	if mmType.inspectFuncType != nil {
+		mmType.inspectFuncType()
+	}
+
+	if mmType.TypeMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmType.TypeMock.defaultExpectation.Counter, 1)
+
+		mm_results := mmType.TypeMock.defaultExpectation.results
+		if mm_results == nil {
+			mmType.t.Fatal("No results are set for the ConstantMock.Type")
+		}
+		return (*mm_results).f1
+	}
+	if mmType.funcType != nil {
+		return mmType.funcType()
+	}
+	mmType.t.Fatalf("Unexpected call to ConstantMock.Type.")
+	return
+}
+
+// TypeAfterCounter returns a count of finished ConstantMock.Type invocations
+func (mmType *ConstantMock) TypeAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmType.afterTypeCounter)
+}
+
+// TypeBeforeCounter returns a count of ConstantMock.Type invocations
+func (mmType *ConstantMock) TypeBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmType.beforeTypeCounter)
+}
+
+// MinimockTypeDone returns true if the count of the Type invocations corresponds
+// the number of defined expectations
+func (m *ConstantMock) MinimockTypeDone() bool {
+	for _, e := range m.TypeMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.TypeMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterTypeCounter) < 1 {
+		return false
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcType != nil && mm_atomic.LoadUint64(&m.afterTypeCounter) < 1 {
+		return false
+	}
+	return true
+}
+
+// MinimockTypeInspect logs each unmet expectation
+func (m *ConstantMock) MinimockTypeInspect() {
+	for _, e := range m.TypeMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Error("Expected call to ConstantMock.Type")
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.TypeMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterTypeCounter) < 1 {
+		m.t.Error("Expected call to ConstantMock.Type")
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcType != nil && mm_atomic.LoadUint64(&m.afterTypeCounter) < 1 {
+		m.t.Error("Expected call to ConstantMock.Type")
+	}
 }
 
 type mConstantMockValue struct {
@@ -180,6 +332,8 @@ func (m *ConstantMock) MinimockValueInspect() {
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *ConstantMock) MinimockFinish() {
 	if !m.minimockDone() {
+		m.MinimockTypeInspect()
+
 		m.MinimockValueInspect()
 		m.t.FailNow()
 	}
@@ -204,5 +358,6 @@ func (m *ConstantMock) MinimockWait(timeout mm_time.Duration) {
 func (m *ConstantMock) minimockDone() bool {
 	done := true
 	return done &&
+		m.MinimockTypeDone() &&
 		m.MinimockValueDone()
 }
