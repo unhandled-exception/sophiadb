@@ -16,9 +16,8 @@ import (
 )
 
 var (
-	_ scan.Scan          = &scan.TableScan{}
-	_ scan.ScanIterators = &scan.TableScan{}
-	_ scan.UpdateScan    = &scan.TableScan{}
+	_ scan.Scan       = &scan.TableScan{}
+	_ scan.UpdateScan = &scan.TableScan{}
 )
 
 type TableScanTestSuite struct {
@@ -250,7 +249,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Ok() {
 
 	fields := make([]fStruct, 0, sut.Layout().Schema.Count())
 
-	require.NoError(t, sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+	require.NoError(t, scan.ForEachField(sut, func(name string, fieldType records.FieldType) (bool, error) {
 		fields = append(fields, fStruct{
 			Name: name,
 			Type: fieldType,
@@ -276,7 +275,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Errors() {
 	defer clean()
 
 	i := 0
-	err := sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+	err := scan.ForEachField(sut, func(name string, fieldType records.FieldType) (bool, error) {
 		i++
 
 		return false, fmt.Errorf("fail caller %d", i)
@@ -285,7 +284,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Errors() {
 
 	i = 0
 
-	require.NoError(t, sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+	require.NoError(t, scan.ForEachField(sut, func(name string, fieldType records.FieldType) (bool, error) {
 		i++
 		if i > 1 {
 			return true, nil
@@ -320,8 +319,8 @@ func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 	i := 0
 	f := map[string]int{}
 
-	require.NoError(t, sut.ForEach(func() (bool, error) {
-		require.NoError(t, sut.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+	require.NoError(t, scan.ForEach(sut, func() (bool, error) {
+		require.NoError(t, scan.ForEachValue(sut, func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
 			switch name {
 			case "id":
 				assert.EqualValues(t, records.Int64Field, fieldType)
@@ -377,7 +376,7 @@ func (ts *TableScanTestSuite) TestForEach_Stop() {
 
 	i := 0
 
-	require.NoError(t, sut.ForEach(func() (bool, error) {
+	require.NoError(t, scan.ForEach(sut, func() (bool, error) {
 		if i == int(cnt/2) {
 			return true, nil
 		}
@@ -413,8 +412,8 @@ func (ts *TableScanTestSuite) TestForEachAndForEachValue_Errors() {
 	i := 0
 	vErr := fmt.Errorf("foreach stop")
 
-	require.EqualError(t, sut.ForEach(func() (bool, error) {
-		err := sut.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+	require.EqualError(t, scan.ForEach(sut, func() (bool, error) {
+		err := scan.ForEachValue(sut, func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
 			if i == int(cnt/2) {
 				return false, vErr
 			}

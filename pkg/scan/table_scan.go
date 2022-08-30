@@ -54,18 +54,6 @@ func (ts *TableScan) Close() {
 	}
 }
 
-func (ts *TableScan) ForEach(call func() (bool, error)) error {
-	return scanForEach(ts, call)
-}
-
-func (ts *TableScan) ForEachField(call func(name string, fieldType records.FieldType) (bool, error)) error {
-	return scanForEachField(ts, call)
-}
-
-func (ts *TableScan) ForEachValue(call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error {
-	return scanForEachValue(ts, call)
-}
-
 func (ts *TableScan) BeforeFirst() error {
 	return ts.moveToBlock(0)
 }

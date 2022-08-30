@@ -32,12 +32,6 @@ type Scan interface {
 	GetVal(fieldName string) (Constant, error)
 }
 
-type ScanIterators interface {
-	ForEach(call func() (bool, error)) error
-	ForEachField(call func(name string, fieldType records.FieldType) (bool, error)) error
-	ForEachValue(call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error
-}
-
 type UpdateScan interface {
 	Scan
 

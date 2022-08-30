@@ -8,9 +8,8 @@ import (
 )
 
 var (
-	_ scan.Scan          = &scan.SelectScan{}
-	_ scan.ScanIterators = &scan.SelectScan{}
-	_ scan.UpdateScan    = &scan.SelectScan{}
+	_ scan.Scan       = &scan.SelectScan{}
+	_ scan.UpdateScan = &scan.SelectScan{}
 )
 
 type SelectScanTestSuite struct {

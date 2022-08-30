@@ -144,15 +144,3 @@ func (ss *SelectScan) MoveToRID(rid types.RID) error {
 
 	return us.MoveToRID(rid)
 }
-
-func (ss *SelectScan) ForEach(call func() (bool, error)) error {
-	return scanForEach(ss.s, call)
-}
-
-func (ss *SelectScan) ForEachField(call func(name string, fieldType records.FieldType) (bool, error)) error {
-	return scanForEachField(ss.s, call)
-}
-
-func (ss *SelectScan) ForEachValue(call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error {
-	return scanForEachValue(ss.s, call)
-}
