@@ -45,3 +45,7 @@ type UpdateScan interface {
 	RID() types.RID
 	MoveToRID(rid types.RID) error
 }
+
+type Plan interface {
+	DistinctValues(string) (int64, bool)
+}

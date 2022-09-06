@@ -5,6 +5,7 @@ package scan
 //go:generate minimock -i github.com/unhandled-exception/sophiadb/pkg/scan.Constant -o ./constant_mock_test.go -n ConstantMock
 
 import (
+	"sync"
 	mm_atomic "sync/atomic"
 	mm_time "time"
 
@@ -15,6 +16,18 @@ import (
 // ConstantMock implements Constant
 type ConstantMock struct {
 	t minimock.Tester
+
+	funcCompareTo          func(c1 Constant) (c2 CompResult)
+	inspectFuncCompareTo   func(c1 Constant)
+	afterCompareToCounter  uint64
+	beforeCompareToCounter uint64
+	CompareToMock          mConstantMockCompareTo
+
+	funcString          func() (s1 string)
+	inspectFuncString   func()
+	afterStringCounter  uint64
+	beforeStringCounter uint64
+	StringMock          mConstantMockString
 
 	funcType          func() (f1 records.FieldType)
 	inspectFuncType   func()
@@ -36,11 +49,374 @@ func NewConstantMock(t minimock.Tester) *ConstantMock {
 		controller.RegisterMocker(m)
 	}
 
+	m.CompareToMock = mConstantMockCompareTo{mock: m}
+	m.CompareToMock.callArgs = []*ConstantMockCompareToParams{}
+
+	m.StringMock = mConstantMockString{mock: m}
+
 	m.TypeMock = mConstantMockType{mock: m}
 
 	m.ValueMock = mConstantMockValue{mock: m}
 
 	return m
+}
+
+type mConstantMockCompareTo struct {
+	mock               *ConstantMock
+	defaultExpectation *ConstantMockCompareToExpectation
+	expectations       []*ConstantMockCompareToExpectation
+
+	callArgs []*ConstantMockCompareToParams
+	mutex    sync.RWMutex
+}
+
+// ConstantMockCompareToExpectation specifies expectation struct of the Constant.CompareTo
+type ConstantMockCompareToExpectation struct {
+	mock    *ConstantMock
+	params  *ConstantMockCompareToParams
+	results *ConstantMockCompareToResults
+	Counter uint64
+}
+
+// ConstantMockCompareToParams contains parameters of the Constant.CompareTo
+type ConstantMockCompareToParams struct {
+	c1 Constant
+}
+
+// ConstantMockCompareToResults contains results of the Constant.CompareTo
+type ConstantMockCompareToResults struct {
+	c2 CompResult
+}
+
+// Expect sets up expected params for Constant.CompareTo
+func (mmCompareTo *mConstantMockCompareTo) Expect(c1 Constant) *mConstantMockCompareTo {
+	if mmCompareTo.mock.funcCompareTo != nil {
+		mmCompareTo.mock.t.Fatalf("ConstantMock.CompareTo mock is already set by Set")
+	}
+
+	if mmCompareTo.defaultExpectation == nil {
+		mmCompareTo.defaultExpectation = &ConstantMockCompareToExpectation{}
+	}
+
+	mmCompareTo.defaultExpectation.params = &ConstantMockCompareToParams{c1}
+	for _, e := range mmCompareTo.expectations {
+		if minimock.Equal(e.params, mmCompareTo.defaultExpectation.params) {
+			mmCompareTo.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmCompareTo.defaultExpectation.params)
+		}
+	}
+
+	return mmCompareTo
+}
+
+// Inspect accepts an inspector function that has same arguments as the Constant.CompareTo
+func (mmCompareTo *mConstantMockCompareTo) Inspect(f func(c1 Constant)) *mConstantMockCompareTo {
+	if mmCompareTo.mock.inspectFuncCompareTo != nil {
+		mmCompareTo.mock.t.Fatalf("Inspect function is already set for ConstantMock.CompareTo")
+	}
+
+	mmCompareTo.mock.inspectFuncCompareTo = f
+
+	return mmCompareTo
+}
+
+// Return sets up results that will be returned by Constant.CompareTo
+func (mmCompareTo *mConstantMockCompareTo) Return(c2 CompResult) *ConstantMock {
+	if mmCompareTo.mock.funcCompareTo != nil {
+		mmCompareTo.mock.t.Fatalf("ConstantMock.CompareTo mock is already set by Set")
+	}
+
+	if mmCompareTo.defaultExpectation == nil {
+		mmCompareTo.defaultExpectation = &ConstantMockCompareToExpectation{mock: mmCompareTo.mock}
+	}
+	mmCompareTo.defaultExpectation.results = &ConstantMockCompareToResults{c2}
+	return mmCompareTo.mock
+}
+
+//Set uses given function f to mock the Constant.CompareTo method
+func (mmCompareTo *mConstantMockCompareTo) Set(f func(c1 Constant) (c2 CompResult)) *ConstantMock {
+	if mmCompareTo.defaultExpectation != nil {
+		mmCompareTo.mock.t.Fatalf("Default expectation is already set for the Constant.CompareTo method")
+	}
+
+	if len(mmCompareTo.expectations) > 0 {
+		mmCompareTo.mock.t.Fatalf("Some expectations are already set for the Constant.CompareTo method")
+	}
+
+	mmCompareTo.mock.funcCompareTo = f
+	return mmCompareTo.mock
+}
+
+// When sets expectation for the Constant.CompareTo which will trigger the result defined by the following
+// Then helper
+func (mmCompareTo *mConstantMockCompareTo) When(c1 Constant) *ConstantMockCompareToExpectation {
+	if mmCompareTo.mock.funcCompareTo != nil {
+		mmCompareTo.mock.t.Fatalf("ConstantMock.CompareTo mock is already set by Set")
+	}
+
+	expectation := &ConstantMockCompareToExpectation{
+		mock:   mmCompareTo.mock,
+		params: &ConstantMockCompareToParams{c1},
+	}
+	mmCompareTo.expectations = append(mmCompareTo.expectations, expectation)
+	return expectation
+}
+
+// Then sets up Constant.CompareTo return parameters for the expectation previously defined by the When method
+func (e *ConstantMockCompareToExpectation) Then(c2 CompResult) *ConstantMock {
+	e.results = &ConstantMockCompareToResults{c2}
+	return e.mock
+}
+
+// CompareTo implements Constant
+func (mmCompareTo *ConstantMock) CompareTo(c1 Constant) (c2 CompResult) {
+	mm_atomic.AddUint64(&mmCompareTo.beforeCompareToCounter, 1)
+	defer mm_atomic.AddUint64(&mmCompareTo.afterCompareToCounter, 1)
+
+	if mmCompareTo.inspectFuncCompareTo != nil {
+		mmCompareTo.inspectFuncCompareTo(c1)
+	}
+
+	mm_params := &ConstantMockCompareToParams{c1}
+
+	// Record call args
+	mmCompareTo.CompareToMock.mutex.Lock()
+	mmCompareTo.CompareToMock.callArgs = append(mmCompareTo.CompareToMock.callArgs, mm_params)
+	mmCompareTo.CompareToMock.mutex.Unlock()
+
+	for _, e := range mmCompareTo.CompareToMock.expectations {
+		if minimock.Equal(e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.c2
+		}
+	}
+
+	if mmCompareTo.CompareToMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmCompareTo.CompareToMock.defaultExpectation.Counter, 1)
+		mm_want := mmCompareTo.CompareToMock.defaultExpectation.params
+		mm_got := ConstantMockCompareToParams{c1}
+		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmCompareTo.t.Errorf("ConstantMock.CompareTo got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmCompareTo.CompareToMock.defaultExpectation.results
+		if mm_results == nil {
+			mmCompareTo.t.Fatal("No results are set for the ConstantMock.CompareTo")
+		}
+		return (*mm_results).c2
+	}
+	if mmCompareTo.funcCompareTo != nil {
+		return mmCompareTo.funcCompareTo(c1)
+	}
+	mmCompareTo.t.Fatalf("Unexpected call to ConstantMock.CompareTo. %v", c1)
+	return
+}
+
+// CompareToAfterCounter returns a count of finished ConstantMock.CompareTo invocations
+func (mmCompareTo *ConstantMock) CompareToAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmCompareTo.afterCompareToCounter)
+}
+
+// CompareToBeforeCounter returns a count of ConstantMock.CompareTo invocations
+func (mmCompareTo *ConstantMock) CompareToBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmCompareTo.beforeCompareToCounter)
+}
+
+// Calls returns a list of arguments used in each call to ConstantMock.CompareTo.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmCompareTo *mConstantMockCompareTo) Calls() []*ConstantMockCompareToParams {
+	mmCompareTo.mutex.RLock()
+
+	argCopy := make([]*ConstantMockCompareToParams, len(mmCompareTo.callArgs))
+	copy(argCopy, mmCompareTo.callArgs)
+
+	mmCompareTo.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockCompareToDone returns true if the count of the CompareTo invocations corresponds
+// the number of defined expectations
+func (m *ConstantMock) MinimockCompareToDone() bool {
+	for _, e := range m.CompareToMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.CompareToMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterCompareToCounter) < 1 {
+		return false
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcCompareTo != nil && mm_atomic.LoadUint64(&m.afterCompareToCounter) < 1 {
+		return false
+	}
+	return true
+}
+
+// MinimockCompareToInspect logs each unmet expectation
+func (m *ConstantMock) MinimockCompareToInspect() {
+	for _, e := range m.CompareToMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to ConstantMock.CompareTo with params: %#v", *e.params)
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.CompareToMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterCompareToCounter) < 1 {
+		if m.CompareToMock.defaultExpectation.params == nil {
+			m.t.Error("Expected call to ConstantMock.CompareTo")
+		} else {
+			m.t.Errorf("Expected call to ConstantMock.CompareTo with params: %#v", *m.CompareToMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcCompareTo != nil && mm_atomic.LoadUint64(&m.afterCompareToCounter) < 1 {
+		m.t.Error("Expected call to ConstantMock.CompareTo")
+	}
+}
+
+type mConstantMockString struct {
+	mock               *ConstantMock
+	defaultExpectation *ConstantMockStringExpectation
+	expectations       []*ConstantMockStringExpectation
+}
+
+// ConstantMockStringExpectation specifies expectation struct of the Constant.String
+type ConstantMockStringExpectation struct {
+	mock *ConstantMock
+
+	results *ConstantMockStringResults
+	Counter uint64
+}
+
+// ConstantMockStringResults contains results of the Constant.String
+type ConstantMockStringResults struct {
+	s1 string
+}
+
+// Expect sets up expected params for Constant.String
+func (mmString *mConstantMockString) Expect() *mConstantMockString {
+	if mmString.mock.funcString != nil {
+		mmString.mock.t.Fatalf("ConstantMock.String mock is already set by Set")
+	}
+
+	if mmString.defaultExpectation == nil {
+		mmString.defaultExpectation = &ConstantMockStringExpectation{}
+	}
+
+	return mmString
+}
+
+// Inspect accepts an inspector function that has same arguments as the Constant.String
+func (mmString *mConstantMockString) Inspect(f func()) *mConstantMockString {
+	if mmString.mock.inspectFuncString != nil {
+		mmString.mock.t.Fatalf("Inspect function is already set for ConstantMock.String")
+	}
+
+	mmString.mock.inspectFuncString = f
+
+	return mmString
+}
+
+// Return sets up results that will be returned by Constant.String
+func (mmString *mConstantMockString) Return(s1 string) *ConstantMock {
+	if mmString.mock.funcString != nil {
+		mmString.mock.t.Fatalf("ConstantMock.String mock is already set by Set")
+	}
+
+	if mmString.defaultExpectation == nil {
+		mmString.defaultExpectation = &ConstantMockStringExpectation{mock: mmString.mock}
+	}
+	mmString.defaultExpectation.results = &ConstantMockStringResults{s1}
+	return mmString.mock
+}
+
+//Set uses given function f to mock the Constant.String method
+func (mmString *mConstantMockString) Set(f func() (s1 string)) *ConstantMock {
+	if mmString.defaultExpectation != nil {
+		mmString.mock.t.Fatalf("Default expectation is already set for the Constant.String method")
+	}
+
+	if len(mmString.expectations) > 0 {
+		mmString.mock.t.Fatalf("Some expectations are already set for the Constant.String method")
+	}
+
+	mmString.mock.funcString = f
+	return mmString.mock
+}
+
+// String implements Constant
+func (mmString *ConstantMock) String() (s1 string) {
+	mm_atomic.AddUint64(&mmString.beforeStringCounter, 1)
+	defer mm_atomic.AddUint64(&mmString.afterStringCounter, 1)
+
+	if mmString.inspectFuncString != nil {
+		mmString.inspectFuncString()
+	}
+
+	if mmString.StringMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmString.StringMock.defaultExpectation.Counter, 1)
+
+		mm_results := mmString.StringMock.defaultExpectation.results
+		if mm_results == nil {
+			mmString.t.Fatal("No results are set for the ConstantMock.String")
+		}
+		return (*mm_results).s1
+	}
+	if mmString.funcString != nil {
+		return mmString.funcString()
+	}
+	mmString.t.Fatalf("Unexpected call to ConstantMock.String.")
+	return
+}
+
+// StringAfterCounter returns a count of finished ConstantMock.String invocations
+func (mmString *ConstantMock) StringAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmString.afterStringCounter)
+}
+
+// StringBeforeCounter returns a count of ConstantMock.String invocations
+func (mmString *ConstantMock) StringBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmString.beforeStringCounter)
+}
+
+// MinimockStringDone returns true if the count of the String invocations corresponds
+// the number of defined expectations
+func (m *ConstantMock) MinimockStringDone() bool {
+	for _, e := range m.StringMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.StringMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterStringCounter) < 1 {
+		return false
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcString != nil && mm_atomic.LoadUint64(&m.afterStringCounter) < 1 {
+		return false
+	}
+	return true
+}
+
+// MinimockStringInspect logs each unmet expectation
+func (m *ConstantMock) MinimockStringInspect() {
+	for _, e := range m.StringMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Error("Expected call to ConstantMock.String")
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.StringMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterStringCounter) < 1 {
+		m.t.Error("Expected call to ConstantMock.String")
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcString != nil && mm_atomic.LoadUint64(&m.afterStringCounter) < 1 {
+		m.t.Error("Expected call to ConstantMock.String")
+	}
 }
 
 type mConstantMockType struct {
@@ -332,6 +708,10 @@ func (m *ConstantMock) MinimockValueInspect() {
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *ConstantMock) MinimockFinish() {
 	if !m.minimockDone() {
+		m.MinimockCompareToInspect()
+
+		m.MinimockStringInspect()
+
 		m.MinimockTypeInspect()
 
 		m.MinimockValueInspect()
@@ -358,6 +738,8 @@ func (m *ConstantMock) MinimockWait(timeout mm_time.Duration) {
 func (m *ConstantMock) minimockDone() bool {
 	done := true
 	return done &&
+		m.MinimockCompareToDone() &&
+		m.MinimockStringDone() &&
 		m.MinimockTypeDone() &&
 		m.MinimockValueDone()
 }
