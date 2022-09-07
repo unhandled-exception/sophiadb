@@ -9,7 +9,7 @@ type AndPredicate struct {
 	terms []Term
 }
 
-func NewAdnPredicate(term Term) AndPredicate {
+func NewAndPredicate(term Term) AndPredicate {
 	p := AndPredicate{
 		terms: make([]Term, 0),
 	}
