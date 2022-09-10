@@ -98,11 +98,11 @@ func (et EqualTerm) EquatesWithField(fieldName string) (string, bool) {
 	rv, _ := et.rhs.Value()
 
 	if et.lhs.IsFieldName() && et.rhs.IsFieldName() && lv.(string) == fieldName {
-		return lv.(string), true
+		return rv.(string), true
 	}
 
 	if et.lhs.IsFieldName() && et.rhs.IsFieldName() && rv.(string) == fieldName {
-		return rv.(string), true
+		return lv.(string), true
 	}
 
 	return "", false

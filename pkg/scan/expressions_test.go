@@ -70,6 +70,8 @@ func (ts *ExpressionsTestSuite) TestScalarExpression_Evaluate() {
 	wts, err := scan.NewTableScan(tx1, testDataFile, layout)
 	require.NoError(t, err)
 
+	defer wts.Close()
+
 	for i := 1; i < records+1; i++ {
 		require.NoError(t, wts.Insert())
 		require.NoError(t, wts.SetInt64("id", int64(i)))
@@ -83,12 +85,14 @@ func (ts *ExpressionsTestSuite) TestScalarExpression_Evaluate() {
 	rts, err := scan.NewTableScan(tx2, testDataFile, layout)
 	require.NoError(t, err)
 
+	defer rts.Close()
+
 	assert.NoError(t, scan.ForEach(rts, func() (bool, error) {
 		c, err := sut.Evaluate(rts)
 		require.NoError(t, err)
 		require.Equal(t, scan.CompEqual, c.CompareTo(scalar))
 
-		return true, nil
+		return false, nil
 	}))
 
 	assert.NoError(t, tx2.Commit())
@@ -144,6 +148,8 @@ func (ts *ExpressionsTestSuite) TestFieldExpression_Evaluate() {
 	wts, err := scan.NewTableScan(tx1, testDataFile, layout)
 	require.NoError(t, err)
 
+	defer wts.Close()
+
 	for i := 1; i < records+1; i++ {
 		require.NoError(t, wts.Insert())
 		require.NoError(t, wts.SetInt64("id", int64(i)))
@@ -157,6 +163,8 @@ func (ts *ExpressionsTestSuite) TestFieldExpression_Evaluate() {
 	rts, err := scan.NewTableScan(tx2, testDataFile, layout)
 	require.NoError(t, err)
 
+	defer rts.Close()
+
 	i := 0
 
 	assert.NoError(t, scan.ForEach(rts, func() (bool, error) {
@@ -166,8 +174,9 @@ func (ts *ExpressionsTestSuite) TestFieldExpression_Evaluate() {
 
 		i++
 
-		return true, nil
+		return false, nil
 	}))
 
+	assert.Equal(t, records, i)
 	assert.NoError(t, tx2.Commit())
 }

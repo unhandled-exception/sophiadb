@@ -42,7 +42,9 @@ func (ts *TermsTestSuite) TestEqualTerm_isSatisfied() {
 
 	e1 := scan.NewFieldExpression("id")
 
-	var value int64 = 4
+	records := 100
+
+	var value int64 = 45
 	e2 := scan.NewScalarExpression(scan.NewInt64Constant(value))
 
 	sut := scan.NewEqualTerm(e1, e2)
@@ -53,10 +55,10 @@ func (ts *TermsTestSuite) TestEqualTerm_isSatisfied() {
 	tx1, err := tm.Transaction()
 	require.NoError(t, err)
 
-	records := 10
-
 	wts, err := scan.NewTableScan(tx1, testDataFile, layout)
 	require.NoError(t, err)
+
+	defer wts.Close()
 
 	for i := 1; i < records+1; i++ {
 		require.NoError(t, wts.Insert())
@@ -71,13 +73,15 @@ func (ts *TermsTestSuite) TestEqualTerm_isSatisfied() {
 	rts, err := scan.NewTableScan(tx2, testDataFile, layout)
 	require.NoError(t, err)
 
+	defer rts.Close()
+
 	var i int64 = 0
 
 	assert.NoError(t, scan.ForEach(rts, func() (bool, error) {
 		ok, err := sut.IsSatisfied(rts)
 		require.NoError(t, err)
 
-		if i == value {
+		if i+1 == value {
 			assert.True(t, ok)
 		} else {
 			assert.False(t, ok)
@@ -85,8 +89,10 @@ func (ts *TermsTestSuite) TestEqualTerm_isSatisfied() {
 
 		i++
 
-		return true, nil
+		return false, nil
 	}))
+
+	assert.EqualValues(t, records, i)
 
 	assert.NoError(t, tx2.Commit())
 }
@@ -172,11 +178,11 @@ func (ts *TermsTestSuite) TestEqualTerm_EquatesWithField() {
 	sut2 := scan.NewEqualTerm(ef1, ef2)
 	fieldName, ok = sut2.EquatesWithField("id")
 	assert.True(t, ok)
-	assert.Equal(t, "id", fieldName)
+	assert.Equal(t, "age", fieldName)
 
 	fieldName, ok = sut2.EquatesWithField("age")
 	assert.True(t, ok)
-	assert.Equal(t, "age", fieldName)
+	assert.Equal(t, "id", fieldName)
 
 	fieldName, ok = sut2.EquatesWithField("unexistant")
 	assert.False(t, ok)
