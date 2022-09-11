@@ -62,7 +62,7 @@ func (ts *ViewsTestSuite) TestCreateView_Ok() {
 
 	i := 0
 
-	require.NoError(t, recs.ForEach(func() (bool, error) {
+	require.NoError(t, scan.ForEach(recs, func() (bool, error) {
 		vn, err := recs.GetString(metadata.VcatViewNameField)
 		require.NoError(t, err)
 

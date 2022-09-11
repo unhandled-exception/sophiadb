@@ -11,7 +11,7 @@ type HashIndex struct {
 	*BaseIndex
 }
 
-func NewHashIndex(tx scan.TRXInt, idxName string, idxLayout records.Layout) (Index, error) {
+func NewHashIndex(tx scan.TRXInt, idxName string, idxLayout records.Layout) (*HashIndex, error) {
 	return &HashIndex{
 		BaseIndex: &BaseIndex{
 			idxType:   HashIndexType,

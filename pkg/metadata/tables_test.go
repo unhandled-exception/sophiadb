@@ -72,7 +72,7 @@ func (ts *TablesTestSuite) TestCreateTable_Ok() {
 
 	i := 0
 
-	require.NoError(t, recs.ForEach(func() (bool, error) {
+	require.NoError(t, scan.ForEach(recs, func() (bool, error) {
 		tn, ierr := recs.GetString(metadata.TcatTableNameField)
 		require.NoError(t, ierr)
 
@@ -100,7 +100,7 @@ func (ts *TablesTestSuite) TestCreateTable_Ok() {
 	i = -1
 	lt := ""
 
-	require.NoError(t, recs.ForEach(func() (bool, error) {
+	require.NoError(t, scan.ForEach(recs, func() (bool, error) {
 		type fieldInfo struct {
 			TableName string
 			FieldName string
@@ -124,7 +124,7 @@ func (ts *TablesTestSuite) TestCreateTable_Ok() {
 			lt = tn
 		}
 
-		require.NoError(t, recs.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+		require.NoError(t, scan.ForEachValue(recs, func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
 			var ok bool
 
 			switch name {

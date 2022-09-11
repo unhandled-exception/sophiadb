@@ -2,7 +2,7 @@ package scan
 
 import "github.com/unhandled-exception/sophiadb/pkg/records"
 
-func scanForEach(ts Scan, call func() (bool, error)) error {
+func ForEach(ts Scan, call func() (bool, error)) error {
 	if err := ts.BeforeFirst(); err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func scanForEach(ts Scan, call func() (bool, error)) error {
 	return nil
 }
 
-func scanForEachField(ts Scan, call func(name string, fieldType records.FieldType) (bool, error)) error {
+func ForEachField(ts Scan, call func(name string, fieldType records.FieldType) (bool, error)) error {
 	for _, name := range ts.Layout().Schema.Fields() {
 		fieldType := ts.Layout().Schema.Type(name)
 
@@ -47,7 +47,7 @@ func scanForEachField(ts Scan, call func(name string, fieldType records.FieldTyp
 	return nil
 }
 
-func scanForEachValue(ts Scan, call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error {
+func ForEachValue(ts Scan, call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error {
 	for _, name := range ts.Layout().Schema.Fields() {
 		fieldType := ts.Layout().Schema.Type(name)
 

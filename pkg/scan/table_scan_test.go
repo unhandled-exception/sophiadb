@@ -16,9 +16,8 @@ import (
 )
 
 var (
-	_ scan.Scan          = &scan.TableScan{}
-	_ scan.ScanIterators = &scan.TableScan{}
-	_ scan.UpdateScan    = &scan.TableScan{}
+	_ scan.Scan       = &scan.TableScan{}
+	_ scan.UpdateScan = &scan.TableScan{}
 )
 
 type TableScanTestSuite struct {
@@ -134,14 +133,14 @@ func (ts *TableScanTestSuite) TestDelete() {
 	for i := 0; i < int(cnt-3); i++ {
 		_, _ = sut.Next()
 	}
-	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 31}, sut.RID())
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 28}, sut.RID())
 
 	require.NoError(t, sut.Delete())
 
 	_ = sut.BeforeFirst()
 	require.NoError(t, sut.Insert())
 
-	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 31}, sut.RID())
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 28}, sut.RID())
 }
 
 func (ts *TableScanTestSuite) TestRID() {
@@ -250,7 +249,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Ok() {
 
 	fields := make([]fStruct, 0, sut.Layout().Schema.Count())
 
-	require.NoError(t, sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+	require.NoError(t, scan.ForEachField(sut, func(name string, fieldType records.FieldType) (bool, error) {
 		fields = append(fields, fStruct{
 			Name: name,
 			Type: fieldType,
@@ -264,6 +263,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Ok() {
 			{Name: "id", Type: records.Int64Field},
 			{Name: "name", Type: records.StringField},
 			{Name: "age", Type: records.Int8Field},
+			{Name: "_hidden", Type: records.Int64Field},
 		},
 		fields,
 	)
@@ -276,7 +276,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Errors() {
 	defer clean()
 
 	i := 0
-	err := sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+	err := scan.ForEachField(sut, func(name string, fieldType records.FieldType) (bool, error) {
 		i++
 
 		return false, fmt.Errorf("fail caller %d", i)
@@ -285,7 +285,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Errors() {
 
 	i = 0
 
-	require.NoError(t, sut.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+	require.NoError(t, scan.ForEachField(sut, func(name string, fieldType records.FieldType) (bool, error) {
 		i++
 		if i > 1 {
 			return true, nil
@@ -320,8 +320,8 @@ func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 	i := 0
 	f := map[string]int{}
 
-	require.NoError(t, sut.ForEach(func() (bool, error) {
-		require.NoError(t, sut.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+	require.NoError(t, scan.ForEach(sut, func() (bool, error) {
+		require.NoError(t, scan.ForEachValue(sut, func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
 			switch name {
 			case "id":
 				assert.EqualValues(t, records.Int64Field, fieldType)
@@ -347,9 +347,10 @@ func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 	assert.EqualValues(t, cnt, i)
 	assert.Equal(t,
 		map[string]int{
-			"age":  int(cnt),
-			"id":   int(cnt),
-			"name": int(cnt),
+			"age":     int(cnt),
+			"id":      int(cnt),
+			"name":    int(cnt),
+			"_hidden": int(cnt),
 		},
 		f,
 	)
@@ -377,7 +378,7 @@ func (ts *TableScanTestSuite) TestForEach_Stop() {
 
 	i := 0
 
-	require.NoError(t, sut.ForEach(func() (bool, error) {
+	require.NoError(t, scan.ForEach(sut, func() (bool, error) {
 		if i == int(cnt/2) {
 			return true, nil
 		}
@@ -413,8 +414,8 @@ func (ts *TableScanTestSuite) TestForEachAndForEachValue_Errors() {
 	i := 0
 	vErr := fmt.Errorf("foreach stop")
 
-	require.EqualError(t, sut.ForEach(func() (bool, error) {
-		err := sut.ForEachValue(func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+	require.EqualError(t, scan.ForEach(sut, func() (bool, error) {
+		err := scan.ForEachValue(sut, func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
 			if i == int(cnt/2) {
 				return false, vErr
 			}

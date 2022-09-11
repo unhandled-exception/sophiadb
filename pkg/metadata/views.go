@@ -58,7 +58,7 @@ func (v *Views) ViewExists(viewName string, trx scan.TRXInt) (bool, error) {
 
 	defer vcat.Close()
 
-	if err := vcat.ForEach(func() (bool, error) {
+	if err := scan.ForEach(vcat, func() (bool, error) {
 		name, err := vcat.GetString(VcatViewNameField)
 		if err != nil {
 			return true, err
@@ -95,7 +95,7 @@ func (v *Views) CreateView(viewName string, viewDef string, trx scan.TRXInt) err
 		return v.wrapError(err, viewName, nil)
 	}
 
-	if err := vcat.ForEachField(func(name string, fieldType records.FieldType) (bool, error) {
+	if err := scan.ForEachField(vcat, func(name string, fieldType records.FieldType) (bool, error) {
 		var err error
 
 		switch name {
@@ -125,7 +125,7 @@ func (v *Views) ViewDef(viewName string, trx scan.TRXInt) (string, error) {
 
 	defer vcat.Close()
 
-	if err := vcat.ForEach(func() (bool, error) {
+	if err := scan.ForEach(vcat, func() (bool, error) {
 		name, err := vcat.GetString(VcatViewNameField)
 		if err != nil {
 			return true, err
