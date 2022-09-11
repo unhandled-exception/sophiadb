@@ -15,7 +15,7 @@ test: gen
 
 .PHONY: test_ci
 test_ci:
-	go test -timeout 120s -race -shuffle on -coverprofile=coverage.out -covermode atomic -count=1 -v ./...
+	go test -timeout 300s -race -shuffle on -coverprofile=coverage.out -covermode atomic -count=1 -v ./...
 	go tool cover -func coverage.out
 
 .PHONY: vendor

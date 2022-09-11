@@ -49,6 +49,7 @@ func (ts *Suite) testLayout() records.Layout {
 	schema.AddInt64Field("id")
 	schema.AddStringField("name", 25)
 	schema.AddInt8Field("age")
+	schema.AddInt64Field("_hidden")
 
 	return records.NewLayout(schema)
 }

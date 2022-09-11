@@ -133,14 +133,14 @@ func (ts *TableScanTestSuite) TestDelete() {
 	for i := 0; i < int(cnt-3); i++ {
 		_, _ = sut.Next()
 	}
-	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 31}, sut.RID())
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 28}, sut.RID())
 
 	require.NoError(t, sut.Delete())
 
 	_ = sut.BeforeFirst()
 	require.NoError(t, sut.Insert())
 
-	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 31}, sut.RID())
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 28}, sut.RID())
 }
 
 func (ts *TableScanTestSuite) TestRID() {
@@ -263,6 +263,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Ok() {
 			{Name: "id", Type: records.Int64Field},
 			{Name: "name", Type: records.StringField},
 			{Name: "age", Type: records.Int8Field},
+			{Name: "_hidden", Type: records.Int64Field},
 		},
 		fields,
 	)
@@ -346,9 +347,10 @@ func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 	assert.EqualValues(t, cnt, i)
 	assert.Equal(t,
 		map[string]int{
-			"age":  int(cnt),
-			"id":   int(cnt),
-			"name": int(cnt),
+			"age":     int(cnt),
+			"id":      int(cnt),
+			"name":    int(cnt),
+			"_hidden": int(cnt),
 		},
 		f,
 	)
