@@ -31,8 +31,8 @@ func ForEach(ts Scan, call func() (bool, error)) error {
 }
 
 func ForEachField(ts Scan, call func(name string, fieldType records.FieldType) (bool, error)) error {
-	for _, name := range ts.Layout().Schema.Fields() {
-		fieldType := ts.Layout().Schema.Type(name)
+	for _, name := range ts.Schema().Fields() {
+		fieldType := ts.Schema().Type(name)
 
 		stop, err := call(name, fieldType)
 		if err != nil {
@@ -48,8 +48,8 @@ func ForEachField(ts Scan, call func(name string, fieldType records.FieldType) (
 }
 
 func ForEachValue(ts Scan, call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error {
-	for _, name := range ts.Layout().Schema.Fields() {
-		fieldType := ts.Layout().Schema.Type(name)
+	for _, name := range ts.Schema().Fields() {
+		fieldType := ts.Schema().Type(name)
 
 		var (
 			value interface{}

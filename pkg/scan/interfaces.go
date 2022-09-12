@@ -20,7 +20,8 @@ type TRXInt interface {
 }
 
 type Scan interface {
-	Layout() records.Layout
+	Schema() records.Schema
+
 	Close()
 	BeforeFirst() error
 	Next() (bool, error)

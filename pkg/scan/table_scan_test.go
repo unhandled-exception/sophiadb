@@ -195,11 +195,11 @@ func (ts *TableScanTestSuite) TestGetAndSetConstants() {
 	}
 
 	require.NoError(t, sut.MoveToRID(types.RID{BlockNumber: 0, Slot: 0}))
-	require.ErrorIs(t, sut.SetVal("id", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrTableScan)
-	require.ErrorIs(t, sut.SetVal("age", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrTableScan)
-	require.ErrorIs(t, sut.SetVal("name", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrTableScan)
+	require.ErrorIs(t, sut.SetVal("id", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrScan)
+	require.ErrorIs(t, sut.SetVal("age", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrScan)
+	require.ErrorIs(t, sut.SetVal("name", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrScan)
 
-	require.ErrorIs(t, sut.SetVal("unknown", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrTableScan)
+	require.ErrorIs(t, sut.SetVal("unknown", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrScan)
 
 	require.NoError(t, sut.BeforeFirst())
 
@@ -221,7 +221,7 @@ func (ts *TableScanTestSuite) TestGetAndSetConstants() {
 	}
 
 	_, err := sut.GetVal("unknown")
-	require.ErrorIs(t, err, scan.ErrTableScan)
+	require.ErrorIs(t, err, scan.ErrScan)
 }
 
 func (ts *TableScanTestSuite) TestHasField() {

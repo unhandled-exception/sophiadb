@@ -17,8 +17,8 @@ func NewSelectScan(s Scan, pred Predicate) *SelectScan {
 	}
 }
 
-func (ss *SelectScan) Layout() records.Layout {
-	return ss.s.Layout()
+func (ss *SelectScan) Schema() records.Schema {
+	return ss.s.Schema()
 }
 
 func (ss *SelectScan) Close() {
