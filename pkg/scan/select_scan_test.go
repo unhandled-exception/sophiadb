@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -155,4 +156,34 @@ func (ts *SelectScanTestSuite) TestUpdate() {
 	assert.EqualValues(t, 3, cnt)
 
 	require.NoError(t, trx1.Commit())
+}
+
+func (ts *SelectScanTestSuite) TestFailIfWrappedScanNotImplementsUpdateScan() {
+	t := ts.T()
+
+	mc := minimock.NewController(t)
+
+	ts1 := scan.NewScanMock(mc)
+	ts1.HasFieldMock.Return(false)
+	ts1.SchemaMock.Return(ts.testLayout().Schema)
+
+	sut := scan.NewSelectScan(ts1,
+		scan.NewAndPredicate(
+			scan.NewEqualTerm(
+				scan.NewFieldExpression("age"),
+				scan.NewScalarExpression(scan.NewInt8Constant(2)),
+			),
+		),
+	)
+
+	assert.ErrorIs(t, sut.Insert(), scan.ErrUpdateScanNotImplemented)
+	assert.ErrorIs(t, sut.Delete(), scan.ErrUpdateScanNotImplemented)
+
+	assert.ErrorIs(t, sut.MoveToRID(types.RID{}), scan.ErrUpdateScanNotImplemented)
+	assert.Equal(t, types.RID{}, sut.RID())
+
+	assert.ErrorIs(t, sut.SetInt64("id", 0), scan.ErrUpdateScanNotImplemented)
+	assert.ErrorIs(t, sut.SetInt8("age", 0), scan.ErrUpdateScanNotImplemented)
+	assert.ErrorIs(t, sut.SetString("name", ""), scan.ErrUpdateScanNotImplemented)
+	assert.ErrorIs(t, sut.SetVal("id", scan.NewInt64Constant(0)), scan.ErrUpdateScanNotImplemented)
 }
