@@ -71,7 +71,6 @@ func (ts *SelectScanTestSuite) TestIterate() {
 		),
 	)
 
-	assert.Equal(t, ts.testLayout().String(), sut.Layout().String())
 	assert.True(t, sut.HasField("id"))
 
 	defer sut.Close()

@@ -48,6 +48,10 @@ func (ts *TableScan) Layout() records.Layout {
 	return ts.layout
 }
 
+func (ts *TableScan) Schema() records.Schema {
+	return ts.layout.Schema
+}
+
 func (ts *TableScan) Close() {
 	if ts.rp != nil {
 		ts.trx.Unpin(ts.rp.Block)
