@@ -40,8 +40,6 @@ func (ts *SelectScanTestSuite) TestIterate() {
 	ts1, err := scan.NewTableScan(trx1, testDataFile, ts.testLayout())
 	require.NoError(t, err)
 
-	defer ts1.Close()
-
 	for i := 0; i < records; i++ {
 		require.NoError(t, ts1.Insert())
 
@@ -58,8 +56,6 @@ func (ts *SelectScanTestSuite) TestIterate() {
 
 	ts2, err := scan.NewTableScan(trx2, testDataFile, ts.testLayout())
 	require.NoError(t, err)
-
-	defer ts2.Close()
 
 	sut := scan.NewSelectScan(
 		ts2,
@@ -115,8 +111,6 @@ func (ts *SelectScanTestSuite) TestUpdate() {
 
 	ts2, err := scan.NewTableScan(trx1, testDataFile, ts.testLayout())
 	require.NoError(t, err)
-
-	defer ts2.Close()
 
 	sut := scan.NewSelectScan(
 		ts2,
