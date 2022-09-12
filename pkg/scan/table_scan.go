@@ -28,7 +28,7 @@ func NewTableScan(trx TRXInt, filename string, layout records.Layout) (*TableSca
 
 	size, err := trx.Size(filename)
 	if err != nil {
-		return nil, errors.WithMessage(ErrTableScan, err.Error())
+		return nil, errors.WithMessage(ErrScan, err.Error())
 	}
 
 	if size == 0 {
@@ -65,7 +65,7 @@ func (ts *TableScan) BeforeFirst() error {
 func (ts *TableScan) Next() (bool, error) {
 	currentSlot, err := ts.rp.NextAfter(ts.currentSlot)
 	if err != nil && !errors.Is(err, records.ErrSlotNotFound) {
-		return false, errors.WithMessage(ErrTableScan, err.Error())
+		return false, errors.WithMessage(ErrScan, err.Error())
 	}
 
 	ts.currentSlot = currentSlot
@@ -86,7 +86,7 @@ func (ts *TableScan) Next() (bool, error) {
 
 		currentSlot, err = ts.rp.NextAfter(ts.currentSlot)
 		if err != nil {
-			return false, errors.WithMessage(ErrTableScan, err.Error())
+			return false, errors.WithMessage(ErrScan, err.Error())
 		}
 
 		ts.currentSlot = currentSlot
@@ -98,7 +98,7 @@ func (ts *TableScan) Next() (bool, error) {
 func (ts *TableScan) GetInt64(fieldName string) (int64, error) {
 	val, err := ts.rp.GetInt64(ts.currentSlot, fieldName)
 	if err != nil {
-		return 0, errors.WithMessage(ErrTableScan, err.Error())
+		return 0, errors.WithMessage(ErrScan, err.Error())
 	}
 
 	return val, nil
@@ -107,7 +107,7 @@ func (ts *TableScan) GetInt64(fieldName string) (int64, error) {
 func (ts *TableScan) GetInt8(fieldName string) (int8, error) {
 	val, err := ts.rp.GetInt8(ts.currentSlot, fieldName)
 	if err != nil {
-		return 0, errors.WithMessage(ErrTableScan, err.Error())
+		return 0, errors.WithMessage(ErrScan, err.Error())
 	}
 
 	return val, nil
@@ -116,7 +116,7 @@ func (ts *TableScan) GetInt8(fieldName string) (int8, error) {
 func (ts *TableScan) GetString(fieldName string) (string, error) {
 	val, err := ts.rp.GetString(ts.currentSlot, fieldName)
 	if err != nil {
-		return "", errors.WithMessage(ErrTableScan, err.Error())
+		return "", errors.WithMessage(ErrScan, err.Error())
 	}
 
 	return val, nil
@@ -146,7 +146,7 @@ func (ts *TableScan) GetVal(fieldName string) (Constant, error) {
 
 		return NewStringConstant(val), nil
 	default:
-		return nil, errors.WithMessagef(ErrTableScan, "unknown field type %d for field '%s'", t, fieldName)
+		return nil, errors.WithMessagef(ErrScan, "unknown field type %d for field '%s'", t, fieldName)
 	}
 }
 
@@ -156,7 +156,7 @@ func (ts *TableScan) HasField(fieldName string) bool {
 
 func (ts *TableScan) SetInt64(fieldName string, value int64) error {
 	if err := ts.rp.SetInt64(ts.currentSlot, fieldName, value); err != nil {
-		return errors.WithMessage(ErrTableScan, err.Error())
+		return errors.WithMessage(ErrScan, err.Error())
 	}
 
 	return nil
@@ -164,7 +164,7 @@ func (ts *TableScan) SetInt64(fieldName string, value int64) error {
 
 func (ts *TableScan) SetInt8(fieldName string, value int8) error {
 	if err := ts.rp.SetInt8(ts.currentSlot, fieldName, value); err != nil {
-		return errors.WithMessage(ErrTableScan, err.Error())
+		return errors.WithMessage(ErrScan, err.Error())
 	}
 
 	return nil
@@ -172,7 +172,7 @@ func (ts *TableScan) SetInt8(fieldName string, value int8) error {
 
 func (ts *TableScan) SetString(fieldName string, value string) error {
 	if err := ts.rp.SetString(ts.currentSlot, fieldName, value); err != nil {
-		return errors.WithMessage(ErrTableScan, err.Error())
+		return errors.WithMessage(ErrScan, err.Error())
 	}
 
 	return nil
@@ -183,7 +183,7 @@ func (ts *TableScan) SetVal(fieldName string, value Constant) error {
 	case records.Int64Field:
 		v, ok := value.Value().(int64)
 		if !ok {
-			return errors.WithMessagef(ErrTableScan, "failed to convert fields (%s) constant to value (int64)", fieldName)
+			return errors.WithMessagef(ErrScan, "failed to convert fields (%s) constant to value (int64)", fieldName)
 		}
 
 		if err := ts.SetInt64(fieldName, v); err != nil {
@@ -192,7 +192,7 @@ func (ts *TableScan) SetVal(fieldName string, value Constant) error {
 	case records.Int8Field:
 		v, ok := value.Value().(int8)
 		if !ok {
-			return errors.WithMessagef(ErrTableScan, "failed to convert fields (%s) constant to value (int64)", fieldName)
+			return errors.WithMessagef(ErrScan, "failed to convert fields (%s) constant to value (int64)", fieldName)
 		}
 
 		if err := ts.SetInt8(fieldName, v); err != nil {
@@ -201,14 +201,14 @@ func (ts *TableScan) SetVal(fieldName string, value Constant) error {
 	case records.StringField:
 		v, ok := value.Value().(string)
 		if !ok {
-			return errors.WithMessagef(ErrTableScan, "failed to convert fields (%s) constant to value (int64)", fieldName)
+			return errors.WithMessagef(ErrScan, "failed to convert fields (%s) constant to value (int64)", fieldName)
 		}
 
 		if err := ts.SetString(fieldName, v); err != nil {
 			return err
 		}
 	default:
-		return errors.WithMessagef(ErrTableScan, "unknown field type %d for field '%s'", t, fieldName)
+		return errors.WithMessagef(ErrScan, "unknown field type %d for field '%s'", t, fieldName)
 	}
 
 	return nil
@@ -268,7 +268,7 @@ func (ts *TableScan) MoveToRID(rid types.RID) error {
 
 	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout())
 	if err != nil {
-		return errors.WithMessage(ErrTableScan, err.Error())
+		return errors.WithMessage(ErrScan, err.Error())
 	}
 
 	ts.rp = rp
@@ -298,7 +298,7 @@ func (ts *TableScan) moveToBlock(blockNumber types.BlockID) error {
 
 	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout())
 	if err != nil {
-		return errors.WithMessage(ErrTableScan, err.Error())
+		return errors.WithMessage(ErrScan, err.Error())
 	}
 
 	ts.rp = rp
@@ -312,17 +312,17 @@ func (ts *TableScan) moveToNewBlock() error {
 
 	block, err := ts.trx.Append(ts.Filename)
 	if err != nil {
-		return errors.WithMessage(ErrTableScan, err.Error())
+		return errors.WithMessage(ErrScan, err.Error())
 	}
 
 	rp, err := records.NewRecordPage(ts.trx, block, ts.Layout())
 	if err != nil {
-		return errors.WithMessage(ErrTableScan, err.Error())
+		return errors.WithMessage(ErrScan, err.Error())
 	}
 
 	_, err = rp.Format()
 	if err != nil {
-		return errors.WithMessage(ErrTableScan, err.Error())
+		return errors.WithMessage(ErrScan, err.Error())
 	}
 
 	ts.rp = rp
@@ -334,7 +334,7 @@ func (ts *TableScan) moveToNewBlock() error {
 func (ts *TableScan) atLastBlock() (bool, error) {
 	size, err := ts.trx.Size(ts.Filename)
 	if err != nil {
-		return false, errors.WithMessage(ErrTableScan, err.Error())
+		return false, errors.WithMessage(ErrScan, err.Error())
 	}
 
 	return ts.rp.Block.Number == size-1, nil
