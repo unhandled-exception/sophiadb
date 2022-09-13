@@ -2,46 +2,114 @@ package scan
 
 import "github.com/unhandled-exception/sophiadb/pkg/records"
 
-type ProductScan struct{}
+type ProductScan struct {
+	s1     Scan
+	s2     Scan
+	schema records.Schema
+}
 
-func NewproductScan(s1 Scan, s2 Scan) *ProductScan {
-	ps := &ProductScan{}
+func NewProductScan(s1 Scan, s2 Scan) *ProductScan {
+	s := &ProductScan{
+		s1: s1,
+		s2: s2,
 
-	return ps
+		schema: records.NewSchema(),
+	}
+
+	s.schema.AddAll(s1.Schema())
+	s.schema.AddAll(s2.Schema())
+
+	return s
 }
 
 func (s *ProductScan) Schema() records.Schema {
-	panic("not implemented") // TODO: Implement
+	return s.schema
 }
 
 func (s *ProductScan) Close() {
-	panic("not implemented") // TODO: Implement
+	s.s1.Close()
+	s.s2.Close()
 }
 
 func (s *ProductScan) BeforeFirst() error {
-	panic("not implemented") // TODO: Implement
+	if err := s.s1.BeforeFirst(); err != nil {
+		return err
+	}
+
+	ok, err := s.s1.Next()
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return ErrEmptyScan
+	}
+
+	if err := s.s2.BeforeFirst(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *ProductScan) Next() (bool, error) {
-	panic("not implemented") // TODO: Implement
+	ok, err := s.s2.Next()
+	if err != nil {
+		return false, err
+	}
+
+	if ok {
+		return true, nil
+	}
+
+	ok, err = s.s1.Next()
+	if err != nil {
+		return false, err
+	}
+
+	if !ok {
+		return false, nil
+	}
+
+	if err := s.s2.BeforeFirst(); err != nil {
+		return false, err
+	}
+
+	return s.s2.Next()
 }
 
 func (s *ProductScan) HasField(fieldName string) bool {
-	panic("not implemented") // TODO: Implement
+	return s.schema.HasField(fieldName)
 }
 
 func (s *ProductScan) GetInt64(fieldName string) (int64, error) {
-	panic("not implemented") // TODO: Implement
+	if s.s1.Schema().HasField(fieldName) {
+		return s.s1.GetInt64(fieldName)
+	}
+
+	return s.s2.GetInt64(fieldName)
 }
 
 func (s *ProductScan) GetInt8(fieldName string) (int8, error) {
-	panic("not implemented") // TODO: Implement
+	if s.s1.Schema().HasField(fieldName) {
+		return s.s1.GetInt8(fieldName)
+	}
+
+	return s.s2.GetInt8(fieldName)
 }
 
 func (s *ProductScan) GetString(fieldName string) (string, error) {
-	panic("not implemented") // TODO: Implement
+	if s.s1.Schema().HasField(fieldName) {
+		return s.s1.GetString(fieldName)
+	}
+
+	return s.s2.GetString(fieldName)
 }
 
 func (s *ProductScan) GetVal(fieldName string) (Constant, error) {
-	panic("not implemented") // TODO: Implement
+	if s.s1.Schema().HasField(fieldName) {
+		return s.s1.GetVal(fieldName)
+	}
+
+	return s.s2.GetVal(fieldName)
 }

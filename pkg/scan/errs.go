@@ -7,4 +7,5 @@ var (
 	ErrScan                     = errors.New("scan failed")
 	ErrUnknownFieldType         = errors.New("unknown field type")
 	ErrFieldNotFound            = errors.New("field not found")
+	ErrEmptyScan                = errors.New("empty scan")
 )
