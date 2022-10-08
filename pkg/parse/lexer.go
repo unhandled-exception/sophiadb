@@ -6,8 +6,8 @@ import (
 )
 
 type Lexer interface {
-	MatchKeyword(keyword string) bool
-	MatchDelim(delim string) bool
+	MatchKeyword(keyword string) (bool, error)
+	MatchDelim(delim string) (bool, error)
 	MatchIntConstant() bool
 	MatchStringConstant() bool
 	MatchID() bool
@@ -38,7 +38,7 @@ type SQLLexer struct {
 	lexStream *tokenizer.Stream
 }
 
-func NewLexer(text string) SQLLexer {
+func NewSQLLexer(text string) SQLLexer {
 	lex := tokenizer.New()
 	lex.AllowKeywordUnderscore()
 	lex.AllowNumbersInKeyword()
@@ -61,16 +61,32 @@ func (l SQLLexer) nextToken() {
 	l.lexStream.GoNext()
 }
 
-func (l SQLLexer) MatchKeyword(keyword string) bool {
+func (l SQLLexer) MatchKeyword(keyword string) (bool, error) {
 	tok := l.lexStream.CurrentToken()
 
-	return tok.Key() == tokenSQLKeyword && tok.ValueString() == keyword
+	var err error
+
+	if tok.Key() != tokenSQLKeyword {
+		err = ErrBadSyntax
+	} else if tok.ValueString() != keyword {
+		err = ErrUnmatchedKeyword
+	}
+
+	return err == nil, err
 }
 
-func (l SQLLexer) MatchDelim(delim string) bool {
+func (l SQLLexer) MatchDelim(delim string) (bool, error) {
 	tok := l.lexStream.CurrentToken()
 
-	return tok.Key() == tokenDelim && tok.ValueString() == delim
+	var err error
+
+	if tok.Key() != tokenDelim {
+		err = ErrBadSyntax
+	} else if tok.ValueString() != delim {
+		err = ErrUnmatchedDelim
+	}
+
+	return err == nil, err
 }
 
 func (l SQLLexer) MatchIntConstant() bool {
@@ -90,8 +106,9 @@ func (l SQLLexer) wrapLexerError(err error) error {
 }
 
 func (l SQLLexer) EatKeyword(keyword string) error {
-	if !l.MatchKeyword(keyword) {
-		return l.wrapLexerError(ErrBadSyntax)
+	ok, err := l.MatchKeyword(keyword)
+	if !ok {
+		return l.wrapLexerError(err)
 	}
 
 	l.nextToken()
@@ -100,8 +117,9 @@ func (l SQLLexer) EatKeyword(keyword string) error {
 }
 
 func (l SQLLexer) EatDelim(delim string) error {
-	if !l.MatchDelim(delim) {
-		return l.wrapLexerError(ErrBadSyntax)
+	ok, err := l.MatchDelim(delim)
+	if !ok {
+		return l.wrapLexerError(err)
 	}
 
 	l.nextToken()

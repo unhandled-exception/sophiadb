@@ -29,17 +29,29 @@ func TestSQLLexerTestSuite(t *testing.T) {
 func (ts *SQLLexerTestSuite) TestMatchKeyword() {
 	t := ts.T()
 
-	sut := parse.NewLexer("select field from table")
-	defer sut.Close()
+	sut1 := parse.NewSQLLexer("select field from table")
+	defer sut1.Close()
 
-	require.True(t, sut.MatchKeyword("select"))
-	require.False(t, sut.MatchKeyword("field"))
+	ok, err := sut1.MatchKeyword("select")
+	require.True(t, ok)
+	require.NoError(t, err)
+
+	ok, err = sut1.MatchKeyword("insert")
+	require.False(t, ok)
+	require.ErrorIs(t, err, parse.ErrUnmatchedKeyword)
+
+	sut2 := parse.NewSQLLexer("field from table")
+	defer sut2.Close()
+
+	ok, err = sut2.MatchKeyword("select")
+	require.False(t, ok)
+	require.ErrorIs(t, err, parse.ErrBadSyntax)
 }
 
 func (ts *SQLLexerTestSuite) TestEatKeyword() {
 	t := ts.T()
 
-	sut := parse.NewLexer("select field from table")
+	sut := parse.NewSQLLexer("select field from table")
 	defer sut.Close()
 
 	require.NoError(t, sut.EatKeyword("select"))
@@ -49,17 +61,29 @@ func (ts *SQLLexerTestSuite) TestEatKeyword() {
 func (ts *SQLLexerTestSuite) TestMatchDelim() {
 	t := ts.T()
 
-	sut := parse.NewLexer(" , var")
-	defer sut.Close()
+	sut1 := parse.NewSQLLexer(" , var")
+	defer sut1.Close()
 
-	require.True(t, sut.MatchDelim(","))
-	require.False(t, sut.MatchDelim("."))
+	ok, err := sut1.MatchDelim(",")
+	require.True(t, ok)
+	require.NoError(t, err)
+
+	ok, err = sut1.MatchDelim("=")
+	require.False(t, ok)
+	require.ErrorIs(t, err, parse.ErrUnmatchedDelim)
+
+	sut2 := parse.NewSQLLexer("from table")
+	defer sut2.Close()
+
+	ok, err = sut2.MatchDelim("select")
+	require.False(t, ok)
+	require.ErrorIs(t, err, parse.ErrBadSyntax)
 }
 
 func (ts *SQLLexerTestSuite) TestEatDelim() {
 	t := ts.T()
 
-	sut := parse.NewLexer(" , var")
+	sut := parse.NewSQLLexer(" , var")
 	defer sut.Close()
 
 	require.NoError(t, sut.EatDelim(","))
@@ -69,12 +93,12 @@ func (ts *SQLLexerTestSuite) TestEatDelim() {
 func (ts *SQLLexerTestSuite) TestMatchID() {
 	t := ts.T()
 
-	sut1 := parse.NewLexer(" name = 'title'")
+	sut1 := parse.NewSQLLexer(" name = 'title'")
 	defer sut1.Close()
 
 	require.True(t, sut1.MatchID())
 
-	sut2 := parse.NewLexer(" select name")
+	sut2 := parse.NewSQLLexer(" select name")
 	defer sut2.Close()
 
 	require.False(t, sut2.MatchID())
@@ -83,7 +107,7 @@ func (ts *SQLLexerTestSuite) TestMatchID() {
 func (ts *SQLLexerTestSuite) TestEatID() {
 	t := ts.T()
 
-	sut := parse.NewLexer("name = var")
+	sut := parse.NewSQLLexer("name = var")
 	defer sut.Close()
 
 	id, err := sut.EatID()
@@ -97,12 +121,12 @@ func (ts *SQLLexerTestSuite) TestEatID() {
 func (ts *SQLLexerTestSuite) TestMatchStringConstant() {
 	t := ts.T()
 
-	sut1 := parse.NewLexer(" 'title name'")
+	sut1 := parse.NewSQLLexer(" 'title name'")
 	defer sut1.Close()
 
 	require.True(t, sut1.MatchStringConstant())
 
-	sut2 := parse.NewLexer("some text")
+	sut2 := parse.NewSQLLexer("some text")
 	defer sut2.Close()
 
 	require.False(t, sut2.MatchStringConstant())
@@ -111,7 +135,7 @@ func (ts *SQLLexerTestSuite) TestMatchStringConstant() {
 func (ts *SQLLexerTestSuite) TestEatStringConstant() {
 	t := ts.T()
 
-	sut := parse.NewLexer(" 'title name' some text")
+	sut := parse.NewSQLLexer(" 'title name' some text")
 	defer sut.Close()
 
 	id, err := sut.EatStringConstant()
@@ -125,12 +149,12 @@ func (ts *SQLLexerTestSuite) TestEatStringConstant() {
 func (ts *SQLLexerTestSuite) TestMatchIntConstant() {
 	t := ts.T()
 
-	sut1 := parse.NewLexer(" 242424454353 ")
+	sut1 := parse.NewSQLLexer(" 242424454353 ")
 	defer sut1.Close()
 
 	require.True(t, sut1.MatchIntConstant())
 
-	sut2 := parse.NewLexer("some text")
+	sut2 := parse.NewSQLLexer("some text")
 	defer sut2.Close()
 
 	require.False(t, sut2.MatchIntConstant())
@@ -139,7 +163,7 @@ func (ts *SQLLexerTestSuite) TestMatchIntConstant() {
 func (ts *SQLLexerTestSuite) TestEatIntConstant() {
 	t := ts.T()
 
-	sut1 := parse.NewLexer(" 123,457")
+	sut1 := parse.NewSQLLexer(" 123,457")
 	defer sut1.Close()
 
 	val, err := sut1.EatIntConstant()
@@ -149,7 +173,7 @@ func (ts *SQLLexerTestSuite) TestEatIntConstant() {
 	_, err = sut1.EatIntConstant()
 	require.ErrorIs(t, err, parse.ErrBadSyntax)
 
-	sut2 := parse.NewLexer(" 123.457")
+	sut2 := parse.NewSQLLexer(" 123.457")
 
 	_, err = sut2.EatIntConstant()
 	require.ErrorIs(t, err, parse.ErrBadSyntax)
