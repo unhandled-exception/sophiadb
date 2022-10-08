@@ -137,7 +137,7 @@ func (c StringConstant) Type() records.FieldType {
 }
 
 func (c StringConstant) String() string {
-	return `"` + c.value + `"`
+	return `'` + c.value + `'`
 }
 
 func (c StringConstant) CompareTo(another Constant) CompResult {

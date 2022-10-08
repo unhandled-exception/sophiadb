@@ -23,12 +23,12 @@ type SQLParser struct {
 func NewSQLParser() SQLParser {
 	p := SQLParser{
 		statements: map[StmtType]Statement{
-			StmtQuery:       QueryStatement{},
-			StmtInsert:      InsertStatement{},
-			StmtDelete:      DeleteStatement{},
-			StmtUpdate:      UpdateStatement{},
-			StmtCreateTable: CreateTableStatement{},
-			StmtCreateView:  CreateViewStatement{},
+			StmtQuery: &SQLSelectStatement{},
+			// StmtInsert:      InsertStatement{},
+			// StmtDelete:      DeleteStatement{},
+			// StmtUpdate:      UpdateStatement{},
+			// StmtCreateTable: CreateTableStatement{},
+			// StmtCreateView:  CreateViewStatement{},
 		},
 	}
 
@@ -36,5 +36,5 @@ func NewSQLParser() SQLParser {
 }
 
 func Parse(string) (StmtType, interface{}, error) {
-	return 0, nil, nil
+	return StmtUnknown, nil, ErrInvalidStatement
 }

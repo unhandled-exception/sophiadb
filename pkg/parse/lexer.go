@@ -1,6 +1,8 @@
 package parse
 
 import (
+	"strings"
+
 	"github.com/bzick/tokenizer"
 	"github.com/pkg/errors"
 )
@@ -17,6 +19,8 @@ type Lexer interface {
 	EatIntConstant() (int64, error)
 	EatStringConstant() (string, error)
 	EatID() (string, error)
+
+	WrapLexerError(err error) error
 }
 
 const (
@@ -24,14 +28,27 @@ const (
 	tokenSQLKeyword
 )
 
-var sqlKeywords []string = []string{
-	"select", "from", "where", "and",
-	"insert", "into", "values",
-	"delete",
-	"update", "set",
-	"create", "table",
-	"varchar", "int", "int64", "int8", "view", "as",
-	"index", "on",
+var sqlKeywords = map[string]struct{}{
+	"select":  {},
+	"from":    {},
+	"where":   {},
+	"and":     {},
+	"insert":  {},
+	"into":    {},
+	"values":  {},
+	"delete":  {},
+	"update":  {},
+	"set":     {},
+	"create":  {},
+	"table":   {},
+	"varchar": {},
+	"int":     {},
+	"int64":   {},
+	"int8":    {},
+	"view":    {},
+	"as":      {},
+	"index":   {},
+	"on":      {},
 }
 
 type SQLLexer struct {
@@ -44,7 +61,7 @@ func NewSQLLexer(text string) SQLLexer {
 	lex.AllowNumbersInKeyword()
 	lex.DefineStringToken(tokenizer.TokenString, "'", "'").SetEscapeSymbol(tokenizer.BackSlash)
 	lex.DefineTokens(tokenDelim, []string{",", "=", "."})
-	lex.DefineTokens(tokenSQLKeyword, sqlKeywords)
+	lex.SetWhiteSpaces([]byte{' ', '\t', '\n', '\r'})
 
 	l := SQLLexer{
 		lexStream: lex.ParseString(text),
@@ -62,13 +79,19 @@ func (l SQLLexer) nextToken() {
 }
 
 func (l SQLLexer) MatchKeyword(keyword string) (bool, error) {
+	if !l.lexStream.IsValid() || l.lexStream.CurrentToken() == nil {
+		return false, ErrEOF
+	}
+
 	tok := l.lexStream.CurrentToken()
 
 	var err error
 
-	if tok.Key() != tokenSQLKeyword {
+	v := strings.ToLower(tok.ValueString())
+
+	if _, ok := sqlKeywords[v]; !ok {
 		err = ErrBadSyntax
-	} else if tok.ValueString() != keyword {
+	} else if v != strings.ToLower(keyword) {
 		err = ErrUnmatchedKeyword
 	}
 
@@ -76,6 +99,10 @@ func (l SQLLexer) MatchKeyword(keyword string) (bool, error) {
 }
 
 func (l SQLLexer) MatchDelim(delim string) (bool, error) {
+	if !l.lexStream.IsValid() || l.lexStream.CurrentToken() == nil {
+		return false, ErrEOF
+	}
+
 	tok := l.lexStream.CurrentToken()
 
 	var err error
@@ -90,25 +117,41 @@ func (l SQLLexer) MatchDelim(delim string) (bool, error) {
 }
 
 func (l SQLLexer) MatchIntConstant() bool {
-	return l.lexStream.CurrentToken().Key() == tokenizer.TokenInteger
+	if !l.lexStream.IsValid() || l.lexStream.CurrentToken() == nil {
+		return false
+	}
+
+	tok := l.lexStream.CurrentToken()
+
+	return tok.Key() == tokenizer.TokenInteger
 }
 
 func (l SQLLexer) MatchStringConstant() bool {
-	return l.lexStream.CurrentToken().Key() == tokenizer.TokenString
+	if !l.lexStream.IsValid() || l.lexStream.CurrentToken() == nil {
+		return false
+	}
+
+	tok := l.lexStream.CurrentToken()
+
+	return tok.Key() == tokenizer.TokenString
 }
 
 func (l SQLLexer) MatchID() bool {
-	return l.lexStream.CurrentToken().Key() == tokenizer.TokenKeyword
-}
+	if !l.lexStream.IsValid() || l.lexStream.CurrentToken() == nil {
+		return false
+	}
 
-func (l SQLLexer) wrapLexerError(err error) error {
-	return errors.WithMessagef(err, `near "%s" at %d:%d`, l.lexStream.CurrentToken().ValueString(), l.lexStream.CurrentToken().Line(), l.lexStream.CurrentToken().Offset())
+	tok := l.lexStream.CurrentToken()
+
+	_, isKeyword := sqlKeywords[strings.ToLower(tok.ValueString())]
+
+	return !isKeyword && tok.Key() == tokenizer.TokenKeyword
 }
 
 func (l SQLLexer) EatKeyword(keyword string) error {
 	ok, err := l.MatchKeyword(keyword)
 	if !ok {
-		return l.wrapLexerError(err)
+		return l.WrapLexerError(err)
 	}
 
 	l.nextToken()
@@ -119,7 +162,7 @@ func (l SQLLexer) EatKeyword(keyword string) error {
 func (l SQLLexer) EatDelim(delim string) error {
 	ok, err := l.MatchDelim(delim)
 	if !ok {
-		return l.wrapLexerError(err)
+		return l.WrapLexerError(err)
 	}
 
 	l.nextToken()
@@ -129,7 +172,7 @@ func (l SQLLexer) EatDelim(delim string) error {
 
 func (l SQLLexer) EatIntConstant() (int64, error) {
 	if !l.MatchIntConstant() {
-		return 0, l.wrapLexerError(ErrBadSyntax)
+		return 0, l.WrapLexerError(ErrBadSyntax)
 	}
 
 	val := l.lexStream.CurrentToken().ValueInt()
@@ -141,7 +184,7 @@ func (l SQLLexer) EatIntConstant() (int64, error) {
 
 func (l SQLLexer) EatStringConstant() (string, error) {
 	if !l.MatchStringConstant() {
-		return "", l.wrapLexerError(ErrBadSyntax)
+		return "", l.WrapLexerError(ErrBadSyntax)
 	}
 
 	id := l.lexStream.CurrentToken().ValueUnescapedString()
@@ -153,12 +196,22 @@ func (l SQLLexer) EatStringConstant() (string, error) {
 
 func (l SQLLexer) EatID() (string, error) {
 	if !l.MatchID() {
-		return "", l.wrapLexerError(ErrBadSyntax)
+		return "", l.WrapLexerError(ErrBadSyntax)
 	}
 
-	id := l.lexStream.CurrentToken().ValueString()
+	id := strings.ToLower(l.lexStream.CurrentToken().ValueString())
 
 	l.nextToken()
 
 	return id, nil
+}
+
+func (l SQLLexer) WrapLexerError(err error) error {
+	tok := l.lexStream.CurrentToken()
+
+	if tok.Key() == tokenizer.TokenUndef {
+		return errors.WithMessage(err, `at end of query`)
+	}
+
+	return errors.WithMessagef(err, `near "%s" at line %d`, tok.ValueString(), tok.Line())
 }
