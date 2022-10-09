@@ -9,6 +9,7 @@ const (
 	StmtDelete
 	StmtUpdate
 	StmtCreateTable
+	StmtCreateIndex
 	StmtCreateView
 )
 
@@ -16,19 +17,18 @@ type Parser interface {
 	Parse(string) (StmtType, interface{}, error)
 }
 
-type SQLParser struct {
-	statements map[StmtType]Statement
-}
+type (
+	newStatementFunc func(string) (Statement, error)
+	SQLParser        struct {
+		statements map[StmtType]newStatementFunc
+	}
+)
 
 func NewSQLParser() SQLParser {
 	p := SQLParser{
-		statements: map[StmtType]Statement{
-			StmtQuery: &SQLSelectStatement{},
-			// StmtInsert:      InsertStatement{},
-			// StmtDelete:      DeleteStatement{},
-			// StmtUpdate:      UpdateStatement{},
-			// StmtCreateTable: CreateTableStatement{},
-			// StmtCreateView:  CreateViewStatement{},
+		statements: map[StmtType]newStatementFunc{
+			StmtQuery:  func(q string) (Statement, error) { return NewSQLSelectStatement(q) },
+			StmtInsert: func(q string) (Statement, error) { return NewSQLInsertStatement(q) },
 		},
 	}
 

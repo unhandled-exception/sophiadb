@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/pkg/parse"
 )
@@ -32,13 +31,13 @@ func (ts *SQLInsertStatementTestSuite) TestStatement_Ok() {
 		},
 	}
 
-	sut := &parse.SQLInsertStatement{}
-
 	for _, tc := range tt {
-		err := sut.Parse(tc.query)
-		require.NoErrorf(t, err, "error: %s for: %s", err, tc.query)
+		sut, err := parse.NewSQLInsertStatement(tc.query)
+		assert.NoErrorf(t, err, "error: %s for: %s", err, tc.query)
 
-		assert.Equal(t, tc.parsed, sut.String())
+		if err == nil {
+			assert.Equal(t, tc.parsed, sut.String())
+		}
 	}
 }
 
@@ -103,10 +102,9 @@ func (ts *SQLInsertStatementTestSuite) TestStatement_Fail() {
 		},
 	}
 
-	sut := &parse.SQLInsertStatement{}
-
 	for _, tc := range tt {
-		err := sut.Parse(tc.query)
-		require.ErrorIsf(t, err, tc.err, "no error for: %s", tc.query)
+		_, err := parse.NewSQLInsertStatement(tc.query)
+
+		assert.ErrorIsf(t, err, tc.err, "no error for: %s", tc.query)
 	}
 }
