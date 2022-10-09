@@ -80,8 +80,8 @@ func (s *SQLInsertStatement) Parse(lex Lexer) error {
 		return err
 	}
 
-	fields, err := parseFields(lex)
-	if err != nil {
+	fields := FieldsList{}
+	if err = fields.Parse(lex); err != nil {
 		return err
 	}
 
@@ -99,8 +99,8 @@ func (s *SQLInsertStatement) Parse(lex Lexer) error {
 		return err
 	}
 
-	values, err := parseValues(lex)
-	if err != nil {
+	values := ValuesList{}
+	if err = values.Parse(lex); err != nil {
 		return err
 	}
 

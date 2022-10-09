@@ -107,8 +107,8 @@ func (s *SQLCreateIndexStatement) Parse(lex Lexer) error {
 		return err
 	}
 
-	fields, err := parseFields(lex)
-	if err != nil {
+	fields := FieldsList{}
+	if err = fields.Parse(lex); err != nil {
 		return err
 	}
 

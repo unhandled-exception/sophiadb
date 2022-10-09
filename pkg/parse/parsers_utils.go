@@ -4,50 +4,6 @@ import (
 	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
-func parseFields(lex Lexer) (FieldsList, error) {
-	fieldName, err := lex.EatID()
-	if err != nil {
-		return nil, err
-	}
-
-	fields := FieldsList{fieldName}
-
-	if ok, _ := lex.MatchDelim(","); ok {
-		_ = lex.EatDelim(",")
-
-		nextFields, werr := parseFields(lex)
-		if werr != nil {
-			return nil, werr
-		}
-
-		fields = append(fields, nextFields...)
-	}
-
-	return fields, nil
-}
-
-func parseTables(lex Lexer) (TablesList, error) {
-	tableName, err := lex.EatID()
-	if err != nil {
-		return nil, err
-	}
-
-	tables := TablesList{tableName}
-
-	if ok, _ := lex.MatchDelim(","); ok {
-		_ = lex.EatDelim(",")
-
-		nextTables, werr := parseTables(lex)
-		if werr != nil {
-			return nil, werr
-		}
-
-		tables = append(tables, nextTables...)
-	}
-
-	return tables, nil
-}
-
 func parseConstant(lex Lexer) (scan.Constant, error) {
 	if lex.MatchIntConstant() {
 		value, _ := lex.EatIntConstant()
@@ -122,26 +78,4 @@ func parsePredicate(lex Lexer) (scan.Predicate, error) {
 	}
 
 	return pred, nil
-}
-
-func parseValues(lex Lexer) (ValuesList, error) {
-	value, err := parseConstant(lex)
-	if err != nil {
-		return nil, err
-	}
-
-	values := ValuesList{value}
-
-	if ok, _ := lex.MatchDelim(","); ok {
-		_ = lex.EatDelim(",")
-
-		nextValues, werr := parseValues(lex)
-		if werr != nil {
-			return nil, werr
-		}
-
-		values = append(values, nextValues...)
-	}
-
-	return values, nil
 }

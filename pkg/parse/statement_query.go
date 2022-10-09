@@ -64,11 +64,13 @@ func (s SQLSelectStatement) Pred() scan.Predicate {
 }
 
 func (s *SQLSelectStatement) Parse(lex Lexer) error {
+	var err error
+
 	s.fields = nil
 	s.tables = nil
 	s.pred = nil
 
-	if err := lex.EatKeyword("select"); err != nil {
+	if err = lex.EatKeyword("select"); err != nil {
 		switch {
 		case errors.Is(err, ErrUnmatchedKeyword):
 			return ErrInvalidStatement
@@ -77,8 +79,8 @@ func (s *SQLSelectStatement) Parse(lex Lexer) error {
 		}
 	}
 
-	fields, err := parseFields(lex)
-	if err != nil {
+	fields := FieldsList{}
+	if err = fields.Parse(lex); err != nil {
 		return err
 	}
 
@@ -89,8 +91,8 @@ func (s *SQLSelectStatement) Parse(lex Lexer) error {
 		return err
 	}
 
-	tables, err := parseTables(lex)
-	if err != nil {
+	tables := TablesList{}
+	if err = tables.Parse(lex); err != nil {
 		return err
 	}
 
