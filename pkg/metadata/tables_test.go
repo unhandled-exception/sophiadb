@@ -240,7 +240,7 @@ func (ts *TablesTestSuite) TestLayout_Ok() {
 		layout, err := sut.Layout(fmt.Sprintf("test_table_%d", i), trx)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[id: int64], [name: string(25)], [age: int8]", layout.Schema.String())
+		assert.Equal(t, "id int64, name varchar(25), age int8", layout.Schema.String())
 		assert.EqualValues(t, 114, layout.SlotSize)
 	}
 }

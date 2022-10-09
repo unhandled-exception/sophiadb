@@ -144,7 +144,7 @@ func (ts *PredicatesTestsuite) TestAndPredicate_MiltipleTerm() {
 	)
 
 	assert.Len(t, sut.Terms(), 5)
-	assert.Equal(t, "id = 12 and age = 8 and name = \"Ivan\" and name = login and 15 = 15", sut.String())
+	assert.Equal(t, "id = 12 and age = 8 and name = 'Ivan' and name = login and 15 = 15", sut.String())
 
 	_, ok := sut.EquatesWithField("id")
 	assert.False(t, ok)
@@ -176,7 +176,7 @@ func (ts *PredicatesTestsuite) TestAndPredicate_MiltipleTerm() {
 	sp := sut.SelectSubPred(layout.Schema)
 	require.NotNil(t, sp)
 	assert.Len(t, sp.Terms(), len(sut.Terms())-1)
-	assert.Equal(t, "id = 12 and age = 8 and name = \"Ivan\" and 15 = 15", sp.String())
+	assert.Equal(t, "id = 12 and age = 8 and name = 'Ivan' and 15 = 15", sp.String())
 
 	jsp := sut.JoinSubPred(layout.Schema, ts.secondTestSchema())
 	require.NotNil(t, jsp)

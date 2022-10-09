@@ -125,11 +125,11 @@ func (s Schema) String() string {
 
 		switch field.Type {
 		case Int8Field:
-			str = fmt.Sprintf("[%s: int8]", name)
+			str = fmt.Sprintf("%s int8", name)
 		case Int64Field:
-			str = fmt.Sprintf("[%s: int64]", name)
+			str = fmt.Sprintf("%s int64", name)
 		case StringField:
-			str = fmt.Sprintf("[%s: string(%d)]", name, field.Length)
+			str = fmt.Sprintf("%s varchar(%d)", name, field.Length)
 		}
 
 		fields = append(fields, str)

@@ -73,7 +73,7 @@ func (ts *IndexInfoTestSuite) TestNewHashIndexInfo() {
 
 	assert.EqualValues(t, indexes.HashIndexType, idx.Type())
 	assert.EqualValues(t, testIndexInfoIndexName, idx.Name())
-	assert.EqualValues(t, "[block: int64], [id: int64], [dataval: int64]", idx.Layout().Schema.String())
+	assert.EqualValues(t, "block int64, id int64, dataval int64", idx.Layout().Schema.String())
 }
 
 func (ts *IndexInfoTestSuite) TestNewBTreeIndexInfo() {
@@ -98,7 +98,7 @@ func (ts *IndexInfoTestSuite) TestNewBTreeIndexInfo() {
 
 	assert.EqualValues(t, indexes.BTreeIndexType, idx.Type())
 	assert.EqualValues(t, testIndexInfoIndexName, idx.Name())
-	assert.EqualValues(t, "[block: int64], [id: int64], [dataval: int64]", idx.Layout().Schema.String())
+	assert.EqualValues(t, "block int64, id int64, dataval int64", idx.Layout().Schema.String())
 }
 
 func (ts *IndexInfoTestSuite) TestCreateLayout() {
@@ -115,15 +115,15 @@ func (ts *IndexInfoTestSuite) TestCreateLayout() {
 	sut1 := metadata.NewIndexInfo(testIndexInfoIndexName, testIndexesTestTable1, indexes.HashIndexType, testIndexInfoFieldName1, layout.Schema, trx, si)
 	idx1, err := sut1.Open()
 	require.NoError(t, err)
-	assert.EqualValues(t, "[block: int64], [id: int64], [dataval: int64]", idx1.Layout().Schema.String())
+	assert.EqualValues(t, "block int64, id int64, dataval int64", idx1.Layout().Schema.String())
 
 	sut2 := metadata.NewIndexInfo(testIndexInfoIndexName, testIndexesTestTable1, indexes.HashIndexType, testIndexInfoFieldName2, layout.Schema, trx, si)
 	idx2, err := sut2.Open()
 	require.NoError(t, err)
-	assert.EqualValues(t, "[block: int64], [id: int64], [dataval: int8]", idx2.Layout().Schema.String())
+	assert.EqualValues(t, "block int64, id int64, dataval int8", idx2.Layout().Schema.String())
 
 	sut3 := metadata.NewIndexInfo(testIndexInfoIndexName, testIndexesTestTable1, indexes.HashIndexType, testIndexInfoFieldName3, layout.Schema, trx, si)
 	idx3, err := sut3.Open()
 	require.NoError(t, err)
-	assert.EqualValues(t, "[block: int64], [id: int64], [dataval: string(100)]", idx3.Layout().Schema.String())
+	assert.EqualValues(t, "block int64, id int64, dataval varchar(100)", idx3.Layout().Schema.String())
 }

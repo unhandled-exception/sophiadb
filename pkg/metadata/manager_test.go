@@ -73,7 +73,7 @@ func (ts *MetadataManagerTestSute) TestTablesMetadata() {
 	layout, err := sut.Layout(testManagerTableName, trx)
 	require.NoError(t, err)
 
-	assert.Equal(t, "schema: [id: int64], [name: string(25)], [age: int8], slot size: 114", layout.String())
+	assert.Equal(t, "schema: id int64, name varchar(25), age int8, slot size: 114", layout.String())
 
 	tables := []string{}
 

@@ -81,7 +81,7 @@ func (ts *ConstantsTestSuite) TestStringConstant() {
 	res, ok := sut.Value().(string)
 	assert.True(t, ok)
 	assert.Equal(t, value, res)
-	assert.Equal(t, `"`+value+`"`, sut.String())
+	assert.Equal(t, `'`+value+`'`, sut.String())
 
 	assert.Equal(t, scan.CompEqual, sut.CompareTo(scan.NewStringConstant(value)))
 	assert.Equal(t, scan.CompLess, sut.CompareTo(scan.NewStringConstant(value+"+")))

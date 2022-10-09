@@ -62,7 +62,10 @@ linters-settings:
       # You can specify idiomatic endings for interface
       - (or|er)$
       - Sqlmock
-      - Constant
       - LogRecord
       - Index
       - Predicate
+      - Expression
+      - Constant
+      - Term
+      - Statement$
