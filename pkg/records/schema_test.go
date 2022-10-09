@@ -26,7 +26,7 @@ func (ts *SchemaTestSuite) TestCreateSchema() {
 	sut.AddStringField("job", 64)
 	sut.AddInt8Field("age")
 
-	assert.Equal(t, "[id: int64], [username: string(128)], [job: string(64)], [age: int8]", sut.String())
+	assert.Equal(t, "id int64, username varchar(128), job varchar(64), age int8", sut.String())
 
 	assert.Equal(t, records.Int64Field, sut.Type("id"))
 	assert.Equal(t, records.StringField, sut.Type("username"))
@@ -54,5 +54,5 @@ func (ts *SchemaTestSuite) TestAddSchema() {
 	sut.AddInt64Field("id")
 	sut.AddAll(schema)
 
-	assert.Equal(t, "[id: int64], [username: string(128)], [job: string(64)], [age: int8]", sut.String())
+	assert.Equal(t, "id int64, username varchar(128), job varchar(64), age int8", sut.String())
 }

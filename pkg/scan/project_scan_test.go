@@ -50,7 +50,7 @@ func (ts *ProjectScanTestsuite) TestSchema() {
 
 	defer sut.Close()
 
-	assert.Equal(t, "[id: int64], [name: string(25)]", sut.Schema().String())
+	assert.Equal(t, "id int64, name varchar(25)", sut.Schema().String())
 }
 
 func (ts *ProjectScanTestsuite) TestIterate() {

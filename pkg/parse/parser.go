@@ -31,6 +31,7 @@ func NewSQLParser() SQLParser {
 			StmtInsert:      func(q string) (Statement, error) { return NewSQLInsertStatement(q) },
 			StmtDelete:      func(q string) (Statement, error) { return NewSQLDeleteStatement(q) },
 			StmtUpdate:      func(q string) (Statement, error) { return NewSQLUpdateStatement(q) },
+			StmtCreateTable: func(q string) (Statement, error) { return NewSQLCreateTableStatement(q) },
 			StmtCreateIndex: func(q string) (Statement, error) { return NewSQLCreateIndexStatement(q) },
 			StmtCreateView:  func(q string) (Statement, error) { return NewSQLCreateViewStatement(q) },
 		},
