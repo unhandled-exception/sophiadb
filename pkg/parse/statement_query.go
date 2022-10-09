@@ -1,8 +1,6 @@
 package parse
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
 
 	"github.com/unhandled-exception/sophiadb/pkg/scan"
@@ -11,14 +9,14 @@ import (
 type SelectStatement interface {
 	Statement
 
-	Fields() []string
-	Tables() []string
+	Fields() FieldsList
+	Tables() TablesList
 	Pred() scan.Predicate
 }
 
 type SQLSelectStatement struct {
-	fields []string
-	tables []string
+	fields FieldsList
+	tables TablesList
 	pred   scan.Predicate
 }
 
@@ -27,10 +25,7 @@ func (s SQLSelectStatement) String() string {
 		return ""
 	}
 
-	q := "select " +
-		strings.Join(s.Fields(), ", ") +
-		" from " +
-		strings.Join(s.Tables(), ", ")
+	q := "select " + s.Fields().String() + " from " + s.Tables().String()
 
 	if pred := s.Pred(); pred != nil {
 		q += " where " + pred.String()
@@ -39,11 +34,11 @@ func (s SQLSelectStatement) String() string {
 	return q
 }
 
-func (s SQLSelectStatement) Fields() []string {
+func (s SQLSelectStatement) Fields() FieldsList {
 	return s.fields
 }
 
-func (s SQLSelectStatement) Tables() []string {
+func (s SQLSelectStatement) Tables() TablesList {
 	return s.tables
 }
 
@@ -95,8 +90,10 @@ func (s *SQLSelectStatement) Parse(q string) error {
 			if s.pred, err = parsePredicate(lex); err != nil {
 				return err
 			}
-		default:
-			return err
+		}
+
+		if !lex.EOF() {
+			return lex.WrapLexerError(ErrBadSyntax)
 		}
 
 		return nil

@@ -19,7 +19,7 @@ func TestSQLSelectStatementTestSuite(t *testing.T) {
 
 var _ parse.SelectStatement = &parse.SQLSelectStatement{}
 
-func (ts *SQLSelectStatementTestSuite) TestSelectQuery_Ok() {
+func (ts *SQLSelectStatementTestSuite) TestStatement_Ok() {
 	t := ts.T()
 
 	tt := []struct {
@@ -46,7 +46,7 @@ func (ts *SQLSelectStatementTestSuite) TestSelectQuery_Ok() {
 	}
 }
 
-func (ts *SQLSelectStatementTestSuite) TestSelectQuery_Fail() {
+func (ts *SQLSelectStatementTestSuite) TestStatement_Fail() {
 	t := ts.T()
 
 	tt := []struct {
@@ -54,7 +54,15 @@ func (ts *SQLSelectStatementTestSuite) TestSelectQuery_Fail() {
 		err   error
 	}{
 		{
+			query: "insert into table1 (field1) values (1)",
+			err:   parse.ErrInvalidStatement,
+		},
+		{
 			query: "select from table1",
+			err:   parse.ErrBadSyntax,
+		},
+		{
+			query: "table1 where",
 			err:   parse.ErrBadSyntax,
 		},
 		{
@@ -67,6 +75,10 @@ func (ts *SQLSelectStatementTestSuite) TestSelectQuery_Fail() {
 		},
 		{
 			query: "select one from",
+			err:   parse.ErrBadSyntax,
+		},
+		{
+			query: "select one",
 			err:   parse.ErrBadSyntax,
 		},
 		{
@@ -87,6 +99,10 @@ func (ts *SQLSelectStatementTestSuite) TestSelectQuery_Fail() {
 		},
 		{
 			query: "select one from table1 where 1=1 and 1",
+			err:   parse.ErrBadSyntax,
+		},
+		{
+			query: "select one from table1 tail",
 			err:   parse.ErrBadSyntax,
 		},
 	}

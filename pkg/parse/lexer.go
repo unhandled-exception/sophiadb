@@ -20,6 +20,7 @@ type Lexer interface {
 	EatStringConstant() (string, error)
 	EatID() (string, error)
 
+	EOF() bool
 	WrapLexerError(err error) error
 }
 
@@ -60,7 +61,7 @@ func NewSQLLexer(text string) SQLLexer {
 	lex.AllowKeywordUnderscore()
 	lex.AllowNumbersInKeyword()
 	lex.DefineStringToken(tokenizer.TokenString, "'", "'").SetEscapeSymbol(tokenizer.BackSlash)
-	lex.DefineTokens(tokenDelim, []string{",", "=", "."})
+	lex.DefineTokens(tokenDelim, []string{",", "=", ".", "(", ")", "+", "-", "*", "/", "%"})
 	lex.SetWhiteSpaces([]byte{' ', '\t', '\n', '\r'})
 
 	l := SQLLexer{
@@ -76,6 +77,10 @@ func (l SQLLexer) Close() {
 
 func (l SQLLexer) nextToken() {
 	l.lexStream.GoNext()
+}
+
+func (l SQLLexer) EOF() bool {
+	return !l.lexStream.IsValid()
 }
 
 func (l SQLLexer) MatchKeyword(keyword string) (bool, error) {
@@ -213,5 +218,12 @@ func (l SQLLexer) WrapLexerError(err error) error {
 		return errors.WithMessage(err, `at end of query`)
 	}
 
-	return errors.WithMessagef(err, `near "%s" at line %d`, tok.ValueString(), tok.Line())
+	snippet := l.lexStream.GetSnippet(2, 2) //nolint:gomnd
+	snippetStrings := make([]string, len(snippet))
+
+	for i := 0; i < len(snippet); i++ {
+		snippetStrings[i] = snippet[i].ValueString()
+	}
+
+	return errors.WithMessagef(err, `near "%s" at line %d`, strings.Join(snippetStrings, " "), tok.Line())
 }
