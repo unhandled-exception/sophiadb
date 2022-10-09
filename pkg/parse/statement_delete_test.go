@@ -57,8 +57,8 @@ func (ts *SQLDeleteStatementTestSuite) TestStatement_Fail() {
 			err:   parse.ErrInvalidStatement,
 		},
 		{
-			query: "field from table1",
-			err:   parse.ErrBadSyntax,
+			query: "refresh all tables",
+			err:   parse.ErrInvalidStatement,
 		},
 		{
 			query: "delete ",

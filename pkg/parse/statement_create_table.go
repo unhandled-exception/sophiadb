@@ -55,21 +55,11 @@ func (s *SQLCreateTableStatement) Parse(lex Lexer) error {
 	s.schema = records.NewSchema()
 
 	if err = lex.EatKeyword("create"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	if err = lex.EatKeyword("table"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	tableName, err := lex.EatID()

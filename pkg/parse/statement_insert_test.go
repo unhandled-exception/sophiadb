@@ -53,8 +53,8 @@ func (ts *SQLInsertStatementTestSuite) TestStatement_Fail() {
 			err:   parse.ErrInvalidStatement,
 		},
 		{
-			query: "table1 (field1, field_2, field3) values (124, 12345, 'test') tail",
-			err:   parse.ErrBadSyntax,
+			query: "refresh all tables",
+			err:   parse.ErrInvalidStatement,
 		},
 		{
 			query: "insert into table1 (field1, field_2, field3) values (124, 12345, 'test') tail",

@@ -61,12 +61,7 @@ func (s *SQLDeleteStatement) Parse(lex Lexer) error {
 	s.pred = nil
 
 	if err := lex.EatKeyword("delete"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	var err error

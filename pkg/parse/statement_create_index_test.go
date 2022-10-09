@@ -57,16 +57,16 @@ func (ts *SQLCreateIndexStatementTestSuite) TestStatement_Fail() {
 			err:   parse.ErrInvalidStatement,
 		},
 		{
+			query: "refresh all tables",
+			err:   parse.ErrInvalidStatement,
+		},
+		{
 			query: "create table table1 (id int64)",
 			err:   parse.ErrInvalidStatement,
 		},
 		{
-			query: "table1 (field1, field_2, field3) values (124, 12345, 'test') tail",
-			err:   parse.ErrBadSyntax,
-		},
-		{
 			query: "create",
-			err:   parse.ErrBadSyntax,
+			err:   parse.ErrInvalidStatement,
 		},
 		{
 			query: "create index",

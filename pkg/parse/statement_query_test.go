@@ -53,15 +53,15 @@ func (ts *SQLSelectStatementTestSuite) TestStatement_Fail() {
 		err   error
 	}{
 		{
+			query: "refresh all tables",
+			err:   parse.ErrInvalidStatement,
+		},
+		{
 			query: "insert into table1 (field1) values (1)",
 			err:   parse.ErrInvalidStatement,
 		},
 		{
 			query: "select from table1",
-			err:   parse.ErrBadSyntax,
-		},
-		{
-			query: "table1 where",
 			err:   parse.ErrBadSyntax,
 		},
 		{

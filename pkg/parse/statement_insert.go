@@ -57,12 +57,7 @@ func (s *SQLInsertStatement) Parse(lex Lexer) error {
 	var err error
 
 	if err = lex.EatKeyword("insert"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	if err = lex.EatKeyword("into"); err != nil {

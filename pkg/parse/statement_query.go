@@ -71,12 +71,7 @@ func (s *SQLSelectStatement) Parse(lex Lexer) error {
 	s.pred = nil
 
 	if err = lex.EatKeyword("select"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	fields := FieldsList{}

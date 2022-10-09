@@ -54,21 +54,11 @@ func (s *SQLCreateViewStatement) Parse(lex Lexer) error {
 	var err error
 
 	if err = lex.EatKeyword("create"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	if err = lex.EatKeyword("view"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	viewName, err := lex.EatID()

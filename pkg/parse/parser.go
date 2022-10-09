@@ -1,10 +1,12 @@
 package parse
 
+import "github.com/pkg/errors"
+
 type StmtType int
 
 const (
 	StmtUnknown StmtType = iota
-	StmtQuery
+	StmtSelect
 	StmtInsert
 	StmtDelete
 	StmtUpdate
@@ -13,33 +15,37 @@ const (
 	StmtCreateView
 )
 
-type Parser interface {
-	Parse(string) (StmtType, interface{}, error)
-}
-
 type (
 	newStatementFunc func(string) (Statement, error)
-	SQLParser        struct {
-		statements map[StmtType]newStatementFunc
-	}
 )
 
-func NewSQLParser() SQLParser {
-	p := SQLParser{
-		statements: map[StmtType]newStatementFunc{
-			StmtQuery:       func(q string) (Statement, error) { return NewSQLSelectStatement(q) },
-			StmtInsert:      func(q string) (Statement, error) { return NewSQLInsertStatement(q) },
-			StmtDelete:      func(q string) (Statement, error) { return NewSQLDeleteStatement(q) },
-			StmtUpdate:      func(q string) (Statement, error) { return NewSQLUpdateStatement(q) },
-			StmtCreateTable: func(q string) (Statement, error) { return NewSQLCreateTableStatement(q) },
-			StmtCreateIndex: func(q string) (Statement, error) { return NewSQLCreateIndexStatement(q) },
-			StmtCreateView:  func(q string) (Statement, error) { return NewSQLCreateViewStatement(q) },
-		},
-	}
-
-	return p
+var statementsConstructors = []struct {
+	stmtType StmtType
+	creator  newStatementFunc
+}{
+	{stmtType: StmtSelect, creator: func(q string) (Statement, error) { return NewSQLSelectStatement(q) }},
+	{stmtType: StmtInsert, creator: func(q string) (Statement, error) { return NewSQLInsertStatement(q) }},
+	{stmtType: StmtDelete, creator: func(q string) (Statement, error) { return NewSQLDeleteStatement(q) }},
+	{stmtType: StmtUpdate, creator: func(q string) (Statement, error) { return NewSQLUpdateStatement(q) }},
+	{stmtType: StmtCreateTable, creator: func(q string) (Statement, error) { return NewSQLCreateTableStatement(q) }},
+	{stmtType: StmtCreateIndex, creator: func(q string) (Statement, error) { return NewSQLCreateIndexStatement(q) }},
+	{stmtType: StmtCreateView, creator: func(q string) (Statement, error) { return NewSQLCreateViewStatement(q) }},
 }
 
-func Parse(string) (StmtType, interface{}, error) {
+func ParseQuery(q string) (StmtType, Statement, error) {
+	for _, c := range statementsConstructors {
+		stmt, err := c.creator(q)
+
+		if errors.Is(err, ErrInvalidStatement) {
+			continue
+		}
+
+		if err != nil {
+			return c.stmtType, nil, err
+		}
+
+		return c.stmtType, stmt, nil
+	}
+
 	return StmtUnknown, nil, ErrInvalidStatement
 }

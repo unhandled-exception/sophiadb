@@ -57,8 +57,8 @@ func (ts *SQLUpdateStatementTestSuite) TestStatement_Fail() {
 			err:   parse.ErrInvalidStatement,
 		},
 		{
-			query: "field from table1",
-			err:   parse.ErrBadSyntax,
+			query: "refresh all tables",
+			err:   parse.ErrInvalidStatement,
 		},
 		{
 			query: "update table1 set field1=123, field2=12345, field3='value' tail",

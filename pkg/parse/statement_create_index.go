@@ -68,21 +68,11 @@ func (s *SQLCreateIndexStatement) Parse(lex Lexer) error {
 	var err error
 
 	if err = lex.EatKeyword("create"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	if err = lex.EatKeyword("index"); err != nil {
-		switch {
-		case errors.Is(err, ErrUnmatchedKeyword):
-			return ErrInvalidStatement
-		default:
-			return err
-		}
+		return ErrInvalidStatement
 	}
 
 	indexName, err := lex.EatID()
