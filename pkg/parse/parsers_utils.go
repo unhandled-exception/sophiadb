@@ -1,8 +1,6 @@
 package parse
 
 import (
-	"github.com/pkg/errors"
-
 	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
@@ -112,12 +110,7 @@ func parsePredicate(lex Lexer) (scan.Predicate, error) {
 
 	pred := scan.NewAndPredicate(term)
 
-	ok, err := lex.MatchKeyword("and")
-	if err != nil && !errors.Is(err, ErrEOF) {
-		return nil, err
-	}
-
-	if ok {
+	if ok, _ := lex.MatchKeyword("and"); ok {
 		_ = lex.EatKeyword("and")
 
 		nextPred, err := parsePredicate(lex)

@@ -2,28 +2,25 @@ package parse
 
 import (
 	"github.com/pkg/errors"
-
 	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
-type SelectStatement interface {
+type DeleteStatement interface {
 	Statement
 
-	Fields() FieldsList
-	Tables() TablesList
+	TableName() string
 	Pred() scan.Predicate
 }
 
-type SQLSelectStatement struct {
-	fields FieldsList
-	tables TablesList
-	pred   scan.Predicate
+type SQLDeleteStatement struct {
+	tableName string
+	pred      scan.Predicate
 }
 
-func NewSQLSelectStatement(q string) (*SQLSelectStatement, error) {
+func NewSQLDeleteStatement(q string) (*SQLDeleteStatement, error) {
 	lex := NewSQLLexer(q)
 
-	stmt := new(SQLSelectStatement)
+	stmt := new(SQLDeleteStatement)
 	err := stmt.Parse(lex)
 
 	if errors.Is(err, ErrEOF) || (err == nil && !lex.EOF()) {
@@ -33,12 +30,12 @@ func NewSQLSelectStatement(q string) (*SQLSelectStatement, error) {
 	return stmt, err
 }
 
-func (s SQLSelectStatement) String() string {
-	if len(s.tables) == 0 || len(s.fields) == 0 {
+func (s SQLDeleteStatement) String() string {
+	if s.tableName == "" {
 		return ""
 	}
 
-	q := "select " + s.Fields().String() + " from " + s.Tables().String()
+	q := "delete from " + s.TableName()
 
 	if pred := s.Pred().String(); pred != "" {
 		q += " where " + pred
@@ -47,15 +44,11 @@ func (s SQLSelectStatement) String() string {
 	return q
 }
 
-func (s SQLSelectStatement) Fields() FieldsList {
-	return s.fields
+func (s SQLDeleteStatement) TableName() string {
+	return s.tableName
 }
 
-func (s SQLSelectStatement) Tables() TablesList {
-	return s.tables
-}
-
-func (s SQLSelectStatement) Pred() scan.Predicate {
+func (s SQLDeleteStatement) Pred() scan.Predicate {
 	if s.pred == nil {
 		return scan.NewAndPredicate()
 	}
@@ -63,12 +56,11 @@ func (s SQLSelectStatement) Pred() scan.Predicate {
 	return s.pred
 }
 
-func (s *SQLSelectStatement) Parse(lex Lexer) error {
-	s.fields = nil
-	s.tables = nil
+func (s *SQLDeleteStatement) Parse(lex Lexer) error {
+	s.tableName = ""
 	s.pred = nil
 
-	if err := lex.EatKeyword("select"); err != nil {
+	if err := lex.EatKeyword("delete"); err != nil {
 		switch {
 		case errors.Is(err, ErrUnmatchedKeyword):
 			return ErrInvalidStatement
@@ -77,24 +69,19 @@ func (s *SQLSelectStatement) Parse(lex Lexer) error {
 		}
 	}
 
-	fields, err := parseFields(lex)
-	if err != nil {
-		return err
-	}
-
-	s.fields = fields
+	var err error
 
 	err = lex.EatKeyword("from")
 	if err != nil {
 		return err
 	}
 
-	tables, err := parseTables(lex)
+	tableName, err := lex.EatID()
 	if err != nil {
 		return err
 	}
 
-	s.tables = tables
+	s.tableName = tableName
 
 	switch ok, err := lex.MatchKeyword("where"); {
 	case errors.Is(err, ErrEOF):

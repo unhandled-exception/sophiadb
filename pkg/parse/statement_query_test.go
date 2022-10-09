@@ -101,7 +101,7 @@ func (ts *SQLSelectStatementTestSuite) TestStatement_Fail() {
 			err:   parse.ErrBadSyntax,
 		},
 		{
-			query: "select one from table1 tail",
+			query: "select one from table1 where 1=1 tail",
 			err:   parse.ErrBadSyntax,
 		},
 	}

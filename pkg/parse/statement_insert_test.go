@@ -100,6 +100,14 @@ func (ts *SQLInsertStatementTestSuite) TestStatement_Fail() {
 			query: "insert into table1 (field1, field_2, field3) values (124, ssss, 'test')",
 			err:   parse.ErrBadSyntax,
 		},
+		{
+			query: "insert into table1 () values (124, 12345, 'test')",
+			err:   parse.ErrBadSyntax,
+		},
+		{
+			query: "insert into table1 (field1, field_2, field3) values ()",
+			err:   parse.ErrBadSyntax,
+		},
 	}
 
 	for _, tc := range tt {

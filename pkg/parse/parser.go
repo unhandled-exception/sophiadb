@@ -29,6 +29,7 @@ func NewSQLParser() SQLParser {
 		statements: map[StmtType]newStatementFunc{
 			StmtQuery:  func(q string) (Statement, error) { return NewSQLSelectStatement(q) },
 			StmtInsert: func(q string) (Statement, error) { return NewSQLInsertStatement(q) },
+			StmtDelete: func(q string) (Statement, error) { return NewSQLDeleteStatement(q) },
 		},
 	}
 
