@@ -69,3 +69,4 @@ linters-settings:
       - Constant
       - Term
       - Statement$
+      - Scan

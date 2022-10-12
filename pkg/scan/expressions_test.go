@@ -67,7 +67,7 @@ func (ts *ExpressionsTestSuite) TestScalarExpression_Evaluate() {
 	require.NoError(t, err)
 
 	records := 10
-	wts, err := scan.NewTableScan(tx1, testDataFile, layout)
+	wts, err := scan.NewTableScan(tx1, testDataTable, layout)
 	require.NoError(t, err)
 
 	defer wts.Close()
@@ -82,7 +82,7 @@ func (ts *ExpressionsTestSuite) TestScalarExpression_Evaluate() {
 	tx2, err := tm.Transaction()
 	require.NoError(t, err)
 
-	rts, err := scan.NewTableScan(tx2, testDataFile, layout)
+	rts, err := scan.NewTableScan(tx2, testDataTable, layout)
 	require.NoError(t, err)
 
 	defer rts.Close()
@@ -145,7 +145,7 @@ func (ts *ExpressionsTestSuite) TestFieldExpression_Evaluate() {
 	require.NoError(t, err)
 
 	records := 10
-	wts, err := scan.NewTableScan(tx1, testDataFile, layout)
+	wts, err := scan.NewTableScan(tx1, testDataTable, layout)
 	require.NoError(t, err)
 
 	defer wts.Close()
@@ -160,7 +160,7 @@ func (ts *ExpressionsTestSuite) TestFieldExpression_Evaluate() {
 	tx2, err := tm.Transaction()
 	require.NoError(t, err)
 
-	rts, err := scan.NewTableScan(tx2, testDataFile, layout)
+	rts, err := scan.NewTableScan(tx2, testDataTable, layout)
 	require.NoError(t, err)
 
 	defer rts.Close()

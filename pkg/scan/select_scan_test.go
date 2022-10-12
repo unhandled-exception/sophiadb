@@ -38,7 +38,7 @@ func (ts *SelectScanTestSuite) TestIterate() {
 	trx1, err := trxMan.Transaction()
 	require.NoError(t, err)
 
-	ts1, err := scan.NewTableScan(trx1, testDataFile, ts.testLayout())
+	ts1, err := scan.NewTableScan(trx1, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	for i := 0; i < records; i++ {
@@ -55,7 +55,7 @@ func (ts *SelectScanTestSuite) TestIterate() {
 	trx2, err := trxMan.Transaction()
 	require.NoError(t, err)
 
-	ts2, err := scan.NewTableScan(trx2, testDataFile, ts.testLayout())
+	ts2, err := scan.NewTableScan(trx2, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	sut := scan.NewSelectScan(
@@ -110,7 +110,7 @@ func (ts *SelectScanTestSuite) TestUpdate() {
 	trx1, err := trxMan.Transaction()
 	require.NoError(t, err)
 
-	ts2, err := scan.NewTableScan(trx1, testDataFile, ts.testLayout())
+	ts2, err := scan.NewTableScan(trx1, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	sut := scan.NewSelectScan(

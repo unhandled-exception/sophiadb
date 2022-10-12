@@ -36,7 +36,7 @@ func (ts *TableScanTestSuite) newSUT(testPath string) (*scan.TableScan, *transac
 	trx, err := trxMan.Transaction()
 	require.NoError(t, err)
 
-	sut, err := scan.NewTableScan(trx, testDataFile, ts.testLayout())
+	sut, err := scan.NewTableScan(trx, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	return sut, trx, fm, func() {
