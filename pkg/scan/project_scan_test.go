@@ -43,7 +43,7 @@ func (ts *ProjectScanTestsuite) TestSchema() {
 
 	defer require.NoError(t, tx.Commit())
 
-	ts1, err := scan.NewTableScan(tx, testDataFile, ts.testLayout())
+	ts1, err := scan.NewTableScan(tx, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	sut := scan.NewProjectScan(ts1, "id", "name", "unexistant")
@@ -62,7 +62,7 @@ func (ts *ProjectScanTestsuite) TestIterate() {
 	tx, err := tm.Transaction()
 	require.NoError(t, err)
 
-	ts1, err := scan.NewTableScan(tx, testDataFile, ts.testLayout())
+	ts1, err := scan.NewTableScan(tx, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	records := 1000
@@ -82,7 +82,7 @@ func (ts *ProjectScanTestsuite) TestIterate() {
 
 	require.NoError(t, tx.Commit())
 
-	ts2, err := scan.NewTableScan(tx, testDataFile, ts.testLayout())
+	ts2, err := scan.NewTableScan(tx, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	defer require.NoError(t, tx.Commit())

@@ -1,4 +1,4 @@
-package scan_test
+package planner_test
 
 import (
 	"path/filepath"
@@ -50,6 +50,16 @@ func (ts *Suite) testLayout() records.Layout {
 	schema.AddStringField("name", 25)
 	schema.AddInt8Field("age")
 	schema.AddInt64Field("_hidden")
+
+	return records.NewLayout(schema)
+}
+
+func (ts *Suite) secondTestLayout() records.Layout {
+	schema := records.NewSchema()
+	schema.AddField("position", records.Int64Field, 20)
+	schema.AddField("job", records.StringField, 20)
+	schema.AddField("room", records.Int8Field, 0)
+	schema.AddField("_invisible", records.Int64Field, 0)
 
 	return records.NewLayout(schema)
 }

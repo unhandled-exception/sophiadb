@@ -201,7 +201,7 @@ func (ts *PredicatesTestsuite) TestAndPredicate_IsSatisfied() {
 	tx1, err := tm.Transaction()
 	require.NoError(t, err)
 
-	wts, err := scan.NewTableScan(tx1, testDataFile, ts.testLayout())
+	wts, err := scan.NewTableScan(tx1, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	defer wts.Close()
@@ -220,7 +220,7 @@ func (ts *PredicatesTestsuite) TestAndPredicate_IsSatisfied() {
 	tx2, err := tm.Transaction()
 	require.NoError(t, err)
 
-	rts, err := scan.NewTableScan(tx2, testDataFile, ts.testLayout())
+	rts, err := scan.NewTableScan(tx2, testDataTable, ts.testLayout())
 	require.NoError(t, err)
 
 	defer rts.Close()

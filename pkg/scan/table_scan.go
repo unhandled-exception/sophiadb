@@ -9,21 +9,23 @@ import (
 const tableSuffix = ".tbl"
 
 type TableScan struct {
-	trx      TRXInt
-	Filename string
-	layout   records.Layout
+	trx       TRXInt
+	Filename  string
+	Tablename string
+	layout    records.Layout
 
 	rp          *records.RecordPage
 	currentSlot types.SlotID
 }
 
-func NewTableScan(trx TRXInt, filename string, layout records.Layout) (*TableScan, error) {
-	filename = filename + tableSuffix
+func NewTableScan(trx TRXInt, tablename string, layout records.Layout) (*TableScan, error) {
+	filename := tablename + tableSuffix
 
 	ts := &TableScan{
-		trx:      trx,
-		Filename: filename,
-		layout:   layout,
+		trx:       trx,
+		Filename:  filename,
+		Tablename: tablename,
+		layout:    layout,
 	}
 
 	size, err := trx.Size(filename)
