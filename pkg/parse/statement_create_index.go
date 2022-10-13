@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/unhandled-exception/sophiadb/pkg/indexes"
 )
 
 type CreateIndexStatement interface {
@@ -12,20 +13,26 @@ type CreateIndexStatement interface {
 	IndexName() string
 	TableName() string
 	Fields() FieldsList
+	IndexType() indexes.IndexType
 }
+
+const defaultIndexType = indexes.HashIndexType
 
 type SQLCreateIndexStatement struct {
 	indexName string
 	tableName string
 	fields    FieldsList
+	indexType indexes.IndexType
 }
 
 func NewSQLCreateIndexStatement(q string) (*SQLCreateIndexStatement, error) {
 	lex := NewSQLLexer(q)
 
-	stmt := new(SQLCreateIndexStatement)
-	err := stmt.Parse(lex)
+	stmt := &SQLCreateIndexStatement{
+		indexType: defaultIndexType,
+	}
 
+	err := stmt.Parse(lex)
 	if errors.Is(err, ErrEOF) || (err == nil && !lex.EOF()) {
 		return stmt, lex.WrapLexerError(ErrBadSyntax)
 	}
@@ -58,6 +65,10 @@ func (s SQLCreateIndexStatement) TableName() string {
 
 func (s SQLCreateIndexStatement) Fields() FieldsList {
 	return s.fields
+}
+
+func (s SQLCreateIndexStatement) IndexType() indexes.IndexType {
+	return s.indexType
 }
 
 func (s *SQLCreateIndexStatement) Parse(lex Lexer) error {

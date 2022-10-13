@@ -70,3 +70,4 @@ linters-settings:
       - Term
       - Statement$
       - Scan
+      - Plan

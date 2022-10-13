@@ -147,6 +147,8 @@ func (ts *TableScan) GetVal(fieldName string) (Constant, error) {
 		}
 
 		return NewStringConstant(val), nil
+	case records.NotFoundField:
+		return nil, errors.WithMessagef(ErrScan, "field '%s' not found", fieldName)
 	default:
 		return nil, errors.WithMessagef(ErrScan, "unknown field type %d for field '%s'", t, fieldName)
 	}
@@ -181,10 +183,18 @@ func (ts *TableScan) SetString(fieldName string, value string) error {
 }
 
 func (ts *TableScan) SetVal(fieldName string, value Constant) error {
+	//nolint:exhaustive
 	switch t := ts.Layout().Schema.Type(fieldName); t {
 	case records.Int64Field:
-		v, ok := value.Value().(int64)
-		if !ok {
+		var v int64
+
+		//nolint:forcetypeassert
+		switch value.Value().(type) {
+		case int64:
+			v = value.Value().(int64)
+		case int8:
+			v = int64(value.Value().(int8))
+		default:
 			return errors.WithMessagef(ErrScan, "failed to convert fields (%s) constant to value (int64)", fieldName)
 		}
 

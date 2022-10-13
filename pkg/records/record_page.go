@@ -140,6 +140,7 @@ func (rp *RecordPage) Format() (int32, error) {
 
 			var err error
 
+			//nolint:exhaustive
 			switch t := schema.Type(name); t {
 			case Int64Field:
 				err = rp.TRX.SetInt64(rp.Block, pos, 0, false)

@@ -10,7 +10,8 @@ import (
 type FieldType int
 
 const (
-	Int64Field FieldType = iota + 1
+	NotFoundField FieldType = iota
+	Int64Field
 	StringField
 	Int8Field
 )
@@ -21,6 +22,7 @@ type FieldInfo struct {
 }
 
 func (fi FieldInfo) BytesLen() uint32 {
+	//nolint:exhaustive
 	switch fi.Type {
 	case Int8Field:
 		return types.PageInt8BytesLen()
@@ -66,7 +68,7 @@ func (s Schema) Field(name string) (FieldInfo, bool) {
 }
 
 func (s Schema) Type(name string) FieldType {
-	var fieldType FieldType
+	var fieldType FieldType = NotFoundField
 
 	field, ok := s.info[name]
 	if ok {
@@ -123,6 +125,7 @@ func (s Schema) String() string {
 
 		field := s.info[name]
 
+		//nolint:exhaustive
 		switch field.Type {
 		case Int8Field:
 			str = fmt.Sprintf("%s int8", name)

@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/unhandled-exception/sophiadb/pkg/indexes"
 	"github.com/unhandled-exception/sophiadb/pkg/parse"
 )
 
@@ -22,16 +23,19 @@ func (ts *SQLCreateIndexStatementTestSuite) TestStatement_Ok() {
 	t := ts.T()
 
 	tt := []struct {
-		query  string
-		parsed string
+		query     string
+		parsed    string
+		indexType indexes.IndexType
 	}{
 		{
-			query:  "create index index1 on table1 (field1)",
-			parsed: "create index index1 on table1 (field1)",
+			query:     "create index index1 on table1 (field1)",
+			parsed:    "create index index1 on table1 (field1)",
+			indexType: indexes.HashIndexType,
 		},
 		{
-			query:  "create index index1 on table1 (field1, field2, field3)",
-			parsed: "create index index1 on table1 (field1, field2, field3)",
+			query:     "create index index1 on table1 (field1, field2, field3)",
+			parsed:    "create index index1 on table1 (field1, field2, field3)",
+			indexType: indexes.HashIndexType,
 		},
 	}
 
@@ -41,6 +45,7 @@ func (ts *SQLCreateIndexStatementTestSuite) TestStatement_Ok() {
 
 		if err == nil {
 			assert.Equal(t, tc.parsed, sut.String())
+			assert.EqualValues(t, tc.indexType, sut.IndexType())
 		}
 	}
 }

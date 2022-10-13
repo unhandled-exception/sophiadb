@@ -121,6 +121,7 @@ func (s *Stats) calcTableStat(tableName string, trx scan.TRXInt) (StatInfo, erro
 				buf  []byte
 			)
 
+			//nolint:exhaustive
 			switch fieldType {
 			case records.Int64Field:
 				buf = make([]byte, types.Int64Size)

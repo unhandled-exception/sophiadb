@@ -112,6 +112,7 @@ func (ii *IndexInfo) createIndexLayout() records.Layout {
 	schema.AddInt64Field(IdxSchemaBlockField)
 	schema.AddInt64Field(IdxSchemaIDField)
 
+	//nolint:exhaustive
 	switch ii.schema.Type(ii.fieldName) {
 	case records.Int64Field:
 		schema.AddInt64Field(IdxSchemaValueField)

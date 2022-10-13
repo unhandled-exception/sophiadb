@@ -45,7 +45,7 @@ func (ts *ProductScanTestsuite) TestSchema() {
 
 	sut := scan.NewProductScan(s1, s2)
 
-	assert.Equal(t, "id int64, name varchar(25), age int8, _hidden int64, position int64, job varchar(20), room int8, _invisible int64", sut.Schema().String())
+	assert.Equal(t, "id int64, name varchar(25), age int8, id_64 int64, _hidden int64, position int64, job varchar(20), room int8, _invisible int64", sut.Schema().String())
 	assert.True(t, sut.HasField("room"))
 }
 

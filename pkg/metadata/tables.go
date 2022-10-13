@@ -216,7 +216,7 @@ func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, erro
 	}
 
 	if !found {
-		return layout, ErrTableNotFound
+		return layout, errors.WithMessagef(ErrTableNotFound, `table "%s" not found`, tableName)
 	}
 
 	if err := scan.ForEach(fcat, func() (bool, error) {
