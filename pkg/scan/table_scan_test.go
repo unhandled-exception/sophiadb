@@ -64,6 +64,7 @@ func (ts *TableScanTestSuite) TestGetAndSetValues() {
 		require.NoErrorf(t, wsut.SetInt64("id", int64(i+1)), "write int64 i == %d", i)
 		require.NoErrorf(t, wsut.SetInt8("age", int8(i+2)), "write int8 i == %d", i)
 		require.NoErrorf(t, wsut.SetString("name", fmt.Sprintf("user %d", i)), "write string i == %d", i)
+		require.NoErrorf(t, wsut.SetVal("id_64", scan.NewInt8Constant(int8(i%2))), "write int8 to int64 i == %d", i)
 	}
 
 	wsut.Close()
@@ -99,6 +100,10 @@ func (ts *TableScanTestSuite) TestGetAndSetValues() {
 		nameVal, werr := rsut.GetString("name")
 		require.NoErrorf(t, werr, "read string i=%d", i)
 		assert.EqualValues(t, fmt.Sprintf("user %d", i), nameVal)
+
+		id64Val, werr := rsut.GetInt64("id_64")
+		require.NoErrorf(t, werr, "read int64 from id_64 i=%d", i)
+		assert.EqualValues(t, int8(i%2), id64Val)
 	}
 
 	ok, err := rsut.Next()
@@ -133,14 +138,14 @@ func (ts *TableScanTestSuite) TestDelete() {
 	for i := 0; i < int(cnt-3); i++ {
 		_, _ = sut.Next()
 	}
-	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 28}, sut.RID())
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 26}, sut.RID())
 
 	require.NoError(t, sut.Delete())
 
 	_ = sut.BeforeFirst()
 	require.NoError(t, sut.Insert())
 
-	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 28}, sut.RID())
+	assert.Equal(t, types.RID{BlockNumber: 1, Slot: 26}, sut.RID())
 }
 
 func (ts *TableScanTestSuite) TestRID() {
@@ -263,6 +268,7 @@ func (ts *TableScanTestSuite) TestForeEachField_Ok() {
 			{Name: "id", Type: records.Int64Field},
 			{Name: "name", Type: records.StringField},
 			{Name: "age", Type: records.Int8Field},
+			{Name: "id_64", Type: records.Int64Field},
 			{Name: "_hidden", Type: records.Int64Field},
 		},
 		fields,
@@ -350,6 +356,7 @@ func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 			"age":     int(cnt),
 			"id":      int(cnt),
 			"name":    int(cnt),
+			"id_64":   int(cnt),
 			"_hidden": int(cnt),
 		},
 		f,

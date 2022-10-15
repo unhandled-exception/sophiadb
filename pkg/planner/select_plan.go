@@ -58,5 +58,10 @@ func (p *SelectPlan) DistinctValues(fieldName string) (int64, bool) {
 }
 
 func (p *SelectPlan) String() string {
-	return fmt.Sprintf("select from (%s) where %s", p.plan, p.pred)
+	pred := p.pred.String()
+	if pred == "" {
+		pred = "true"
+	}
+
+	return fmt.Sprintf("select from (%s) where %s", p.plan, pred)
 }

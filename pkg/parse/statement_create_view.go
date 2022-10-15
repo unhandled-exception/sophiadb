@@ -8,6 +8,7 @@ type CreateViewStatement interface {
 	Statement
 
 	ViewName() string
+	ViewDef() string
 	Query() SelectStatement
 }
 
@@ -41,6 +42,10 @@ func (s SQLCreateViewStatement) String() string {
 
 func (s SQLCreateViewStatement) ViewName() string {
 	return s.viewName
+}
+
+func (s SQLCreateViewStatement) ViewDef() string {
+	return s.query.String()
 }
 
 func (s SQLCreateViewStatement) Query() SelectStatement {

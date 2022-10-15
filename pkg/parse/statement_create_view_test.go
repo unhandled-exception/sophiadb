@@ -22,16 +22,19 @@ func (ts *SQLCreateViewStatementTestSuite) TestStatement_Ok() {
 	t := ts.T()
 
 	tt := []struct {
-		query  string
-		parsed string
+		query   string
+		parsed  string
+		viewDef string
 	}{
 		{
-			query:  "create view view1 as select field1, field2 from table1, table2",
-			parsed: "create view view1 as select field1, field2 from table1, table2",
+			query:   "create view view1 as select field1, field2 from table1, table2",
+			parsed:  "create view view1 as select field1, field2 from table1, table2",
+			viewDef: "select field1, field2 from table1, table2",
 		},
 		{
-			query:  "create view view1 as select field1, field2 from table1, table2 where 1=1 and field1=field2 and field1=125 and field2=12345 and field3='value'",
-			parsed: "create view view1 as select field1, field2 from table1, table2 where 1 = 1 and field1 = field2 and field1 = 125 and field2 = 12345 and field3 = 'value'",
+			query:   "create view view1 as select field1, field2 from table1, table2 where 1=1 and field1=field2 and field1=125 and field2=12345 and field3='value'",
+			parsed:  "create view view1 as select field1, field2 from table1, table2 where 1 = 1 and field1 = field2 and field1 = 125 and field2 = 12345 and field3 = 'value'",
+			viewDef: "select field1, field2 from table1, table2 where 1 = 1 and field1 = field2 and field1 = 125 and field2 = 12345 and field3 = 'value'",
 		},
 	}
 
@@ -41,6 +44,7 @@ func (ts *SQLCreateViewStatementTestSuite) TestStatement_Ok() {
 
 		if err == nil {
 			assert.Equal(t, tc.parsed, sut.String())
+			assert.Equal(t, tc.viewDef, sut.ViewDef())
 		}
 	}
 }

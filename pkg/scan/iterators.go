@@ -56,6 +56,7 @@ func ForEachValue(ts Scan, call func(name string, fieldType records.FieldType, v
 			err   error
 		)
 
+		//nolint:exhaustive
 		switch fieldType {
 		case records.Int64Field:
 			value, err = ts.GetInt64(name)
