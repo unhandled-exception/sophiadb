@@ -66,7 +66,7 @@ func (ts *IndexInfoTestSuite) TestNewHashIndexInfo() {
 	assert.EqualValues(t, testIndexInfoHashIndexBlocksAcessed, sut.BlocksAccessed())
 	assert.EqualValues(t, testIndexInfoIndex1DistinctValues, sut.DistinctValues(testIndexInfoFieldName1))
 
-	assert.EqualValues(t, `"test_index" on "test_table_1.test_field_1" [hash blocks: 7, records 7716, distinct values: 16]`, sut.String())
+	assert.EqualValues(t, `"test_index" on "test_table_1.test_field_1" using hash [blocks: 7, records 7716, distinct values: 16]`, sut.String())
 
 	idx, err := sut.Open()
 	require.NoError(t, err)

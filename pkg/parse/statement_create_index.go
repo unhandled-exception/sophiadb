@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/pkg/indexes"
@@ -46,10 +47,11 @@ func (s SQLCreateIndexStatement) String() string {
 	}
 
 	q := fmt.Sprintf(
-		"create index %s on %s (%s)",
+		"create index %s on %s (%s) using %s",
 		s.IndexName(),
 		s.TableName(),
 		s.Fields().String(),
+		indexes.IndexTypesNames[s.indexType],
 	)
 
 	return q
@@ -88,35 +90,56 @@ func (s *SQLCreateIndexStatement) Parse(lex Lexer) error {
 
 	indexName, err := lex.EatID()
 	if err != nil {
-		return err
+		return lex.WrapLexerError(err)
 	}
 
 	s.indexName = indexName
 
 	if err = lex.EatKeyword("on"); err != nil {
-		return err
+		return lex.WrapLexerError(err)
 	}
 
 	tableName, err := lex.EatID()
 	if err != nil {
-		return err
+		return lex.WrapLexerError(err)
 	}
 
 	s.tableName = tableName
 
 	if err = lex.EatDelim("("); err != nil {
-		return err
+		return lex.WrapLexerError(err)
 	}
 
 	fields := FieldsList{}
 	if err = fields.Parse(lex); err != nil {
-		return err
+		return lex.WrapLexerError(err)
 	}
 
 	s.fields = fields
 
 	if err = lex.EatDelim(")"); err != nil {
-		return err
+		return lex.WrapLexerError(err)
+	}
+
+	if ok, _ := lex.MatchKeyword("using"); ok {
+		_ = lex.EatKeyword("using")
+
+		it, err := lex.EatID()
+		if err != nil {
+			return lex.WrapLexerError(err)
+		}
+
+		it = strings.ToLower(it)
+
+		for indexType, indexTypeName := range indexes.IndexTypesNames {
+			if it == indexTypeName {
+				s.indexType = indexType
+
+				return nil
+			}
+		}
+
+		return lex.WrapLexerError(ErrBadSyntax)
 	}
 
 	return nil

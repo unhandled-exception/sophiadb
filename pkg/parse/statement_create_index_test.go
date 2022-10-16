@@ -29,13 +29,23 @@ func (ts *SQLCreateIndexStatementTestSuite) TestStatement_Ok() {
 	}{
 		{
 			query:     "create index index1 on table1 (field1)",
-			parsed:    "create index index1 on table1 (field1)",
+			parsed:    "create index index1 on table1 (field1) using hash",
 			indexType: indexes.HashIndexType,
 		},
 		{
 			query:     "create index index1 on table1 (field1, field2, field3)",
-			parsed:    "create index index1 on table1 (field1, field2, field3)",
+			parsed:    "create index index1 on table1 (field1, field2, field3) using hash",
 			indexType: indexes.HashIndexType,
+		},
+		{
+			query:     "create index index1 on table1 (field1) using hash",
+			parsed:    "create index index1 on table1 (field1) using hash",
+			indexType: indexes.HashIndexType,
+		},
+		{
+			query:     "create index index1 on table1 (field1) using btree",
+			parsed:    "create index index1 on table1 (field1) using btree",
+			indexType: indexes.BTreeIndexType,
 		},
 	}
 
@@ -103,6 +113,14 @@ func (ts *SQLCreateIndexStatementTestSuite) TestStatement_Fail() {
 		},
 		{
 			query: "create index index1 on table1 (field1) tail",
+			err:   parse.ErrBadSyntax,
+		},
+		{
+			query: "create index index1 on table1 (field1) using ",
+			err:   parse.ErrBadSyntax,
+		},
+		{
+			query: "create index index1 on table1 (field1) using gist",
 			err:   parse.ErrBadSyntax,
 		},
 	}
