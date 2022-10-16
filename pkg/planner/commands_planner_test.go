@@ -148,6 +148,25 @@ func (ts *CommandsPlannerTestSuite) TestExecuteCreateIndex_Fail() {
 	assert.Len(t, indexes, 1)
 }
 
+func (ts *CommandsPlannerTestSuite) TestExecuteCreateIndex_FailIfUseCompositeKey() {
+	t := ts.T()
+
+	sut, trx, mdm, clean := ts.newSUT()
+	defer clean()
+	defer require.NoError(t, trx.Commit())
+
+	require.NoError(t, mdm.CreateTable("table1", ts.testLayout().Schema, trx))
+
+	_, stmt, err := parse.ParseQuery("create index idx1 on table1(id, name)")
+	require.NoError(t, err)
+
+	_, err = sut.ExecuteCreateIndex(
+		stmt.(parse.CreateIndexStatement),
+		trx,
+	)
+	assert.ErrorIs(t, err, planner.ErrExecuteError)
+}
+
 func (ts *CommandsPlannerTestSuite) TestExecuteCreateView_Ok() {
 	t := ts.T()
 

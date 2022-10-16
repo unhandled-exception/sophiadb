@@ -51,7 +51,7 @@ func (s SQLCreateIndexStatement) String() string {
 		s.IndexName(),
 		s.TableName(),
 		s.Fields().String(),
-		indexes.IndexTypesNames[s.indexType],
+		indexes.IndexTypeNames[s.indexType],
 	)
 
 	return q
@@ -131,7 +131,7 @@ func (s *SQLCreateIndexStatement) Parse(lex Lexer) error {
 
 		it = strings.ToLower(it)
 
-		for indexType, indexTypeName := range indexes.IndexTypesNames {
+		for indexType, indexTypeName := range indexes.IndexTypeNames {
 			if it == indexTypeName {
 				s.indexType = indexType
 

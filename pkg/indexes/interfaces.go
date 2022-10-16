@@ -9,7 +9,7 @@ const (
 	BTreeIndexType IndexType = 2
 )
 
-var IndexTypesNames = map[IndexType]string{
+var IndexTypeNames = map[IndexType]string{
 	HashIndexType:  "hash",
 	BTreeIndexType: "btree",
 }

@@ -47,7 +47,7 @@ func (ii *IndexInfo) String() string {
 		ii.idxName,
 		ii.tableName,
 		ii.fieldName,
-		indexes.IndexTypesNames[ii.idxType],
+		indexes.IndexTypeNames[ii.idxType],
 		ii.BlocksAccessed(),
 		ii.Records(),
 		ii.DistinctValues(ii.fieldName),
