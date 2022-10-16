@@ -42,21 +42,12 @@ func NewIndexInfo(idxName string, tableName string, idxType indexes.IndexType, f
 }
 
 func (ii *IndexInfo) String() string {
-	indexTypeName := "unknown"
-
-	switch ii.idxType {
-	case indexes.HashIndexType:
-		indexTypeName = "hash"
-	case indexes.BTreeIndexType:
-		indexTypeName = "btree"
-	}
-
 	return fmt.Sprintf(
-		`"%s" on "%s.%s" [%s blocks: %d, records %d, distinct values: %d]`,
+		`"%s" on "%s.%s" using %s [blocks: %d, records %d, distinct values: %d]`,
 		ii.idxName,
 		ii.tableName,
 		ii.fieldName,
-		indexTypeName,
+		indexes.IndexTypeNames[ii.idxType],
 		ii.BlocksAccessed(),
 		ii.Records(),
 		ii.DistinctValues(ii.fieldName),

@@ -109,11 +109,11 @@ func (ts *IndexesTestSuite) TestCreateIndex_Ok() {
 
 	idxID, ok := indexes["id"]
 	assert.True(t, ok)
-	assert.EqualValues(t, "\"tt_idx_1\" on \"test_table_1.id\" [hash blocks: 0, records 1, distinct values: 12187]", idxID.String())
+	assert.EqualValues(t, "\"tt_idx_1\" on \"test_table_1.id\" using hash [blocks: 0, records 1, distinct values: 12187]", idxID.String())
 
 	idxName, ok := indexes["name"]
 	assert.True(t, ok)
-	assert.EqualValues(t, "\"tt_idx_2\" on \"test_table_1.name\" [btree blocks: 3, records 493, distinct values: 25]", idxName.String())
+	assert.EqualValues(t, "\"tt_idx_2\" on \"test_table_1.name\" using btree [blocks: 3, records 493, distinct values: 25]", idxName.String())
 }
 
 func (ts *IndexesTestSuite) TestCreateIndex_IndexExists() {

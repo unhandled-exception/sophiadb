@@ -50,6 +50,7 @@ var sqlKeywords = map[string]struct{}{
 	"as":      {},
 	"index":   {},
 	"on":      {},
+	"using":   {},
 }
 
 type SQLLexer struct {

@@ -171,6 +171,10 @@ func (p *SQLCommandsPlanner) ExecuteCreateTable(stmt parse.CreateTableStatement,
 }
 
 func (p *SQLCommandsPlanner) ExecuteCreateIndex(stmt parse.CreateIndexStatement, trx scan.TRXInt) (int, error) {
+	if len(stmt.Fields()) > 1 {
+		return 0, errors.WithMessage(ErrExecuteError, "composite keys isn't suported")
+	}
+
 	if err := p.mdm.CreateIndex(stmt.IndexName(), stmt.TableName(), stmt.IndexType(), stmt.Fields()[0], trx); err != nil {
 		return 0, errors.WithMessage(ErrExecuteError, err.Error())
 	}

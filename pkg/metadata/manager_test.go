@@ -123,7 +123,7 @@ func (ts *MetadataManagerTestSute) TestIndexesMetadata() {
 
 	indexInfo, ok := indexes["name"]
 	require.True(t, ok)
-	assert.Equal(t, `"test_idx" on "test_table_1.name" [btree blocks: 1, records 0, distinct values: 0]`, indexInfo.String())
+	assert.Equal(t, `"test_idx" on "test_table_1.name" using btree [blocks: 1, records 0, distinct values: 0]`, indexInfo.String())
 }
 
 func (ts *MetadataManagerTestSute) TestStatMetadata() {

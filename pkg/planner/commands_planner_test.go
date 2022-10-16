@@ -102,12 +102,26 @@ func (ts *CommandsPlannerTestSuite) TestExecuteCreateIndex_Ok() {
 	require.NoError(t, err)
 	assert.EqualValues(t, 0, rows)
 
+	_, stmt, err = parse.ParseQuery("create index idx2 on table1(name) using btree")
+	require.NoError(t, err)
+
+	rows, err = sut.ExecuteCreateIndex(
+		stmt.(parse.CreateIndexStatement),
+		trx,
+	)
+	require.NoError(t, err)
+	assert.EqualValues(t, 0, rows)
+
 	indexes, err := mdm.TableIndexes("table1", trx)
 	require.NoError(t, err)
 
 	indexInfo, ok := indexes["id"]
 	assert.True(t, ok)
-	assert.EqualValues(t, `"idx1" on "table1.id" [hash blocks: 0, records 0, distinct values: 0]`, indexInfo.String())
+	assert.EqualValues(t, `"idx1" on "table1.id" using hash [blocks: 0, records 0, distinct values: 0]`, indexInfo.String())
+
+	indexInfo, ok = indexes["name"]
+	assert.True(t, ok)
+	assert.EqualValues(t, `"idx2" on "table1.name" using btree [blocks: 1, records 0, distinct values: 0]`, indexInfo.String())
 }
 
 func (ts *CommandsPlannerTestSuite) TestExecuteCreateIndex_Fail() {
@@ -132,6 +146,25 @@ func (ts *CommandsPlannerTestSuite) TestExecuteCreateIndex_Fail() {
 	indexes, err := mdm.TableIndexes("table1", trx)
 	assert.NoError(t, err)
 	assert.Len(t, indexes, 1)
+}
+
+func (ts *CommandsPlannerTestSuite) TestExecuteCreateIndex_FailIfUseCompositeKey() {
+	t := ts.T()
+
+	sut, trx, mdm, clean := ts.newSUT()
+	defer clean()
+	defer require.NoError(t, trx.Commit())
+
+	require.NoError(t, mdm.CreateTable("table1", ts.testLayout().Schema, trx))
+
+	_, stmt, err := parse.ParseQuery("create index idx1 on table1(id, name)")
+	require.NoError(t, err)
+
+	_, err = sut.ExecuteCreateIndex(
+		stmt.(parse.CreateIndexStatement),
+		trx,
+	)
+	assert.ErrorIs(t, err, planner.ErrExecuteError)
 }
 
 func (ts *CommandsPlannerTestSuite) TestExecuteCreateView_Ok() {
