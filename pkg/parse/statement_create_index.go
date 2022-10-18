@@ -90,13 +90,13 @@ func (s *SQLCreateIndexStatement) Parse(lex Lexer) error {
 
 	indexName, err := lex.EatID()
 	if err != nil {
-		return lex.WrapLexerError(err)
+		return err
 	}
 
 	s.indexName = indexName
 
 	if err = lex.EatKeyword("on"); err != nil {
-		return lex.WrapLexerError(err)
+		return err
 	}
 
 	tableName, err := lex.EatID()
@@ -107,18 +107,18 @@ func (s *SQLCreateIndexStatement) Parse(lex Lexer) error {
 	s.tableName = tableName
 
 	if err = lex.EatDelim("("); err != nil {
-		return lex.WrapLexerError(err)
+		return err
 	}
 
 	fields := FieldsList{}
 	if err = fields.Parse(lex); err != nil {
-		return lex.WrapLexerError(err)
+		return err
 	}
 
 	s.fields = fields
 
 	if err = lex.EatDelim(")"); err != nil {
-		return lex.WrapLexerError(err)
+		return err
 	}
 
 	if ok, _ := lex.MatchKeyword("using"); ok {
@@ -126,7 +126,7 @@ func (s *SQLCreateIndexStatement) Parse(lex Lexer) error {
 
 		it, err := lex.EatID()
 		if err != nil {
-			return lex.WrapLexerError(err)
+			return err
 		}
 
 		it = strings.ToLower(it)
