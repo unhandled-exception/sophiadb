@@ -5,6 +5,7 @@ import (
 
 	"github.com/unhandled-exception/sophiadb/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/pkg/metadata"
+	"github.com/unhandled-exception/sophiadb/pkg/planner"
 	"github.com/unhandled-exception/sophiadb/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
 	"github.com/unhandled-exception/sophiadb/pkg/wal"
@@ -38,7 +39,8 @@ type Database struct {
 	wal      *wal.Manager
 	bm       *buffers.Manager
 	trxMan   *transaction.TRXManager
-	Metadata *metadata.Manager
+	metadata *metadata.Manager
+	planner  planner.Planner
 }
 
 type DatabaseOption func(*Database)
@@ -73,10 +75,15 @@ func NewDatabase(dataDir string, opts ...DatabaseOption) (*Database, error) {
 	db.bm = buffers.NewManager(db.fm, db.wal, db.buffersPoolLen, buffers.WithPinLockTimeout(db.pinLockTimeout))
 	db.trxMan = transaction.NewTRXManager(db.fm, db.bm, db.wal, transaction.WithLockTimeout(db.transactionLockTimeout))
 
-	db.Metadata, err = db.newMetadataManager()
+	db.metadata, err = db.newMetadataManager()
 	if err != nil {
 		return nil, err
 	}
+
+	db.planner = planner.NewSQLPlanner(
+		planner.NewSQLQueryPlanner(db.metadata),
+		planner.NewSQLCommandsPlanner(db.metadata),
+	)
 
 	return db, nil
 }
@@ -111,32 +118,8 @@ func WithTransactionLockTimeout(transactionLockTimeout time.Duration) DatabaseOp
 	}
 }
 
-func (db *Database) newMetadataManager() (*metadata.Manager, error) {
-	var err error
-
-	trx, err := db.trxMan.Transaction()
-	if err != nil {
-		return nil, err
-	}
-
-	isNew := db.fm.IsNew
-
-	if !isNew {
-		if err = trx.Recover(); err != nil {
-			return nil, err
-		}
-	}
-
-	mdm, err := metadata.NewManager(isNew, trx)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := trx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return mdm, nil
+func (db *Database) Planner() planner.Planner {
+	return db.planner
 }
 
 func (db *Database) Close() error {
@@ -173,4 +156,32 @@ func (db *Database) MaxPinLockTime() time.Duration {
 
 func (db *Database) TransactionLockTimeout() time.Duration {
 	return db.trxMan.LockTimeout
+}
+
+func (db *Database) newMetadataManager() (*metadata.Manager, error) {
+	var err error
+
+	trx, err := db.trxMan.Transaction()
+	if err != nil {
+		return nil, err
+	}
+
+	isNew := db.fm.IsNew
+
+	if !isNew {
+		if err = trx.Recover(); err != nil {
+			return nil, err
+		}
+	}
+
+	mdm, err := metadata.NewManager(isNew, trx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := trx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return mdm, nil
 }

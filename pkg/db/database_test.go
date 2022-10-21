@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/unhandled-exception/sophiadb/pkg/db"
+	"github.com/unhandled-exception/sophiadb/pkg/scan"
 )
 
 const (
@@ -93,4 +94,49 @@ func (ts *DatabaseTestSuite) TestNewDatabase_ExistsDatabase() {
 	assert.False(t, sut.IsNew())
 
 	require.NoError(t, sut.Close())
+}
+
+func (ts *DatabaseTestSuite) TestPlanner() {
+	t := ts.T()
+	path := path.Join(t.TempDir(), testDataDir)
+
+	db, err := db.NewDatabase(path)
+	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, db.Close())
+	}()
+
+	sut := db.Planner()
+	require.NotNil(t, sut)
+
+	trx, err := db.Transaction()
+	require.NoError(t, err)
+	require.NotNil(t, trx)
+
+	defer require.NoError(t, trx.Commit())
+
+	_, err = sut.ExecuteCommand("create table table1 (id int64, name varchar(100))", trx)
+	assert.NoError(t, err)
+
+	rows, err := sut.ExecuteCommand("insert into table1 (id, name) values (1, 'user 1')", trx)
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, rows)
+
+	qp, err := sut.CreateQueryPlan("select id from table1", trx)
+	assert.NoError(t, err)
+
+	sc, err := qp.Open()
+	require.NoError(t, err)
+
+	require.NoError(t, scan.ForEach(sc, func() (bool, error) {
+		id, err := sc.GetInt64("id")
+		assert.NoError(t, err)
+		assert.EqualValues(t, 1, id)
+
+		_, err = sc.GetString("name")
+		assert.ErrorIs(t, err, scan.ErrFieldNotFound)
+
+		return false, nil
+	}))
 }
