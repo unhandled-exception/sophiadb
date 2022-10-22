@@ -24,7 +24,7 @@ linters:
     - nilerr
     - nilnil
     - nlreturn
-    - nolintlint
+    # - nolintlint
     - nonamedreturns
     - predeclared
     - rowserrcheck

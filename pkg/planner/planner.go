@@ -10,17 +10,17 @@ type QueryPlanner interface {
 }
 
 type CommandsPlanner interface {
-	ExecuteInsert(stmt parse.InsertStatement, trx scan.TRXInt) (rows int, err error)
-	ExecuteDelete(stmt parse.DeleteStatement, trx scan.TRXInt) (rows int, err error)
-	ExecuteUpdate(stmt parse.UpdateStatement, trx scan.TRXInt) (rows int, err error)
-	ExecuteCreateTable(stmt parse.CreateTableStatement, trx scan.TRXInt) (rows int, err error)
-	ExecuteCreateIndex(stmt parse.CreateIndexStatement, trx scan.TRXInt) (rows int, err error)
-	ExecuteCreateView(stmt parse.CreateViewStatement, trx scan.TRXInt) (rows int, err error)
+	ExecuteInsert(stmt parse.InsertStatement, trx scan.TRXInt) (rows int64, err error)
+	ExecuteDelete(stmt parse.DeleteStatement, trx scan.TRXInt) (rows int64, err error)
+	ExecuteUpdate(stmt parse.UpdateStatement, trx scan.TRXInt) (rows int64, err error)
+	ExecuteCreateTable(stmt parse.CreateTableStatement, trx scan.TRXInt) (rows int64, err error)
+	ExecuteCreateIndex(stmt parse.CreateIndexStatement, trx scan.TRXInt) (rows int64, err error)
+	ExecuteCreateView(stmt parse.CreateViewStatement, trx scan.TRXInt) (rows int64, err error)
 }
 
 type Planner interface {
 	CreateQueryPlan(query string, trx scan.TRXInt) (plan Plan, err error)
-	ExecuteCommand(cmd string, trx scan.TRXInt) (rows int, err error)
+	ExecuteCommand(cmd string, trx scan.TRXInt) (rows int64, err error)
 }
 
 type SQLPlanner struct {
@@ -55,7 +55,7 @@ func (p *SQLPlanner) CreateQueryPlan(query string, trx scan.TRXInt) (Plan, error
 	return plan, nil
 }
 
-func (p *SQLPlanner) ExecuteCommand(cmd string, trx scan.TRXInt) (int, error) {
+func (p *SQLPlanner) ExecuteCommand(cmd string, trx scan.TRXInt) (int64, error) {
 	stmtType, stmt, err := parse.ParseQuery(cmd)
 	if err != nil {
 		return 0, err
