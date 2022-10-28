@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql/driver"
 	"io"
-	"strings"
 )
 
 type stmtResult struct {
@@ -17,24 +16,6 @@ func (r stmtResult) LastInsertId() (int64, error) {
 
 func (r stmtResult) RowsAffected() (int64, error) {
 	return r.rows, nil
-}
-
-type embedDSN struct {
-	Path string
-}
-
-func parseEmbedDSN(dsn string) (embedDSN, error) {
-	d := embedDSN{}
-
-	parts := strings.SplitN(dsn, "?", 1)
-
-	if len(parts) == 0 || strings.TrimSpace(parts[0]) == "" {
-		return d, ErrBadDSN
-	}
-
-	d.Path = parts[0]
-
-	return d, nil
 }
 
 type connector struct {

@@ -1,3 +1,18 @@
+// Строка соединения со встроенной базой:
+// path_to_db_folder?block_size=4096&transaction_lock_timeout=3s
+//
+// Допустимые параметры:
+//   block_size (uint32) — размер блока в байтах
+//   buffers_pool_len (int) — длина пула буферов. Общий размер в памяти buffers_poll_size*block_size
+//   log_file_name (string) — имя файла для wal-лога
+//   pin_lock_timeout (duration) — таймаут для пина буферов
+//   transaction_lock_timeout (duration) - таймаут ожидания взятия блокировки транзакцией
+//
+// duration format:
+// ParseDuration parses a duration string. A duration string is a possibly signed sequence of
+// decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
+// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+
 package db
 
 import (
@@ -66,14 +81,14 @@ func (d *EmbedDriver) Open(dsn string) (driver.Conn, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	db, ok := d.databases[parsedDSN.Path]
+	db, ok := d.databases[parsedDSN.DataDir]
 	if !ok {
 		db, err = d.newDB(parsedDSN)
 		if err != nil {
 			return nil, err
 		}
 
-		d.databases[parsedDSN.Path] = db
+		d.databases[parsedDSN.DataDir] = db
 	}
 
 	return NewEmbedConn(db)
@@ -95,8 +110,15 @@ func (d *EmbedDriver) Close() error {
 	return nil
 }
 
-func (d *EmbedDriver) newDB(parsedDSN embedDSN) (*Database, error) {
-	return NewDatabase(parsedDSN.Path)
+func (d *EmbedDriver) newDB(dsn embedDSN) (*Database, error) {
+	return NewDatabase(
+		dsn.DataDir,
+		WithBlockSize(dsn.BlockSize),
+		WithLogFileName(dsn.LogFileName),
+		WithBuffersPoolLen(dsn.BuffersPoolLen),
+		WithPinLockTimeout(dsn.PinLockTimeout),
+		WithTransactionLockTimeout(dsn.TransactionLockTimeout),
+	)
 }
 
 type EmbedConn struct {
@@ -119,6 +141,10 @@ func NewEmbedConn(db *Database) (*EmbedConn, error) {
 	c.trx = trx
 
 	return c, nil
+}
+
+func (e *EmbedConn) DB() *Database {
+	return e.db
 }
 
 func (e *EmbedConn) TRX() *transaction.Transaction {

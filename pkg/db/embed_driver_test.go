@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,21 +49,116 @@ func (ts *EmbedDriverTestSuite) TestNewEmbedDriverConnection_WithoutOptions() {
 	dbPath := t.TempDir()
 	ctx := context.Background()
 
-	db, err := sql.Open(db.EmbedDriverName, dbPath)
+	edb, err := sql.Open(db.EmbedDriverName, dbPath)
 	require.NoError(t, err)
-	assert.NotNil(t, db)
+	assert.NotNil(t, edb)
 
-	conn1, err := db.Conn(ctx)
+	conn1, err := edb.Conn(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, conn1)
 
+	_ = conn1.Raw(func(driverConn any) error {
+		rdb, ok := driverConn.(interface{ DB() *db.Database })
+		require.True(t, ok)
+
+		assert.Equal(t, dbPath, rdb.DB().DataDir())
+		assert.EqualValues(t, db.DefaultBlockSize, rdb.DB().BlockSize())
+		assert.EqualValues(t, db.DefaultLogFilename, rdb.DB().LogFileName())
+		assert.EqualValues(t, db.DefaultBuffersPoolLen, rdb.DB().BuffersPoolLen())
+		assert.EqualValues(t, db.DefaultPinLockTimeout, rdb.DB().PinLockTimeout())
+		assert.EqualValues(t, db.DefaultTransactionLockTimeout, rdb.DB().TransactionLockTimeout())
+
+		return nil
+	})
+
 	require.NoError(t, conn1.PingContext(ctx))
 
-	conn2, err := db.Conn(ctx)
+	conn2, err := edb.Conn(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, conn2)
 
-	require.NoError(t, db.Close())
+	require.NoError(t, edb.Close())
+}
+
+func (ts *EmbedDriverTestSuite) TestNewEmbedDriverConnection_BadDSN() {
+	t := ts.T()
+
+	path := t.TempDir()
+
+	tests := []struct {
+		dsn  string
+		err  error
+		desc string
+	}{
+		{path + "?;", db.ErrBadDSN, ""},
+		{path + "?block_size", db.ErrBadDSN, "bad uint32 value: strconv.ParseUint: parsing \"\": invalid syntax: bad DSN"},
+		{path + "?block_size=123&name_no_value", db.ErrBadDSN, "unknown key: name_no_value: bad DSN"},
+		{"", db.ErrBadDSN, "empty path: bad DSN"},
+		{path + "?block_size=ddd", db.ErrBadDSN, "bad uint32 value: strconv.ParseUint: parsing \"ddd\": invalid syntax: bad DSN"},
+		{path + "?buffers_pool_len=ddd", db.ErrBadDSN, "bad int value: strconv.ParseInt: parsing \"ddd\": invalid syntax: bad DSN"},
+		{path + "?pin_lock_timeout=24", db.ErrBadDSN, "bad duration value: time: missing unit in duration \"24\": bad DSN"},
+		{path + "?transaction_lock_timeout=35", db.ErrBadDSN, "bad duration value: time: missing unit in duration \"35\": bad DSN"},
+	}
+
+	for _, tc := range tests {
+		db, err := sql.Open(db.EmbedDriverName, tc.dsn)
+		require.NoError(t, err)
+
+		_, err = db.Conn(context.Background())
+		if err == nil {
+			t.Logf("test '%s' has no errors", tc.dsn)
+			t.Fail()
+
+			continue
+		}
+
+		assert.ErrorIs(t, err, tc.err)
+
+		if tc.desc != "" {
+			assert.Equal(t, tc.desc, err.Error())
+		}
+	}
+}
+
+func (ts *EmbedDriverTestSuite) TestNewEmbedDirverConnection_WithOption() {
+	t := ts.T()
+
+	dbPath := t.TempDir()
+	ctx := context.Background()
+
+	edb, err := sql.Open(
+		db.EmbedDriverName,
+		dbPath+
+			"?block_size=15000"+
+			"&log_file_name=new_wal.log"+
+			"&buffers_pool_len=12345"+
+			"&pin_lock_timeout=4m"+
+			"&transaction_lock_timeout=25s",
+	)
+	require.NoError(t, err)
+	assert.NotNil(t, edb)
+
+	conn, err := edb.Conn(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, conn)
+
+	require.NoError(t, conn.PingContext(ctx))
+
+	require.NoError(t, edb.Close())
+
+	_ = conn.Raw(func(driverConn any) error {
+		rdb, ok := driverConn.(interface{ DB() *db.Database })
+		require.True(t, ok)
+
+		assert.EqualValues(t, dbPath, rdb.DB().DataDir())
+		assert.EqualValues(t, 15000, rdb.DB().BlockSize())
+		assert.EqualValues(t, "new_wal.log", rdb.DB().LogFileName())
+		assert.EqualValues(t, 12345, rdb.DB().BuffersPoolLen())
+		assert.EqualValues(t, 4*time.Minute, rdb.DB().PinLockTimeout())
+		assert.EqualValues(t, 25*time.Second, rdb.DB().TransactionLockTimeout())
+
+		return nil
+	})
 }
 
 func (ts *EmbedDriverTestSuite) TestExec() {

@@ -15,17 +15,13 @@ const (
 	DefaultBlockSize   = 8 * 1024
 	DefaultLogFilename = "wal_log.dat"
 
-	defaultBuffersPoolLen = 1024
+	DefaultBuffersPoolLen = 1024
 )
 
 var (
 	DefaultPinLockTimeout         time.Duration = 1 * time.Second
 	DefaultTransactionLockTimeout time.Duration = 1 * time.Second
 )
-
-func DefaultBuffersPoolLen(blockSize uint32) int {
-	return defaultBuffersPoolLen
-}
 
 type Database struct {
 	blockSize      uint32
@@ -49,7 +45,7 @@ func NewDatabase(dataDir string, opts ...DatabaseOption) (*Database, error) {
 	db := &Database{
 		blockSize:      DefaultBlockSize,
 		logFileName:    DefaultLogFilename,
-		buffersPoolLen: DefaultBuffersPoolLen(DefaultBlockSize),
+		buffersPoolLen: DefaultBuffersPoolLen,
 
 		pinLockTimeout:         DefaultPinLockTimeout,
 		transactionLockTimeout: DefaultTransactionLockTimeout,
@@ -150,7 +146,7 @@ func (db *Database) BuffersPoolLen() int {
 	return db.bm.Len
 }
 
-func (db *Database) MaxPinLockTime() time.Duration {
+func (db *Database) PinLockTimeout() time.Duration {
 	return db.bm.PinLockTimeout
 }
 

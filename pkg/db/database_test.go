@@ -48,8 +48,8 @@ func (ts *DatabaseTestSuite) TestNewDatabase_Default() {
 	assert.EqualValues(t, path, sut.DataDir())
 	assert.EqualValues(t, db.DefaultBlockSize, sut.BlockSize())
 	assert.EqualValues(t, db.DefaultLogFilename, sut.LogFileName())
-	assert.EqualValues(t, db.DefaultBuffersPoolLen(db.DefaultBlockSize), sut.BuffersPoolLen())
-	assert.EqualValues(t, db.DefaultPinLockTimeout, sut.MaxPinLockTime())
+	assert.EqualValues(t, db.DefaultBuffersPoolLen, sut.BuffersPoolLen())
+	assert.EqualValues(t, db.DefaultPinLockTimeout, sut.PinLockTimeout())
 	assert.EqualValues(t, db.DefaultTransactionLockTimeout, sut.TransactionLockTimeout())
 }
 
@@ -76,7 +76,7 @@ func (ts *DatabaseTestSuite) TestNewDatabase_WithOptions() {
 	assert.EqualValues(t, testWOBlockSize, sut.BlockSize())
 	assert.EqualValues(t, testWOLogFileName, sut.LogFileName())
 	assert.EqualValues(t, testWOBuffersPoolLen, sut.BuffersPoolLen())
-	assert.EqualValues(t, testWOPinLockTimeout, sut.MaxPinLockTime())
+	assert.EqualValues(t, testWOPinLockTimeout, sut.PinLockTimeout())
 	assert.EqualValues(t, testWOTransactionLockTimeout, sut.TransactionLockTimeout())
 }
 
