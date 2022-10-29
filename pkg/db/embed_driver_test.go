@@ -447,7 +447,7 @@ func (ts *EmbedDriverTestSuite) TestPlaceholders_Ok() {
 	_, err = sut.ExecContext(ctx, "insert into table1 (id, name, age) values (?, ?, ?)", 1, "name '1'", 15)
 	assert.NoError(t, err)
 
-	rows, err := sut.QueryContext(ctx, "select id, name, age from table1 where id = ? and name = ? and age = ?", 1, "name '1'", 15)
+	rows, err := sut.QueryContext(ctx, "select id, name, age from table1 where id = ? and name=:name and age = ?", 1, sql.Named("name", "name '1'"), 15)
 	assert.NoError(t, err)
 	assert.NoError(t, rows.Err())
 	assert.NoError(t, rows.Close()) //nolint:sqlclosecheck

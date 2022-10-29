@@ -1,3 +1,5 @@
+// Встроенный драйвер для SophiaDB
+//
 // Строка соединения со встроенной базой:
 // path_to_db_folder?block_size=4096&transaction_lock_timeout=3s
 //

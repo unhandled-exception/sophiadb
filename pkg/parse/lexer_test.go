@@ -167,9 +167,23 @@ func (ts *SQLLexerTestSuite) TestEatStringConstant() {
 	sut := parse.NewSQLLexer(" 'title name' some text")
 	defer sut.Close()
 
-	id, err := sut.EatStringConstant()
+	s, err := sut.EatStringConstant()
 	require.NoError(t, err)
-	assert.Equal(t, "title name", id)
+	assert.Equal(t, "title name", s)
+
+	_, err = sut.EatStringConstant()
+	require.ErrorIs(t, err, parse.ErrBadSyntax)
+}
+
+func (ts *SQLLexerTestSuite) TestEatEscapedStringConstant() {
+	t := ts.T()
+
+	sut := parse.NewSQLLexer(` 'title \'name\' \n \'\tv\\\'' some text`)
+	defer sut.Close()
+
+	s, err := sut.EatStringConstant()
+	require.NoError(t, err)
+	assert.Equal(t, "title 'name' \n '\tv\\'", s)
 
 	_, err = sut.EatStringConstant()
 	require.ErrorIs(t, err, parse.ErrBadSyntax)
