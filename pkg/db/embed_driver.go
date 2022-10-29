@@ -186,7 +186,7 @@ func (e *EmbedConn) BeginTx(_ context.Context, _ driver.TxOptions) (driver.Tx, e
 }
 
 func (e *EmbedConn) Begin() (driver.Tx, error) {
-	return e.BeginTx(context.Background(), driver.TxOptions{})
+	return nil, errors.New("Begin is not implemented, use BeginTx instead")
 }
 
 func (e *EmbedConn) Commit() error {
@@ -240,15 +240,20 @@ func (s embedStmt) NumInput() int {
 	return -1
 }
 
-func (s embedStmt) ExecContext(_ context.Context, _ []driver.NamedValue) (driver.Result, error) {
-	return s.exec(s.statement)
+func (s embedStmt) ExecContext(_ context.Context, args []driver.NamedValue) (driver.Result, error) {
+	return s.exec(s.statement, args)
 }
 
-func (s embedStmt) Exec(_ []driver.Value) (driver.Result, error) {
-	return s.exec(s.statement)
+func (s embedStmt) Exec(args []driver.Value) (driver.Result, error) {
+	return nil, errors.New("Exec is not implemented, use ExecContext instead")
 }
 
-func (s embedStmt) exec(statement string) (driver.Result, error) {
+func (s embedStmt) exec(statement string, args []driver.NamedValue) (driver.Result, error) {
+	statement, err := applyPlaceholders(statement, args)
+	if err != nil {
+		return nil, err
+	}
+
 	rows, err := s.planner.ExecuteCommand(statement, s.conn.TRX())
 	if err != nil {
 		return nil, err
@@ -265,14 +270,19 @@ func (s embedStmt) exec(statement string) (driver.Result, error) {
 }
 
 func (s embedStmt) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
-	return s.query(s.statement)
+	return s.query(s.statement, args)
 }
 
-func (s embedStmt) Query(_ []driver.Value) (driver.Rows, error) {
-	return s.query(s.statement)
+func (s embedStmt) Query(args []driver.Value) (driver.Rows, error) {
+	return nil, errors.New("Query is not implemented, use QueryContext instead")
 }
 
-func (s embedStmt) query(query string) (driver.Rows, error) {
+func (s embedStmt) query(query string, args []driver.NamedValue) (driver.Rows, error) {
+	query, err := applyPlaceholders(query, args)
+	if err != nil {
+		return nil, err
+	}
+
 	plan, err := s.planner.CreateQueryPlan(query, s.conn.TRX())
 	if err != nil {
 		return nil, err

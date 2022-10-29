@@ -430,3 +430,58 @@ func (ts *EmbedDriverTestSuite) TestStartTransactionAlreadyStarted() {
 
 	require.NoError(t, tx1.Commit())
 }
+
+func (ts *EmbedDriverTestSuite) TestPlaceholders_Ok() {
+	t := ts.T()
+
+	ctx := context.Background()
+
+	sut, clean := ts.newConnSUT()
+	defer clean()
+
+	var err error
+
+	_, err = sut.ExecContext(ctx, "create table table1 (id int64, name varchar(100), age int8)")
+	require.NoError(t, err)
+
+	_, err = sut.ExecContext(ctx, "insert into table1 (id, name, age) values (?, ?, ?)", 1, "name '1'", 15)
+	assert.NoError(t, err)
+
+	rows, err := sut.QueryContext(ctx, "select id, name, age from table1 where id = ? and name = ? and age = ?", 1, "name '1'", 15)
+	assert.NoError(t, err)
+	assert.NoError(t, rows.Err())
+	assert.NoError(t, rows.Close()) //nolint:sqlclosecheck
+
+	_, err = sut.ExecContext(ctx, "insert into table1 (id, name, age) values (:id, :name, :age)",
+		sql.Named("id", 2),
+		sql.Named("name", "name '2'"),
+		sql.Named("age", 25),
+	)
+	assert.NoError(t, err)
+}
+
+func (ts *EmbedDriverTestSuite) TestPlaceholders_Errors() {
+	t := ts.T()
+
+	ctx := context.Background()
+
+	sut, clean := ts.newConnSUT()
+	defer clean()
+
+	var err error
+
+	_, err = sut.ExecContext(ctx, "insert into table1 (id, name) values (?, ?)")
+	assert.ErrorIs(t, err, db.ErrFailedProcessPlaceholders)
+
+	_, err = sut.ExecContext(ctx, "insert into table1 (id, name) values (?, ?)", sql.Named("id", 1), "name 1")
+	assert.ErrorIs(t, err, db.ErrFailedProcessPlaceholders)
+
+	_, err = sut.ExecContext(ctx, "insert into table1 (id, name) values (?, ?)", 10, 10.45)
+	assert.ErrorIs(t, err, db.ErrUnserializableValue)
+
+	_, err = sut.ExecContext(ctx, "insert into table1 (id, name) values (:id, :name)")
+	assert.ErrorIs(t, err, db.ErrFailedProcessPlaceholders)
+
+	_, err = sut.ExecContext(ctx, "insert into table1 (id, name) values (:id, :name)", sql.Named("id", 1), sql.Named("username", "name 1"))
+	assert.ErrorIs(t, err, db.ErrFailedProcessPlaceholders)
+}
