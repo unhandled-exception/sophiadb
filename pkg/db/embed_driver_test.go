@@ -23,15 +23,26 @@ func TestEmbedDriverTestSuite(t *testing.T) {
 	suite.Run(t, new(EmbedDriverTestSuite))
 }
 
-func (ts *EmbedDriverTestSuite) newConnSUT() (*sql.Conn, func()) {
+func (ts *EmbedDriverTestSuite) newDB() (*sql.DB, func()) {
 	t := ts.T()
 
 	dbPath := t.TempDir()
-	ctx := context.Background()
 
 	db, err := sql.Open(db.EmbedDriverName, dbPath)
 	require.NoError(t, err)
 	require.NotNil(t, db)
+
+	return db, func() {
+		assert.NoError(t, db.Close())
+	}
+}
+
+func (ts *EmbedDriverTestSuite) newConnSUT() (*sql.Conn, func()) {
+	t := ts.T()
+
+	ctx := context.Background()
+
+	db, cleanDB := ts.newDB()
 
 	sut, err := db.Conn(ctx)
 	require.NoError(t, err)
@@ -39,7 +50,7 @@ func (ts *EmbedDriverTestSuite) newConnSUT() (*sql.Conn, func()) {
 
 	return sut, func() {
 		assert.NoError(t, sut.Close())
-		assert.NoError(t, db.Close())
+		cleanDB()
 	}
 }
 
@@ -257,19 +268,165 @@ func (ts *EmbedDriverTestSuite) TestTransaction_Ok() {
 
 	cnt := 10
 
-	tx, err := sut.BeginTx(ctx, nil)
+	tx1, err := sut.BeginTx(ctx, nil)
 	require.NoError(t, err)
 
 	for i := 0; i < cnt; i++ {
-		res, err1 := tx.ExecContext(ctx, fmt.Sprintf("insert into table1 (id, name, age) values (%d, 'name %d', %d)", i, i, i%255))
+		res, err1 := tx1.ExecContext(ctx, fmt.Sprintf("insert into table1 (id, name, age) values (%d, 'name %d', %d)", i, i, i%255))
 		assert.NoError(t, err1)
 
 		rows, _ := res.RowsAffected()
 		assert.EqualValues(t, 1, rows)
 	}
 
-	require.NoError(t, tx.Commit())
+	require.NoError(t, tx1.Commit())
 
-	// TODO: доделать тест с запросом
-	_ = false
+	tx2, err := sut.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	row2 := scanRowToRecord(t, tx2.QueryRowContext(ctx, "select id, name, age from table1 where id = 5"))
+	assert.Equal(t, "name 5", row2.Name)
+
+	_, err = tx2.ExecContext(ctx, "update table1 set name = 'new name 5' where id = 5")
+	assert.NoError(t, err)
+
+	require.NoError(t, tx2.Commit())
+
+	tx3, err := sut.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	row2 = scanRowToRecord(t, tx3.QueryRowContext(ctx, "select id, name, age from table1 where id = 5"))
+	assert.Equal(t, "new name 5", row2.Name)
+
+	require.NoError(t, tx3.Commit())
+}
+
+func (ts *EmbedDriverTestSuite) TestTransaction_Rollback() {
+	t := ts.T()
+
+	ctx := context.Background()
+
+	sut, clean := ts.newConnSUT()
+	defer clean()
+
+	_, err := sut.ExecContext(ctx, "create table table1 (id int64, name varchar(100), age int8)")
+	require.NoError(t, err)
+
+	cnt := 10
+
+	tx1, err := sut.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	for i := 0; i < cnt; i++ {
+		res, err1 := tx1.ExecContext(ctx, fmt.Sprintf("insert into table1 (id, name, age) values (%d, 'name %d', %d)", i, i, i%255))
+		assert.NoError(t, err1)
+
+		rows, _ := res.RowsAffected()
+		assert.EqualValues(t, 1, rows)
+	}
+
+	require.NoError(t, tx1.Commit())
+
+	tx2, err := sut.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	row2 := scanRowToRecord(t, tx2.QueryRowContext(ctx, "select id, name, age from table1 where id = 5"))
+	assert.Equal(t, "name 5", row2.Name)
+
+	_, err = tx2.ExecContext(ctx, "update table1 set name = 'new name 5' where id = 5")
+	assert.NoError(t, err)
+
+	require.NoError(t, tx2.Rollback())
+
+	tx3, err := sut.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	row2 = scanRowToRecord(t, tx3.QueryRowContext(ctx, "select id, name, age from table1 where id = 5"))
+	assert.Equal(t, "name 5", row2.Name)
+
+	require.NoError(t, tx3.Commit())
+}
+
+func (ts *EmbedDriverTestSuite) TestTransaction_MultipleConnections() {
+	t := ts.T()
+
+	ctx := context.Background()
+
+	db, cleanDB := ts.newDB()
+	defer cleanDB()
+
+	con1, err := db.Conn(ctx)
+	require.NoError(t, err)
+
+	defer func() {
+		assert.NoError(t, con1.Close())
+	}()
+
+	con2, err := db.Conn(ctx)
+	require.NoError(t, err)
+
+	defer func() {
+		assert.NoError(t, con2.Close())
+	}()
+
+	con3, err := db.Conn(ctx)
+	require.NoError(t, err)
+
+	defer func() {
+		assert.NoError(t, con3.Close())
+	}()
+
+	_, err = con1.ExecContext(ctx, "create table table1 (id int64, name varchar(100), age int8)")
+	require.NoError(t, err)
+
+	cnt := 10
+
+	tx1, err := con1.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	tx2, err := con2.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	tx3, err := con3.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	for i := 0; i < cnt; i++ {
+		res, err1 := tx1.ExecContext(ctx, fmt.Sprintf("insert into table1 (id, name, age) values (%d, 'name %d', %d)", i, i, i%255))
+		assert.NoError(t, err1)
+
+		rows, _ := res.RowsAffected()
+		assert.EqualValues(t, 1, rows)
+	}
+
+	require.NoError(t, tx1.Commit())
+
+	row2 := scanRowToRecord(t, tx2.QueryRowContext(ctx, "select id, name, age from table1 where id = 5"))
+	assert.Equal(t, "name 5", row2.Name)
+
+	_, err = tx2.ExecContext(ctx, "update table1 set name = 'new name 5' where id = 5")
+	assert.NoError(t, err)
+
+	require.NoError(t, tx2.Commit())
+
+	row2 = scanRowToRecord(t, tx3.QueryRowContext(ctx, "select id, name, age from table1 where id = 5"))
+	assert.Equal(t, "new name 5", row2.Name)
+
+	require.NoError(t, tx3.Commit())
+}
+
+func (ts *EmbedDriverTestSuite) TestStartTransactionAlreadyStarted() {
+	t := ts.T()
+
+	ctx := context.Background()
+
+	sut, clean := ts.newConnSUT()
+	defer clean()
+
+	tx1, err := sut.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	_, err = sut.BeginTx(ctx, nil)
+	assert.ErrorIs(t, err, db.ErrTransactionAlreadyStarted)
+
+	require.NoError(t, tx1.Commit())
 }
