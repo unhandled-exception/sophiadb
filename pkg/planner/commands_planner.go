@@ -28,7 +28,7 @@ func NewSQLCommandsPlanner(mdm sqlCommandsPlannerMetadataManager) *SQLCommandsPl
 	return p
 }
 
-func (p *SQLCommandsPlanner) ExecuteInsert(stmt parse.InsertStatement, trx scan.TRXInt) (int, error) {
+func (p *SQLCommandsPlanner) ExecuteInsert(stmt parse.InsertStatement, trx scan.TRXInt) (int64, error) {
 	var (
 		plan Plan
 		err  error
@@ -70,7 +70,7 @@ func (p *SQLCommandsPlanner) ExecuteInsert(stmt parse.InsertStatement, trx scan.
 	return 1, nil
 }
 
-func (p *SQLCommandsPlanner) ExecuteDelete(stmt parse.DeleteStatement, trx scan.TRXInt) (int, error) {
+func (p *SQLCommandsPlanner) ExecuteDelete(stmt parse.DeleteStatement, trx scan.TRXInt) (int64, error) {
 	var (
 		plan Plan
 		err  error
@@ -98,7 +98,7 @@ func (p *SQLCommandsPlanner) ExecuteDelete(stmt parse.DeleteStatement, trx scan.
 		return 0, errors.WithMessagef(ErrExecuteError, "failed to update (%s)", plan)
 	}
 
-	rows := 0
+	rows := int64(0)
 
 	if err = scan.ForEach(us, func() (bool, error) {
 		if werr := us.Delete(); werr != nil {
@@ -115,7 +115,7 @@ func (p *SQLCommandsPlanner) ExecuteDelete(stmt parse.DeleteStatement, trx scan.
 	return rows, nil
 }
 
-func (p *SQLCommandsPlanner) ExecuteUpdate(stmt parse.UpdateStatement, trx scan.TRXInt) (int, error) {
+func (p *SQLCommandsPlanner) ExecuteUpdate(stmt parse.UpdateStatement, trx scan.TRXInt) (int64, error) {
 	var (
 		plan Plan
 		err  error
@@ -143,7 +143,7 @@ func (p *SQLCommandsPlanner) ExecuteUpdate(stmt parse.UpdateStatement, trx scan.
 		return 0, errors.WithMessagef(ErrExecuteError, "failed to update (%s)", plan)
 	}
 
-	rows := 0
+	rows := int64(0)
 
 	if err = scan.ForEach(us, func() (bool, error) {
 		for _, expr := range stmt.UpdateExpressions() {
@@ -162,7 +162,7 @@ func (p *SQLCommandsPlanner) ExecuteUpdate(stmt parse.UpdateStatement, trx scan.
 	return rows, nil
 }
 
-func (p *SQLCommandsPlanner) ExecuteCreateTable(stmt parse.CreateTableStatement, trx scan.TRXInt) (int, error) {
+func (p *SQLCommandsPlanner) ExecuteCreateTable(stmt parse.CreateTableStatement, trx scan.TRXInt) (int64, error) {
 	if err := p.mdm.CreateTable(stmt.TableName(), stmt.Schema(), trx); err != nil {
 		return 0, errors.WithMessage(ErrExecuteError, err.Error())
 	}
@@ -170,7 +170,7 @@ func (p *SQLCommandsPlanner) ExecuteCreateTable(stmt parse.CreateTableStatement,
 	return 0, nil
 }
 
-func (p *SQLCommandsPlanner) ExecuteCreateIndex(stmt parse.CreateIndexStatement, trx scan.TRXInt) (int, error) {
+func (p *SQLCommandsPlanner) ExecuteCreateIndex(stmt parse.CreateIndexStatement, trx scan.TRXInt) (int64, error) {
 	if len(stmt.Fields()) > 1 {
 		return 0, errors.WithMessage(ErrExecuteError, "composite keys isn't suported")
 	}
@@ -182,7 +182,7 @@ func (p *SQLCommandsPlanner) ExecuteCreateIndex(stmt parse.CreateIndexStatement,
 	return 0, nil
 }
 
-func (p *SQLCommandsPlanner) ExecuteCreateView(stmt parse.CreateViewStatement, trx scan.TRXInt) (int, error) {
+func (p *SQLCommandsPlanner) ExecuteCreateView(stmt parse.CreateViewStatement, trx scan.TRXInt) (int64, error) {
 	if err := p.mdm.CreateView(stmt.ViewName(), stmt.ViewDef(), trx); err != nil {
 		return 0, errors.WithMessage(ErrExecuteError, err.Error())
 	}

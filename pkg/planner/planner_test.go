@@ -132,7 +132,7 @@ func (ts *PlannerTestSuite) TestExecuteCreateTable() {
 
 	rows, err := sut.ExecuteCommand("create table table1 (id int64)", trx)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, rows)
+	assert.EqualValues(t, 0, rows)
 }
 
 func (ts *PlannerTestSuite) TestExecuteCreateIndex() {
@@ -146,7 +146,7 @@ func (ts *PlannerTestSuite) TestExecuteCreateIndex() {
 
 	rows, err := sut.ExecuteCommand("create index idx1 on table1 (id)", trx)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, rows)
+	assert.EqualValues(t, 0, rows)
 }
 
 func (ts *PlannerTestSuite) TestExecuteCreateView() {
@@ -160,7 +160,7 @@ func (ts *PlannerTestSuite) TestExecuteCreateView() {
 
 	rows, err := sut.ExecuteCommand("create view view1 as select id from table1", trx)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, rows)
+	assert.EqualValues(t, 0, rows)
 }
 
 func (ts *PlannerTestSuite) TestExecuteDelete() {

@@ -49,4 +49,4 @@ jobs:
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
           version: v1.50
-          args: --timeout=120s --max-same-issues=0 --sort-results --go=1.19 -v
+          args: --timeout=120s --max-same-issues=0 --sort-results --go=1.19 --new=false --new-from-rev= -v

@@ -61,9 +61,11 @@ func NewSQLLexer(text string) SQLLexer {
 	lex := tokenizer.New()
 	lex.AllowKeywordUnderscore()
 	lex.AllowNumbersInKeyword()
-	lex.DefineStringToken(tokenizer.TokenString, "'", "'").SetEscapeSymbol(tokenizer.BackSlash)
 	lex.DefineTokens(tokenDelim, []string{",", "=", ".", "(", ")", "+", "-", "*", "/", "%"})
 	lex.SetWhiteSpaces([]byte{' ', '\t', '\n', '\r'})
+
+	es := lex.DefineStringToken(tokenizer.TokenString, "'", "'")
+	es.SetEscapeSymbol(tokenizer.BackSlash)
 
 	l := SQLLexer{
 		lexStream: lex.ParseString(text),
@@ -193,11 +195,54 @@ func (l SQLLexer) EatStringConstant() (string, error) {
 		return "", l.WrapLexerError(ErrBadSyntax)
 	}
 
-	id := l.lexStream.CurrentToken().ValueUnescapedString()
+	val := l.unescapeValueString(
+		l.lexStream.CurrentToken().ValueString(),
+	)
 
 	l.nextToken()
 
-	return id, nil
+	return val, nil
+}
+
+func (l SQLLexer) unescapeValueString(s string) string {
+	s = strings.TrimPrefix(s, "'")
+	s = strings.TrimSuffix(s, "'")
+
+	if len(s) > 0 {
+		res := make([]byte, 0, len(s))
+
+		escaped := false
+
+		for _, b := range []byte(s) {
+			if escaped {
+				switch b {
+				case 'n':
+					b = '\n'
+				case 't':
+					b = '\t'
+				case '\\':
+					b = '\\'
+				}
+
+				res = append(res, b)
+				escaped = false
+
+				continue
+			}
+
+			if b == '\\' {
+				escaped = true
+
+				continue
+			}
+
+			res = append(res, b)
+		}
+
+		s = string(res)
+	}
+
+	return s
 }
 
 func (l SQLLexer) EatID() (string, error) {
