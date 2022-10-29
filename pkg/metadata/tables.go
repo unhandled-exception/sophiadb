@@ -148,7 +148,7 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx scan.T
 			case FcatTypeField:
 				err = fcat.SetInt8(FcatTypeField, int8(schema.Type(fieldName)))
 			case FcatLengthField:
-				err = fcat.SetInt64(FcatLengthField, int64(schema.Length(fieldName)))
+				err = fcat.SetInt64(FcatLengthField, schema.Length(fieldName))
 			case FcatOffsetField:
 				err = fcat.SetInt64(FcatOffsetField, int64(layout.Offset(fieldName)))
 			}
@@ -257,7 +257,7 @@ func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, erro
 			return false, nil
 		}
 
-		layout.Schema.AddField(fieldInfo.FieldName, records.FieldType(fieldInfo.FieldType), int(fieldInfo.Length))
+		layout.Schema.AddField(fieldInfo.FieldName, records.FieldType(fieldInfo.FieldType), fieldInfo.Length)
 		layout.Offsets[fieldInfo.FieldName] = uint32(fieldInfo.Offset)
 
 		return false, nil

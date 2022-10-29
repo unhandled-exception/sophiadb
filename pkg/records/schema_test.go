@@ -32,9 +32,9 @@ func (ts *SchemaTestSuite) TestCreateSchema() {
 	assert.Equal(t, records.StringField, sut.Type("username"))
 	assert.Equal(t, records.Int8Field, sut.Type("age"))
 
-	assert.Equal(t, 0, sut.Length("id"))
-	assert.Equal(t, 128, sut.Length("username"))
-	assert.Equal(t, 0, sut.Length("age"))
+	assert.EqualValues(t, 0, sut.Length("id"))
+	assert.EqualValues(t, 128, sut.Length("username"))
+	assert.EqualValues(t, 0, sut.Length("age"))
 
 	assert.True(t, sut.HasField("id"))
 	assert.False(t, sut.HasField("unexistant"))

@@ -21,7 +21,7 @@ type Page struct {
 }
 
 // PageStringBytesLen возвращает предельный размер строки на странице в байтах
-func PageStringBytesLen(length int) uint32 {
+func PageStringBytesLen(length int64) uint32 {
 	return uint32(Int32Size + length*4) // длина строки + 4 байта на символ в utf-8
 }
 
