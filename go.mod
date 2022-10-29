@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/axiomhq/hyperloglog v0.0.0-20220105174342-98591331716a
-	github.com/bzick/tokenizer v1.3.0
 	github.com/gojuno/minimock/v3 v3.0.10
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1

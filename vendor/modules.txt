@@ -3,7 +3,6 @@
 github.com/axiomhq/hyperloglog
 # github.com/bzick/tokenizer v1.3.0
 ## explicit; go 1.13
-github.com/bzick/tokenizer
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
