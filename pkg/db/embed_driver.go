@@ -25,11 +25,11 @@ import (
 	"io"
 	"sync"
 
-	"github.com/unhandled-exception/sophiadb/pkg/planner"
-	"github.com/unhandled-exception/sophiadb/pkg/records"
-	"github.com/unhandled-exception/sophiadb/pkg/scan"
-	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
-	"github.com/unhandled-exception/sophiadb/pkg/utils"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/planner"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/scan"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/utils"
 )
 
 const EmbedDriverName = "sophiadb:embed"

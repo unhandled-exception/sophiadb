@@ -3,12 +3,12 @@ package db
 import (
 	"time"
 
-	"github.com/unhandled-exception/sophiadb/pkg/buffers"
-	"github.com/unhandled-exception/sophiadb/pkg/metadata"
-	"github.com/unhandled-exception/sophiadb/pkg/planner"
-	"github.com/unhandled-exception/sophiadb/pkg/storage"
-	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
-	"github.com/unhandled-exception/sophiadb/pkg/wal"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/metadata"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/planner"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
 )
 
 const (
