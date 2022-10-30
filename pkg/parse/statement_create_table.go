@@ -116,7 +116,7 @@ func (s SQLCreateTableStatement) parseSchema(lex Lexer) (records.Schema, error) 
 			return schema, err
 		}
 
-		schema.AddStringField(fieldName, int(length))
+		schema.AddStringField(fieldName, length)
 	default:
 		return schema, lex.WrapLexerError(ErrBadSyntax)
 	}

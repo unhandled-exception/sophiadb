@@ -18,7 +18,7 @@ const (
 
 type FieldInfo struct {
 	Type   FieldType
-	Length int
+	Length int64
 }
 
 func (fi FieldInfo) BytesLen() uint32 {
@@ -78,8 +78,8 @@ func (s Schema) Type(name string) FieldType {
 	return fieldType
 }
 
-func (s Schema) Length(name string) int {
-	var fieldLen int
+func (s Schema) Length(name string) int64 {
+	var fieldLen int64
 
 	field, ok := s.info[name]
 	if ok {
@@ -89,7 +89,7 @@ func (s Schema) Length(name string) int {
 	return fieldLen
 }
 
-func (s *Schema) AddField(name string, t FieldType, length int) {
+func (s *Schema) AddField(name string, t FieldType, length int64) {
 	s.fields = append(s.fields, name)
 	s.info[name] = FieldInfo{
 		Type:   t,
@@ -105,7 +105,7 @@ func (s *Schema) AddInt8Field(name string) {
 	s.AddField(name, Int8Field, 0)
 }
 
-func (s *Schema) AddStringField(name string, length int) {
+func (s *Schema) AddStringField(name string, length int64) {
 	s.AddField(name, StringField, length)
 }
 
