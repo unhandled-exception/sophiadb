@@ -5,7 +5,7 @@ import (
 
 	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/metadata"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/planner"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/planner" //nolint:typecheck
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
