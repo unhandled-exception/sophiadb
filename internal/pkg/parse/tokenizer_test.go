@@ -1,9 +1,10 @@
-package parse //nolint:testpackage
+package parse_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/parse"
 )
 
 func TestSQLTokenizer(t *testing.T) {
@@ -52,17 +53,17 @@ func TestSQLTokenizer(t *testing.T) {
 }
 
 func tokenize(s string) []string {
-	sut := newSQLtokenizer(s)
+	sut := parse.NewSQLtokenizer(s)
 
 	tokens := []string{}
 
 loop:
 	for {
-		sut.nextToken()
+		sut.NextToken()
 
-		tok := sut.currentToken()
+		tok := sut.CurrentToken()
 
-		if tok.typ == tokEOF || tok.typ == tokError {
+		if tok.Typ == parse.TokEOF || tok.Typ == parse.TokError {
 			tokens = append(tokens, tok.String())
 
 			break loop

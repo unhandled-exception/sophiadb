@@ -1,4 +1,4 @@
-//nolint:exhaustive,typecheck
+//nolint:exhaustive
 package parse
 
 import (
@@ -27,15 +27,15 @@ type Lexer interface {
 }
 
 type SQLLexer struct {
-	lexStream *sqlTokenizer
+	lexStream *SQLTokenizer
 }
 
 func NewSQLLexer(text string) SQLLexer {
 	l := SQLLexer{
-		lexStream: newSQLtokenizer(text),
+		lexStream: NewSQLtokenizer(text),
 	}
 
-	l.lexStream.nextToken()
+	l.lexStream.NextToken()
 
 	return l
 }
@@ -44,27 +44,27 @@ func (l SQLLexer) Close() {
 }
 
 func (l SQLLexer) nextToken() {
-	l.lexStream.nextToken()
+	l.lexStream.NextToken()
 }
 
 func (l SQLLexer) EOF() bool {
-	return l.lexStream.currentToken().typ == tokEOF
+	return l.lexStream.CurrentToken().Typ == TokEOF
 }
 
 func (l SQLLexer) MatchKeyword(keyword string) (bool, error) {
-	tok := l.lexStream.currentToken()
-	switch tok.typ {
-	case tokEOF:
+	tok := l.lexStream.CurrentToken()
+	switch tok.Typ {
+	case TokEOF:
 		return false, ErrEOF
-	case tokError:
-		return false, fmt.Errorf("%s", tok.val)
+	case TokError:
+		return false, fmt.Errorf("%s", tok.Val)
 	}
 
-	if tok.typ != tokKeyword {
+	if tok.Typ != TokKeyword {
 		return false, ErrBadSyntax
 	}
 
-	if tok.val != strings.ToLower(keyword) {
+	if tok.Val != strings.ToLower(keyword) {
 		return false, ErrUnmatchedKeyword
 	}
 
@@ -72,17 +72,17 @@ func (l SQLLexer) MatchKeyword(keyword string) (bool, error) {
 }
 
 func (l SQLLexer) MatchDelim(delim string) (bool, error) {
-	tok := l.lexStream.currentToken()
-	switch tok.typ {
-	case tokEOF:
+	tok := l.lexStream.CurrentToken()
+	switch tok.Typ {
+	case TokEOF:
 		return false, ErrEOF
-	case tokError:
-		return false, fmt.Errorf("%s", tok.val)
+	case TokError:
+		return false, fmt.Errorf("%s", tok.Val)
 	}
 
 	var err error
 
-	if tok.val != delim {
+	if tok.Val != delim {
 		err = ErrUnmatchedDelim
 	}
 
@@ -90,39 +90,39 @@ func (l SQLLexer) MatchDelim(delim string) (bool, error) {
 }
 
 func (l SQLLexer) MatchIntConstant() bool {
-	tok := l.lexStream.currentToken()
-	switch tok.typ {
-	case tokEOF:
+	tok := l.lexStream.CurrentToken()
+	switch tok.Typ {
+	case TokEOF:
 		return false
-	case tokError:
+	case TokError:
 		return false
 	}
 
-	return tok.typ == tokNumber
+	return tok.Typ == TokNumber
 }
 
 func (l SQLLexer) MatchStringConstant() bool {
-	tok := l.lexStream.currentToken()
-	switch tok.typ {
-	case tokEOF:
+	tok := l.lexStream.CurrentToken()
+	switch tok.Typ {
+	case TokEOF:
 		return false
-	case tokError:
+	case TokError:
 		return false
 	}
 
-	return tok.typ == tokString
+	return tok.Typ == TokString
 }
 
 func (l SQLLexer) MatchID() bool {
-	tok := l.lexStream.currentToken()
-	switch tok.typ {
-	case tokEOF:
+	tok := l.lexStream.CurrentToken()
+	switch tok.Typ {
+	case TokEOF:
 		return false
-	case tokError:
+	case TokError:
 		return false
 	}
 
-	return tok.typ == tokIdentifier
+	return tok.Typ == TokIdentifier
 }
 
 func (l SQLLexer) EatKeyword(keyword string) error {
@@ -152,7 +152,7 @@ func (l SQLLexer) EatIntConstant() (int64, error) {
 		return 0, l.WrapLexerError(ErrBadSyntax)
 	}
 
-	val, err := strconv.ParseInt(l.lexStream.currentToken().val, 10, 64)
+	val, err := strconv.ParseInt(l.lexStream.CurrentToken().Val, 10, 64)
 	if err != nil {
 		return 0, errors.WithMessage(ErrBadSyntax, err.Error())
 	}
@@ -168,7 +168,7 @@ func (l SQLLexer) EatStringConstant() (string, error) {
 	}
 
 	val := l.unescapeValueString(
-		l.lexStream.currentToken().val,
+		l.lexStream.CurrentToken().Val,
 	)
 
 	l.nextToken()
@@ -222,7 +222,7 @@ func (l SQLLexer) EatID() (string, error) {
 		return "", l.WrapLexerError(ErrBadSyntax)
 	}
 
-	id := strings.ToLower(l.lexStream.currentToken().val)
+	id := strings.ToLower(l.lexStream.CurrentToken().Val)
 
 	l.nextToken()
 
@@ -230,5 +230,5 @@ func (l SQLLexer) EatID() (string, error) {
 }
 
 func (l SQLLexer) WrapLexerError(err error) error {
-	return errors.WithMessagef(err, `near "%s" at line %d`, l.lexStream.input[:l.lexStream.pos], l.lexStream.line)
+	return errors.WithMessagef(err, `near "%s" at line %d`, l.lexStream.Input[:l.lexStream.Pos], l.lexStream.Line)
 }

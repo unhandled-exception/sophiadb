@@ -1,6 +1,6 @@
 package parse
 
-// Тjrtyfqpth по идеи лексера из доклада Роба Пайка — https://www.youtube.com/watch?v=HxaD_trXwRE&t=1567
+// Токенайзер по идеи лексера из доклада Роба Пайка — https://www.youtube.com/watch?v=HxaD_trXwRE&t=1567
 // и кода из https://cs.opensource.google/go/go/+/master:src/text/template/parse/lex.go
 
 import (
@@ -17,89 +17,94 @@ type tokenType int
 const eof = -1
 
 const (
-	tokError tokenType = iota
-	tokEOF
-	tokKeyword
-	tokIdentifier
-	tokString
-	tokNumber
-	tokDelimiter
+	TokError tokenType = iota
+	TokEOF
+	TokKeyword
+	TokIdentifier
+	TokString
+	TokNumber
+	TokDelimiter
 )
 
 var reservedIdentifiers = map[string]tokenType{
-	"select":  tokKeyword,
-	"from":    tokKeyword,
-	"where":   tokKeyword,
-	"and":     tokKeyword,
-	"insert":  tokKeyword,
-	"into":    tokKeyword,
-	"values":  tokKeyword,
-	"delete":  tokKeyword,
-	"update":  tokKeyword,
-	"set":     tokKeyword,
-	"create":  tokKeyword,
-	"table":   tokKeyword,
-	"varchar": tokKeyword,
-	"int":     tokKeyword,
-	"int64":   tokKeyword,
-	"int8":    tokKeyword,
-	"view":    tokKeyword,
-	"as":      tokKeyword,
-	"index":   tokKeyword,
-	"on":      tokKeyword,
-	"using":   tokKeyword,
+	"select":  TokKeyword,
+	"from":    TokKeyword,
+	"where":   TokKeyword,
+	"and":     TokKeyword,
+	"insert":  TokKeyword,
+	"into":    TokKeyword,
+	"values":  TokKeyword,
+	"delete":  TokKeyword,
+	"update":  TokKeyword,
+	"set":     TokKeyword,
+	"create":  TokKeyword,
+	"table":   TokKeyword,
+	"varchar": TokKeyword,
+	"int":     TokKeyword,
+	"int64":   TokKeyword,
+	"int8":    TokKeyword,
+	"view":    TokKeyword,
+	"as":      TokKeyword,
+	"index":   TokKeyword,
+	"on":      TokKeyword,
+	"using":   TokKeyword,
 }
 
-type token struct {
-	typ  tokenType
-	pos  Pos
-	val  string
-	line int
+type Token struct {
+	Typ  tokenType
+	Pos  Pos
+	Val  string
+	Line int
 }
 
-func (i token) String() string {
+func (i Token) String() string {
 	switch {
-	case i.typ == tokEOF:
+	case i.Typ == TokEOF:
 		return "{EOF}"
-	case i.typ == tokError:
-		return fmt.Sprintf("/%s/", i.val)
-	case i.typ == tokKeyword:
-		return fmt.Sprintf("<%s>", i.val)
-	case i.typ == tokIdentifier:
-		return fmt.Sprintf("[%s]", i.val)
+	case i.Typ == TokError:
+		return fmt.Sprintf("/%s/", i.Val)
+	case i.Typ == TokKeyword:
+		return fmt.Sprintf("<%s>", i.Val)
+	case i.Typ == TokIdentifier:
+		return fmt.Sprintf("[%s]", i.Val)
 	}
 
-	return i.val
+	return i.Val
 }
 
 // stateFn represents the state of the scanner as a function that returns the next state.
-type stateFn func(*sqlTokenizer) stateFn
+type stateFn func(*SQLTokenizer) stateFn
 
-// sqlTokenizer holds the state of the scanner.
-type sqlTokenizer struct {
-	input     string // the string being scanned
-	pos       Pos    // current position in the input
-	start     Pos    // start position of this item
-	atEOF     bool   // we have hit the end of input and returned eof
-	line      int    // 1+number of newlines seen
-	startLine int    // start line of this item
-	token     token  // item to return to parser
+// SQLTokenizer holds the state of the scanner.
+type SQLTokenizer struct {
+	Input string // the string being scanned
+	Pos   Pos    // current position in the input
+	Line  int    // 1+number of newlines seen
+
+	start     Pos   // start position of this item
+	startLine int   // start line of this item
+	atEOF     bool  // we have hit the end of input and returned eof
+	token     Token // item to return to parser
 }
 
-func newSQLtokenizer(input string) *sqlTokenizer {
-	l := &sqlTokenizer{
-		input:     input,
-		line:      1,
+func NewSQLtokenizer(input string) *SQLTokenizer {
+	l := &SQLTokenizer{
+		Input:     input,
+		Line:      1,
 		startLine: 1,
 	}
 
 	return l
 }
 
-// nextToken returns the next item from the input.
+func (l *SQLTokenizer) CurrentToken() Token {
+	return l.token
+}
+
+// NextToken returns the next item from the input.
 // Called by the parser, not in the lexing goroutine.
-func (l *sqlTokenizer) nextToken() {
-	l.token = token{tokEOF, l.pos, "EOF", l.startLine}
+func (l *SQLTokenizer) NextToken() {
+	l.token = Token{TokEOF, l.Pos, "EOF", l.startLine}
 
 	state := lexSQL
 
@@ -112,76 +117,72 @@ func (l *sqlTokenizer) nextToken() {
 }
 
 // nextRune returns the nextRune rune in the input.
-func (l *sqlTokenizer) nextRune() rune {
-	if int(l.pos) >= len(l.input) {
+func (l *SQLTokenizer) nextRune() rune {
+	if int(l.Pos) >= len(l.Input) {
 		l.atEOF = true
 
 		return eof
 	}
 
-	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
-	l.pos += Pos(w)
+	r, w := utf8.DecodeRuneInString(l.Input[l.Pos:])
+	l.Pos += Pos(w)
 
 	if r == '\n' {
-		l.line++
+		l.Line++
 	}
 
 	return r
 }
 
 // backup steps back one rune.
-func (l *sqlTokenizer) backup() {
-	if !l.atEOF && l.pos > 0 {
-		r, w := utf8.DecodeLastRuneInString(l.input[:l.pos])
-		l.pos -= Pos(w)
+func (l *SQLTokenizer) backup() {
+	if !l.atEOF && l.Pos > 0 {
+		r, w := utf8.DecodeLastRuneInString(l.Input[:l.Pos])
+		l.Pos -= Pos(w)
 		// Correct newline count.
 		if r == '\n' {
-			l.line--
+			l.Line--
 		}
 	}
 }
 
-func (l *sqlTokenizer) currentToken() token {
-	return l.token
-}
-
 // thisToken returns the item at the current input point with the specified type
 // and advances the input.
-func (l *sqlTokenizer) thisToken(t tokenType) token {
-	i := token{t, l.start, l.input[l.start:l.pos], l.startLine}
-	l.start = l.pos
-	l.startLine = l.line
+func (l *SQLTokenizer) thisToken(t tokenType) Token {
+	i := Token{t, l.start, l.Input[l.start:l.Pos], l.startLine}
+	l.start = l.Pos
+	l.startLine = l.Line
 
 	return i
 }
 
 // emit passes the trailing text as an item back to the parser.
-func (l *sqlTokenizer) emit(t tokenType) stateFn {
+func (l *SQLTokenizer) emit(t tokenType) stateFn {
 	return l.emitToken(l.thisToken(t))
 }
 
 // emit passes the trailing text as an item back to the parser.
-func (l *sqlTokenizer) emitIdentifier() stateFn {
-	tok := l.thisToken(tokIdentifier)
+func (l *SQLTokenizer) emitIdentifier() stateFn {
+	tok := l.thisToken(TokIdentifier)
 
-	keyword := strings.ToLower(tok.val)
+	keyword := strings.ToLower(tok.Val)
 	if typ, ok := reservedIdentifiers[keyword]; ok {
-		tok.typ = typ
-		tok.val = keyword
+		tok.Typ = typ
+		tok.Val = keyword
 	}
 
 	return l.emitToken(tok)
 }
 
 // emitToken passes the specified item to the parser.
-func (l *sqlTokenizer) emitToken(i token) stateFn {
+func (l *SQLTokenizer) emitToken(i Token) stateFn {
 	l.token = i
 
 	return nil
 }
 
 // accept consumes the next rune if it's from the valid set.
-func (l *sqlTokenizer) accept(valid string) bool {
+func (l *SQLTokenizer) accept(valid string) bool {
 	if strings.ContainsRune(valid, l.nextRune()) {
 		return true
 	}
@@ -192,7 +193,7 @@ func (l *sqlTokenizer) accept(valid string) bool {
 }
 
 // acceptRun consumes a run of runes from the valid set.
-func (l *sqlTokenizer) acceptRun(valid string) {
+func (l *SQLTokenizer) acceptRun(valid string) {
 	for strings.ContainsRune(valid, l.nextRune()) {
 	}
 	l.backup()
@@ -200,17 +201,17 @@ func (l *sqlTokenizer) acceptRun(valid string) {
 
 // errorf returns an error token and terminates the scan by passing
 // back a nil pointer that will be the next state, terminating l.nextItem.
-func (l *sqlTokenizer) errorf(format string, args ...any) stateFn {
-	l.token = token{tokError, l.start, fmt.Sprintf(format, args...), l.startLine}
+func (l *SQLTokenizer) errorf(format string, args ...any) stateFn {
+	l.token = Token{TokError, l.start, fmt.Sprintf(format, args...), l.startLine}
 	l.start = 0
-	l.pos = 0
-	l.input = l.input[:0]
+	l.Pos = 0
+	l.Input = l.Input[:0]
 
 	return nil
 }
 
 // lexSQL scans the elements inside action delimiters.
-func lexSQL(l *sqlTokenizer) stateFn {
+func lexSQL(l *SQLTokenizer) stateFn {
 	switch r := l.nextRune(); {
 	case r == eof:
 		return nil
@@ -223,7 +224,7 @@ func lexSQL(l *sqlTokenizer) stateFn {
 
 		return lexNumber
 	case isDelimiter(r):
-		return l.emit(tokDelimiter)
+		return l.emit(TokDelimiter)
 	case isAlphaNumeric(r):
 		return lexKeyworOrIdentifier
 	default:
@@ -234,7 +235,7 @@ func lexSQL(l *sqlTokenizer) stateFn {
 // lexSpace scans a run of space characters.
 // We have not consumed the first space, which is known to be present.
 // Take care if there is a trim-marked right delimiter, which starts with a space.
-func lexSpace(l *sqlTokenizer) stateFn {
+func lexSpace(l *SQLTokenizer) stateFn {
 	for {
 		r := l.nextRune()
 		if r == eof || !isSpace(r) {
@@ -244,13 +245,13 @@ func lexSpace(l *sqlTokenizer) stateFn {
 		}
 	}
 
-	l.start = l.pos
+	l.start = l.Pos
 
 	return lexSQL(l)
 }
 
 // lexQuote scans a quoted string.
-func lexString(l *sqlTokenizer) stateFn {
+func lexString(l *SQLTokenizer) stateFn {
 Loop:
 	for {
 		switch l.nextRune() {
@@ -267,22 +268,22 @@ Loop:
 		}
 	}
 
-	return l.emit(tokString)
+	return l.emit(TokString)
 }
 
 // lexNumber scans a number: decimal, octal, hex, float, or imaginary. This
 // isn't a perfect number scanner - for instance it accepts "." and "0x0.2"
 // and "089" - but when it's wrong the input is invalid and the parser (via
 // strconv) will notice.
-func lexNumber(l *sqlTokenizer) stateFn {
+func lexNumber(l *SQLTokenizer) stateFn {
 	if !l.scanNumber() {
-		return l.errorf("bad number syntax: %q", l.input[l.start:l.pos])
+		return l.errorf("bad number syntax: %q", l.Input[l.start:l.Pos])
 	}
 
-	return l.emit(tokNumber)
+	return l.emit(TokNumber)
 }
 
-func (l *sqlTokenizer) scanNumber() bool {
+func (l *SQLTokenizer) scanNumber() bool {
 	// Optional leading sign.
 	l.accept("-")
 
@@ -321,7 +322,7 @@ func (l *sqlTokenizer) scanNumber() bool {
 
 // lexVariable scans a field or variable: [.$]Alphanumeric.
 // The . or $ has been scanned.
-func lexKeyworOrIdentifier(l *sqlTokenizer) stateFn {
+func lexKeyworOrIdentifier(l *SQLTokenizer) stateFn {
 	var r rune
 
 	for {
