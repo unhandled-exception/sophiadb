@@ -1,5 +1,8 @@
 package parse
 
+// Тjrtyfqpth по идеи лексера из доклада Роба Пайка — https://www.youtube.com/watch?v=HxaD_trXwRE&t=1567
+// и кода из https://cs.opensource.google/go/go/+/master:src/text/template/parse/lex.go
+
 import (
 	"fmt"
 	"strings"
@@ -14,7 +17,7 @@ type tokenType int
 const eof = -1
 
 const (
-	tokError tokenType = iota // error occurred; value is text of error
+	tokError tokenType = iota
 	tokEOF
 	tokKeyword
 	tokIdentifier
@@ -48,18 +51,18 @@ var reservedIdentifiers = map[string]tokenType{
 }
 
 type token struct {
-	typ  tokenType // The type of this item.
-	pos  Pos       // The starting position, in bytes, of this item in the input string.
-	val  string    // The value of this item.
-	line int       // The line number at the start of this item.
+	typ  tokenType
+	pos  Pos
+	val  string
+	line int
 }
 
 func (i token) String() string {
 	switch {
 	case i.typ == tokEOF:
-		return "EOF"
+		return "{EOF}"
 	case i.typ == tokError:
-		return i.val
+		return fmt.Sprintf("/%s/", i.val)
 	case i.typ == tokKeyword:
 		return fmt.Sprintf("<%s>", i.val)
 	case i.typ == tokIdentifier:

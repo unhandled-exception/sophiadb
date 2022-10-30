@@ -229,22 +229,6 @@ func (l SQLLexer) EatID() (string, error) {
 	return id, nil
 }
 
-func (l SQLLexer) WrapLexerError(err error) error { //nolint:wsl
-	// TODO: make new wrapper
-	// tok := l.lexStream.currentToken()
-
-	// if tok.typ == tokUndef {
-	// 	return errors.WithMessage(err, `at end of query`)
-	// }
-
-	// snippet := l.lexStream.GetSnippet(2, 2) //nolint:gomnd
-	// snippetStrings := make([]string, len(snippet))
-
-	// for i := 0; i < len(snippet); i++ {
-	// 	snippetStrings[i] = snippet[i].ValueString()
-	// }
-
-	// return errors.WithMessagef(err, `near "%s" at line %d`, strings.Join(snippetStrings, " "), tok.Line())
-
-	return err
+func (l SQLLexer) WrapLexerError(err error) error {
+	return errors.WithMessagef(err, `near "%s" at line %d`, l.lexStream.input[:l.lexStream.pos], l.lexStream.line)
 }
