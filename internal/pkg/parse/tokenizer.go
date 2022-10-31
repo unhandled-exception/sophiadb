@@ -134,6 +134,14 @@ func (l *SQLTokenizer) nextRune() rune {
 	return r
 }
 
+// peek returns but does not consume the next rune in the input.
+func (l *SQLTokenizer) peekRune() rune {
+	r := l.nextRune()
+	l.backup()
+
+	return r
+}
+
 // backup steps back one rune.
 func (l *SQLTokenizer) backup() {
 	if !l.atEOF && l.Pos > 0 {
@@ -315,6 +323,12 @@ func (l *SQLTokenizer) scanNumber() bool {
 	if len(digits) == 16+6+1 && l.accept("pP") {
 		l.accept("+-")
 		l.acceptRun("0123456789_")
+	}
+
+	if isAlphaNumeric(l.peekRune()) {
+		l.nextRune()
+
+		return false
 	}
 
 	return true
