@@ -25,6 +25,10 @@ func TestSQLTokenizer(t *testing.T) {
 			[]string{"123.34", "0x12AF", "0o777", "0b01010101", "23E+344", "{EOF}"},
 		},
 		{
+			`12355from table1`,
+			[]string{"/bad number syntax: \"12355f\"/"},
+		},
+		{
 			``,
 			[]string{"{EOF}"},
 		},
