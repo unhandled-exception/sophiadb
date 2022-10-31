@@ -3,12 +3,12 @@ package db
 import (
 	"time"
 
-	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/metadata"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/planner" //nolint:typecheck
-	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
-	"github.com/unhandled-exception/sophiadb/internal/pkg/wal"
+	"github.com/unhandled-exception/sophiadb/pkg/buffers"
+	"github.com/unhandled-exception/sophiadb/pkg/metadata"
+	"github.com/unhandled-exception/sophiadb/pkg/planner"
+	"github.com/unhandled-exception/sophiadb/pkg/storage"
+	"github.com/unhandled-exception/sophiadb/pkg/tx/transaction"
+	"github.com/unhandled-exception/sophiadb/pkg/wal"
 )
 
 const (
@@ -23,6 +23,10 @@ var (
 	DefaultTransactionLockTimeout time.Duration = 1 * time.Second
 )
 
+type Planner interface {
+	planner.Planner
+}
+
 type Database struct {
 	blockSize      uint32
 	logFileName    string
@@ -36,7 +40,7 @@ type Database struct {
 	bm       *buffers.Manager
 	trxMan   *transaction.TRXManager
 	metadata *metadata.Manager
-	planner  planner.Planner
+	planner  Planner
 }
 
 type DatabaseOption func(*Database)
@@ -114,7 +118,7 @@ func WithTransactionLockTimeout(transactionLockTimeout time.Duration) DatabaseOp
 	}
 }
 
-func (db *Database) Planner() planner.Planner {
+func (db *Database) Planner() Planner {
 	return db.planner
 }
 
