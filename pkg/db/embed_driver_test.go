@@ -484,4 +484,7 @@ func (ts *EmbedDriverTestSuite) TestPlaceholders_Errors() {
 
 	_, err = sut.ExecContext(ctx, "insert into table1 (id, name) values (:id, :name)", sql.Named("id", 1), sql.Named("username", "name 1"))
 	assert.ErrorIs(t, err, db.ErrFailedProcessPlaceholders)
+
+	_, err = sut.ExecContext(ctx, "insert into table1 (id, name) values (:id, :name?)", sql.Named("id", 1), sql.Named("username", "name 1"))
+	assert.ErrorIs(t, err, db.ErrFailedProcessPlaceholders)
 }

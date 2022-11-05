@@ -49,6 +49,10 @@ func TestSQLTokenizer(t *testing.T) {
 			[]string{"<from>", "/unrecognized character in action: U+0022 '\"'/"},
 		},
 		{
+			`select id from'name 1'`,
+			[]string{"<select>", "[id]", "/bad syntax: \"from'\"/"},
+		},
+		{
 			`
 			-- Query
 			select id, name, age
@@ -76,6 +80,14 @@ func TestSQLTokenizer(t *testing.T) {
 		{
 			`select * from /*`,
 			[]string{"<select>", "*", "<from>", "/unterminated comment/"},
+		},
+		{
+			`select 'test\`,
+			[]string{"<select>", "/unterminated quoted string/"},
+		},
+		{
+			"select 'test\\\n",
+			[]string{"<select>", "/unterminated quoted string/"},
 		},
 	}
 

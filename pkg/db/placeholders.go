@@ -2,14 +2,12 @@ package db
 
 import (
 	"database/sql/driver"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/unhandled-exception/sophiadb/pkg/db/parse"
 )
-
-var placeholdersRe = regexp.MustCompile(`(?:\?|\:\w+)`)
 
 func applyPlaceholders(query string, args []driver.NamedValue) (string, error) {
 	positional := fetchPositionalArgs(args)
@@ -18,39 +16,58 @@ func applyPlaceholders(query string, args []driver.NamedValue) (string, error) {
 	curPos := -1
 	maxPositional := len(positional)
 
+	lexer := parse.NewPlaceholdersLexer(query)
+
+	res := []string{}
+
 	var err error
 
-	applied := placeholdersRe.ReplaceAllFunc([]byte(query), func(b []byte) []byte {
-		if err != nil {
-			return b
-		}
+Loop:
+	for {
+		var val []byte
 
-		var res []byte = b
+		lexer.NextToken()
 
-		switch b[0] {
-		case '?':
+		switch tok := lexer.Token(); tok.Typ {
+		case parse.TokPositional:
+
 			if curPos++; curPos < maxPositional {
-				res, err = serializeValue(positional[curPos])
+				val, err = serializeValue(positional[curPos])
 			} else {
 				err = errors.WithMessage(ErrFailedProcessPlaceholders, "not enough values for placeholders")
 			}
-		case ':':
-			name := string(b[1:])
+
+		case parse.TokNamed:
+			name := tok.Val[1:]
+
 			if v, ok := named[name]; ok {
-				res, err = serializeValue(v)
+				val, err = serializeValue(v)
 			} else {
 				err = errors.WithMessagef(ErrFailedProcessPlaceholders, "unknonw key '%s'", name)
 			}
+
+		case parse.TokText:
+			res = append(res, tok.Val)
+		case parse.TokError:
+			err = errors.WithMessagef(ErrFailedProcessPlaceholders, lexer.Token().Val)
+
+			fallthrough
+		case parse.TokEOF:
+			break Loop
 		}
 
-		return res
-	})
+		if err != nil {
+			break Loop
+		}
+
+		res = append(res, string(val))
+	}
 
 	if err != nil {
 		return "", err
 	}
 
-	return string(applied), nil
+	return strings.Join(res, ""), nil
 }
 
 func fetchNamedArgs(args []driver.NamedValue) map[string]driver.Value {
