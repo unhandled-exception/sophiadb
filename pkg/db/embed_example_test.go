@@ -61,7 +61,15 @@ func Example() {
 		name string
 	}{}
 
-	err = con.QueryRowContext(ctx, "select id, name from table1 where id = :id", sql.Named("id", 2)).Scan(&user.id, &user.name)
+	err = con.QueryRowContext(ctx,
+		`select id, name
+		   from table1
+	      where id = :id     -- named param
+		        and name = ? /* positional param */
+		`,
+		sql.Named("id", 2),
+		"name '2'",
+	).Scan(&user.id, &user.name)
 	if err != nil {
 		log.Fatal(err)
 	}

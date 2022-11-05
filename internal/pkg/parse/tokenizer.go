@@ -87,6 +87,7 @@ type SQLTokenizer struct {
 	token     Token // item to return to parser
 }
 
+// NewSQLTokenizer create a new tokenizer object
 func NewSQLtokenizer(input string) *SQLTokenizer {
 	l := &SQLTokenizer{
 		Input:     input,
@@ -97,6 +98,7 @@ func NewSQLtokenizer(input string) *SQLTokenizer {
 	return l
 }
 
+// CurrentToken returns the current token
 func (l *SQLTokenizer) CurrentToken() Token {
 	return l.token
 }
@@ -227,6 +229,10 @@ func lexSQL(l *SQLTokenizer) stateFn {
 		return lexSpace
 	case r == '\'':
 		return lexString
+	case r == '-' && l.peekRune() == '-':
+		return lexLineComment
+	case r == '/' && l.peekRune() == '*':
+		return lexBlockComment
 	case r == '-' || ('0' <= r && r <= '9'):
 		l.backup()
 
@@ -238,6 +244,43 @@ func lexSQL(l *SQLTokenizer) stateFn {
 	default:
 		return l.errorf("unrecognized character in action: %#U", r)
 	}
+}
+
+// lexLineComment scans a line comment
+func lexLineComment(l *SQLTokenizer) stateFn {
+	// read second minus, first already scanned
+	_ = l.nextRune()
+
+	for {
+		r := l.nextRune()
+		if r == eof || r == '\n' {
+			break
+		}
+	}
+
+	return lexSQL(l)
+}
+
+// lexLineComment scans a block comment
+func lexBlockComment(l *SQLTokenizer) stateFn {
+	// read asterisk, lead slash already scanned
+	_ = l.nextRune()
+
+Loop:
+	for {
+		switch l.nextRune() {
+		case '*':
+			if l.peekRune() == '/' {
+				_ = l.nextRune()
+
+				break Loop
+			}
+		case eof:
+			return l.errorf("unterminated comment")
+		}
+	}
+
+	return lexSQL(l)
 }
 
 // lexSpace scans a run of space characters.

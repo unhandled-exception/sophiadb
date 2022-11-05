@@ -48,6 +48,35 @@ func TestSQLTokenizer(t *testing.T) {
 			`from "name 1"`,
 			[]string{"<from>", "/unrecognized character in action: U+0022 '\"'/"},
 		},
+		{
+			`
+			-- Query
+			select id, name, age
+			from table1
+			-- join table2 ousing (id)
+			where
+				1=-1
+				and name = 'name 1' -- end line
+			-- end`,
+			[]string{"<select>", "[id]", ",", "[name]", ",", "[age]", "<from>", "[table1]", "<where>", "1", "=", "-1", "<and>", "[name]", "=", "'name 1'", "{EOF}"},
+		},
+		{
+			`
+			/**** Query ****/	select id, name, age
+			from table1
+			/* join table 2
+			   -- using (id)
+			*/
+			where
+				1= 2*3
+				and name = 'name 1'
+			/* end*/`,
+			[]string{"<select>", "[id]", ",", "[name]", ",", "[age]", "<from>", "[table1]", "<where>", "1", "=", "2", "*", "3", "<and>", "[name]", "=", "'name 1'", "{EOF}"},
+		},
+		{
+			`select * from /*`,
+			[]string{"<select>", "*", "<from>", "/unterminated comment/"},
+		},
 	}
 
 	for _, tc := range tests {
