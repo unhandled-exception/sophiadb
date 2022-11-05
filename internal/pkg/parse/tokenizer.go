@@ -87,7 +87,7 @@ type SQLTokenizer struct {
 	token     Token // item to return to parser
 }
 
-// NewSQLTokenizer create a new tokenizer object
+// NewSQLTokenizer create a new scanner
 func NewSQLtokenizer(input string) *SQLTokenizer {
 	l := &SQLTokenizer{
 		Input:     input,
@@ -171,7 +171,7 @@ func (l *SQLTokenizer) emit(t tokenType) stateFn {
 	return l.emitToken(l.thisToken(t))
 }
 
-// emit passes the trailing text as an item back to the parser.
+// emitToken passes the trailing text as an item back to the parser.
 func (l *SQLTokenizer) emitIdentifier() stateFn {
 	tok := l.thisToken(TokIdentifier)
 
@@ -258,7 +258,7 @@ func lexLineComment(l *SQLTokenizer) stateFn {
 		}
 	}
 
-	return lexSQL(l)
+	return lexSQL
 }
 
 // lexLineComment scans a block comment
@@ -271,7 +271,8 @@ Loop:
 		switch l.nextRune() {
 		case '*':
 			if l.peekRune() == '/' {
-				_ = l.nextRune()
+				l.nextRune()
+				l.start = l.Pos
 
 				break Loop
 			}
@@ -280,7 +281,7 @@ Loop:
 		}
 	}
 
-	return lexSQL(l)
+	return lexSQL
 }
 
 // lexSpace scans a run of space characters.
@@ -298,7 +299,7 @@ func lexSpace(l *SQLTokenizer) stateFn {
 
 	l.start = l.Pos
 
-	return lexSQL(l)
+	return lexSQL
 }
 
 // lexQuote scans a quoted string.
@@ -308,7 +309,7 @@ Loop:
 		switch l.nextRune() {
 		case '\\':
 			if r := l.nextRune(); r != eof && r != '\n' {
-				break
+				continue
 			}
 
 			fallthrough
@@ -382,16 +383,25 @@ func (l *SQLTokenizer) scanNumber() bool {
 func lexKeyworOrIdentifier(l *SQLTokenizer) stateFn {
 	var r rune
 
+Loop:
 	for {
 		r = l.nextRune()
-		if !isAlphaNumeric(r) {
+		switch {
+		case isQuote(r):
+			return l.errorf("bad syntax: %q", l.Input[l.start:l.Pos])
+		case !isAlphaNumeric(r):
 			l.backup()
 
-			break
+			break Loop
 		}
 	}
 
 	return l.emitIdentifier()
+}
+
+// isQuote reports whether r is a quote character.
+func isQuote(r rune) bool {
+	return r == '\'' || r == '"'
 }
 
 // isSpace reports whether r is a space character.
