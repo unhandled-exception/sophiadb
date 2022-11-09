@@ -21,9 +21,10 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"errors"
 	"io"
 	"sync"
+
+	"github.com/pkg/errors"
 
 	"github.com/unhandled-exception/sophiadb/internal/pkg/planner"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
