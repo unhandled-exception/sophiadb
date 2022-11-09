@@ -1,7 +1,7 @@
 package planner
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 
 	"github.com/unhandled-exception/sophiadb/internal/pkg/metadata"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/parse"
