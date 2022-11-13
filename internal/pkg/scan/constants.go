@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"strconv"
 
-	"github.com/cespare/xxhash/v2"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
+	"github.com/zeebo/xxh3"
 )
 
 type CompResult int8
@@ -69,7 +69,7 @@ func (c Int64Constant) Hash() uint64 {
 	buf := make([]byte, int64Size)
 	binary.PutVarint(buf, c.value)
 
-	return xxhash.Sum64(buf)
+	return xxh3.Hash(buf)
 }
 
 func (c Int64Constant) CompareTo(another Constant) CompResult {
@@ -113,7 +113,7 @@ func (c Int8Constant) String() string {
 }
 
 func (c Int8Constant) Hash() uint64 {
-	return xxhash.Sum64([]byte{byte(c.value)})
+	return xxh3.Hash([]byte{byte(c.value)})
 }
 
 func (c Int8Constant) CompareTo(another Constant) CompResult {
@@ -157,7 +157,7 @@ func (c StringConstant) String() string {
 }
 
 func (c StringConstant) Hash() uint64 {
-	return xxhash.Sum64String(c.value)
+	return xxh3.HashString(c.value)
 }
 
 func (c StringConstant) CompareTo(another Constant) CompResult {
