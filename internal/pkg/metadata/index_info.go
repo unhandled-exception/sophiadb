@@ -8,12 +8,6 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/scan"
 )
 
-const (
-	IdxSchemaBlockField = "block"
-	IdxSchemaIDField    = "id"
-	IdxSchemaValueField = "dataval"
-)
-
 type IndexInfo struct {
 	idxName   string
 	tableName string
@@ -57,7 +51,7 @@ func (ii *IndexInfo) String() string {
 func (ii *IndexInfo) Open() (indexes.Index, error) {
 	switch ii.idxType {
 	case indexes.HashIndexType:
-		return indexes.NewHashIndex(ii.trx, ii.idxName, ii.idxLayout)
+		return indexes.NewStaticHashIndex(ii.trx, ii.idxName, ii.idxLayout)
 	case indexes.BTreeIndexType:
 		return indexes.NewBTreeIndex(ii.trx, ii.idxName, ii.idxLayout)
 	}
@@ -99,19 +93,5 @@ func (ii *IndexInfo) DistinctValues(fieldName string) int64 {
 }
 
 func (ii *IndexInfo) createIndexLayout() records.Layout {
-	schema := records.NewSchema()
-	schema.AddInt64Field(IdxSchemaBlockField)
-	schema.AddInt64Field(IdxSchemaIDField)
-
-	//nolint:exhaustive
-	switch ii.schema.Type(ii.fieldName) {
-	case records.Int64Field:
-		schema.AddInt64Field(IdxSchemaValueField)
-	case records.Int8Field:
-		schema.AddInt8Field(IdxSchemaValueField)
-	case records.StringField:
-		schema.AddStringField(IdxSchemaValueField, ii.schema.Length(ii.fieldName))
-	}
-
-	return records.NewLayout(schema)
+	return indexes.NewIndexLayout(ii.schema.Type(ii.fieldName), ii.schema.Length(ii.fieldName))
 }

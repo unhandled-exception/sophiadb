@@ -290,7 +290,7 @@ func (ts *TableScan) MoveToRID(rid types.RID) error {
 }
 
 func (ts *TableScan) RID() types.RID {
-	rid := types.RID{}
+	var rid types.RID
 
 	if ts.rp != nil {
 		rid.BlockNumber = ts.rp.Block.Number

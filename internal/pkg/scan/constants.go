@@ -1,8 +1,10 @@
 package scan
 
 import (
+	"encoding/binary"
 	"strconv"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
 )
 
@@ -15,11 +17,14 @@ var (
 	CompGreat        CompResult = 1
 )
 
+const int64Size = 8
+
 type Constant interface {
 	Value() interface{}
 	Type() records.FieldType
 	CompareTo(Constant) CompResult
 	String() string
+	Hash() uint64
 }
 
 func NewInt64Constant(value int64) Int64Constant {
@@ -58,6 +63,13 @@ func (c Int64Constant) Type() records.FieldType {
 
 func (c Int64Constant) String() string {
 	return strconv.FormatInt(c.value, 10) //nolint:gomnd
+}
+
+func (c Int64Constant) Hash() uint64 {
+	buf := make([]byte, int64Size)
+	binary.PutVarint(buf, c.value)
+
+	return xxhash.Sum64(buf)
 }
 
 func (c Int64Constant) CompareTo(another Constant) CompResult {
@@ -100,6 +112,10 @@ func (c Int8Constant) String() string {
 	return strconv.FormatInt(int64(c.value), 10) //nolint:gomnd
 }
 
+func (c Int8Constant) Hash() uint64 {
+	return xxhash.Sum64([]byte{byte(c.value)})
+}
+
 func (c Int8Constant) CompareTo(another Constant) CompResult {
 	var value int8
 
@@ -138,6 +154,10 @@ func (c StringConstant) Type() records.FieldType {
 
 func (c StringConstant) String() string {
 	return `'` + c.value + `'`
+}
+
+func (c StringConstant) Hash() uint64 {
+	return xxhash.Sum64String(c.value)
 }
 
 func (c StringConstant) CompareTo(another Constant) CompResult {
