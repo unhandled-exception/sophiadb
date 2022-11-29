@@ -71,7 +71,7 @@ func (ts *Suite) requireRowsCount(expected int, sc scan.Scan, msgAndArgs ...inte
 
 	resCnt := 0
 
-	require.NoError(t, scan.ForEach(sc, func() (bool, error) {
+	require.NoError(t, scan.ForEach(sc, func() (stop bool, err error) {
 		resCnt++
 
 		return false, nil

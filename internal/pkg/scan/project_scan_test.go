@@ -91,8 +91,8 @@ func (ts *ProjectScanTestsuite) TestIterate() {
 
 	var i int64 = 0
 
-	require.NoError(t, scan.ForEach(sut, func() (bool, error) {
-		_, err := sut.GetString("job")
+	require.NoError(t, scan.ForEach(sut, func() (stop bool, err error) {
+		_, err = sut.GetString("job")
 		require.ErrorIs(t, err, scan.ErrFieldNotFound)
 
 		_, err = sut.GetInt64("room")

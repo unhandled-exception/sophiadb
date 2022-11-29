@@ -2,7 +2,11 @@ package scan
 
 import "github.com/unhandled-exception/sophiadb/internal/pkg/records"
 
-func ForEach(ts Scan, call func() (bool, error)) error {
+// ForEach смещает указатель текущей запси в образе сканирования от первой до полследней
+// и вызывает функцию call для каждой записи в образе сканирования с интерфйсом Scan.
+// Проход по Scan останавливается принудительно, когда call вернула ошибку или stop == true.
+// ForEach возвращает ошибку из call или nil.
+func ForEach(ts Scan, call func() (stop bool, err error)) error {
 	if err := ts.BeforeFirst(); err != nil {
 		return err
 	}
@@ -30,7 +34,11 @@ func ForEach(ts Scan, call func() (bool, error)) error {
 	return nil
 }
 
-func ForEachField(ts Scan, call func(name string, fieldType records.FieldType) (bool, error)) error {
+// ForEachField вызывает метод call для каждого поля из схемы образа сканирования Scan.
+// call получает в параметрах имя и тип поля.
+// Проход по полям останавливается принудительно, когда call вернула ошибку или stop == true.
+// ForEachField возвращает ошибку из call или nil.
+func ForEachField(ts Scan, call func(name string, fieldType records.FieldType) (stop bool, err error)) error {
 	for _, name := range ts.Schema().Fields() {
 		fieldType := ts.Schema().Type(name)
 
@@ -47,7 +55,11 @@ func ForEachField(ts Scan, call func(name string, fieldType records.FieldType) (
 	return nil
 }
 
-func ForEachValue(ts Scan, call func(name string, fieldType records.FieldType, value interface{}) (bool, error)) error {
+// ForEachValue вызывает метод call для каждого значения текущей записи образа сканирования Scan.
+// call получает в параметрах имя поля, тип поля и нетипизированное значение поля.
+// Проход по полям останавливается принудительно, когда call вернула ошибку или stop == true.
+// ForEachValue возвращает ошибку из call или nil.
+func ForEachValue(ts Scan, call func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error)) error {
 	for _, name := range ts.Schema().Fields() {
 		fieldType := ts.Schema().Type(name)
 

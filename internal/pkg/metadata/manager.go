@@ -52,7 +52,7 @@ func (m *Manager) Layout(tableName string, trx scan.TRXInt) (records.Layout, err
 	return m.tables.Layout(tableName, trx)
 }
 
-func (m *Manager) ForEachTables(trx scan.TRXInt, call func(tableName string) (bool, error)) error {
+func (m *Manager) ForEachTables(trx scan.TRXInt, call func(tableName string) (stop bool, err error)) error {
 	return m.tables.ForEachTables(trx, call)
 }
 

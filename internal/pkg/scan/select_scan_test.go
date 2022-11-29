@@ -74,7 +74,7 @@ func (ts *SelectScanTestSuite) TestIterate() {
 
 	i := 0
 
-	require.NoError(t, scan.ForEach(sut, func() (bool, error) {
+	require.NoError(t, scan.ForEach(sut, func() (stop bool, err error) {
 		i++
 
 		id, err := sut.GetInt64("id")
@@ -142,7 +142,7 @@ func (ts *SelectScanTestSuite) TestUpdate() {
 
 	cnt := 0
 
-	require.NoError(t, scan.ForEach(sut, func() (bool, error) {
+	require.NoError(t, scan.ForEach(sut, func() (stop bool, err error) {
 		cnt++
 
 		id, err := sut.GetInt64("id")

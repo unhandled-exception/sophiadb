@@ -242,7 +242,7 @@ func (ts *PredicatesTestsuite) TestAndPredicate_IsSatisfied() {
 	i := 0
 
 	require.NoError(t,
-		scan.ForEach(rts, func() (bool, error) {
+		scan.ForEach(rts, func() (stop bool, err error) {
 			ok, err := sut1.IsSatisfied(rts)
 			require.NoError(t, err)
 			assert.False(t, ok)

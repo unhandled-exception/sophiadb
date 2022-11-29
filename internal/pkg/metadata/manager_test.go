@@ -77,7 +77,7 @@ func (ts *MetadataManagerTestSute) TestTablesMetadata() {
 
 	tables := []string{}
 
-	require.NoError(t, sut.ForEachTables(trx, func(tableName string) (bool, error) {
+	require.NoError(t, sut.ForEachTables(trx, func(tableName string) (stop bool, err error) {
 		tables = append(tables, tableName)
 
 		return false, nil

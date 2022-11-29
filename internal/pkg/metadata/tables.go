@@ -70,7 +70,7 @@ func newFieldsCatalogLayout() records.Layout {
 	return records.NewLayout(schema)
 }
 
-func (t *Tables) TableExists(tableName string, trx scan.TRXInt) (bool, error) {
+func (t *Tables) TableExists(tableName string, trx scan.TRXInt) (stop bool, err error) {
 	tcat, err := t.NewTableCatalogTableScan(trx)
 	if err != nil {
 		return false, t.wrapError(err, tableName, nil)
@@ -78,7 +78,7 @@ func (t *Tables) TableExists(tableName string, trx scan.TRXInt) (bool, error) {
 
 	found := false
 
-	err = scan.ForEach(tcat, func() (bool, error) {
+	err = scan.ForEach(tcat, func() (stop bool, err error) {
 		name, verr := tcat.GetString(TcatTableNameField)
 		if verr != nil {
 			return true, verr
@@ -117,9 +117,7 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx scan.T
 		return t.wrapError(err, tableName, ErrFailedToCreateTable)
 	}
 
-	if err := scan.ForEachField(tcat, func(name string, fieldType records.FieldType) (bool, error) {
-		var err error
-
+	if err := scan.ForEachField(tcat, func(name string, fieldType records.FieldType) (stop bool, err error) {
 		switch name {
 		case TcatTableNameField:
 			err = tcat.SetString(TcatTableNameField, tableName)
@@ -137,9 +135,7 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx scan.T
 			return t.wrapError(err, tableName, ErrFailedToCreateTable)
 		}
 
-		if err := scan.ForEachField(fcat, func(name string, fieldType records.FieldType) (bool, error) {
-			var err error
-
+		if err := scan.ForEachField(fcat, func(name string, fieldType records.FieldType) (stop bool, err error) {
 			switch name {
 			case FcatTableNameField:
 				err = fcat.SetString(FcatTableNameField, tableName)
@@ -177,13 +173,13 @@ func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, erro
 
 	found := false
 
-	if err := scan.ForEach(tcat, func() (bool, error) {
+	if err := scan.ForEach(tcat, func() (stop bool, err error) {
 		tableInfo := struct {
 			Name     string
 			SlotSize int64
 		}{}
 
-		if err := scan.ForEachValue(tcat, func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+		if err := scan.ForEachValue(tcat, func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error) {
 			var ok bool
 
 			switch name {
@@ -219,7 +215,7 @@ func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, erro
 		return layout, errors.WithMessagef(ErrTableNotFound, `table "%s" not found`, tableName)
 	}
 
-	if err := scan.ForEach(fcat, func() (bool, error) {
+	if err := scan.ForEach(fcat, func() (stop bool, err error) {
 		fieldInfo := struct {
 			TableName string
 			FieldName string
@@ -228,7 +224,7 @@ func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, erro
 			Offset    int64
 		}{}
 
-		if err := scan.ForEachValue(fcat, func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+		if err := scan.ForEachValue(fcat, func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error) {
 			var ok bool
 
 			switch name {
@@ -294,7 +290,7 @@ func (t *Tables) NewCatalogTableScan(trx scan.TRXInt) (*scan.TableScan /* tcat *
 	return tcat, fcat, err
 }
 
-func (t *Tables) ForEachTables(trx scan.TRXInt, call func(tableName string) (bool, error)) error {
+func (t *Tables) ForEachTables(trx scan.TRXInt, call func(tableName string) (stop bool, err error)) error {
 	ts, err := t.NewTableCatalogTableScan(trx)
 	if err != nil {
 		return err
@@ -302,7 +298,7 @@ func (t *Tables) ForEachTables(trx scan.TRXInt, call func(tableName string) (boo
 
 	defer ts.Close()
 
-	err = scan.ForEach(ts, func() (bool, error) {
+	err = scan.ForEach(ts, func() (stop bool, err error) {
 		tableName, werr := ts.GetString(TcatTableNameField)
 		if werr != nil {
 			return true, t.wrapError(werr, t.TcatTable, nil)

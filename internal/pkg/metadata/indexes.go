@@ -69,7 +69,7 @@ func (i *Indexes) CreateIndex(idxName string, tableName string, idxType indexes.
 
 	defer ts.Close()
 
-	if err = scan.ForEach(ts, func() (bool, error) {
+	if err = scan.ForEach(ts, func() (stop bool, err error) {
 		iName, verr := ts.GetString(IcatIndexNameField)
 		switch {
 		case verr != nil:
@@ -104,7 +104,7 @@ func (i *Indexes) CreateIndex(idxName string, tableName string, idxType indexes.
 		return i.wrapError(err, tableName, nil)
 	}
 
-	err = scan.ForEachField(ts, func(name string, fieldType records.FieldType) (bool, error) {
+	err = scan.ForEachField(ts, func(name string, fieldType records.FieldType) (stop bool, err error) {
 		var verr error
 
 		switch name {
@@ -144,10 +144,10 @@ func (i *Indexes) TableIndexes(tableName string, trx scan.TRXInt) (IndexesMap, e
 
 	imap := make(IndexesMap)
 
-	err = scan.ForEach(ts, func() (bool, error) {
+	err = scan.ForEach(ts, func() (stop bool, err error) {
 		tName, verr := ts.GetString(IcatTableNameField)
 		if verr != nil {
-			return true, err
+			return true, verr
 		}
 
 		if tName != tableName {
@@ -160,7 +160,7 @@ func (i *Indexes) TableIndexes(tableName string, trx scan.TRXInt) (IndexesMap, e
 			fName string
 		)
 
-		verr = scan.ForEachField(ts, func(name string, fieldType records.FieldType) (bool, error) {
+		verr = scan.ForEachField(ts, func(name string, fieldType records.FieldType) (stop bool, err error) {
 			var werr error
 
 			switch name {
