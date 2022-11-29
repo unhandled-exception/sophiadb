@@ -179,7 +179,7 @@ func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, erro
 			SlotSize int64
 		}{}
 
-		if err := scan.ForEachValue(tcat, func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error) {
+		if err := scan.ForEachValue(tcat, func(name string, fieldType records.FieldType, value any) (stop bool, err error) {
 			var ok bool
 
 			switch name {
@@ -224,7 +224,7 @@ func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, erro
 			Offset    int64
 		}{}
 
-		if err := scan.ForEachValue(fcat, func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error) {
+		if err := scan.ForEachValue(fcat, func(name string, fieldType records.FieldType, value any) (stop bool, err error) {
 			var ok bool
 
 			switch name {

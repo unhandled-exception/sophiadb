@@ -115,7 +115,7 @@ func (s *Stats) calcTableStat(tableName string, trx scan.TRXInt) (StatInfo, erro
 		si.Records++
 		si.Blocks = int64(ts.RID().BlockNumber) + 1
 
-		return false, scan.ForEachValue(ts, func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error) {
+		return false, scan.ForEachValue(ts, func(name string, fieldType records.FieldType, value any) (stop bool, err error) {
 			var (
 				verr error
 				buf  []byte

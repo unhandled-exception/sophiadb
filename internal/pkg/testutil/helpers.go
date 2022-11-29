@@ -8,7 +8,7 @@ import (
 
 type testSuite interface {
 	T() *testing.T
-	FailNow(failureMessage string, msgAndArgs ...interface{}) bool
+	FailNow(failureMessage string, msgAndArgs ...any) bool
 	SuiteDir() string
 }
 

@@ -124,7 +124,7 @@ func (ts *TablesTestSuite) TestCreateTable_Ok() {
 			lt = tn
 		}
 
-		require.NoError(t, scan.ForEachValue(recs, func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error) {
+		require.NoError(t, scan.ForEachValue(recs, func(name string, fieldType records.FieldType, value any) (stop bool, err error) {
 			var ok bool
 
 			switch name {

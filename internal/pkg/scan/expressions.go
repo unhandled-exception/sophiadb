@@ -16,7 +16,7 @@ const (
 type Expression interface {
 	Evaluate(s Scan) (Constant, error)
 	IsFieldName() bool
-	Value() (interface{}, ExpressionValue)
+	Value() (any, ExpressionValue)
 	AppliesTo(records.Schema) bool
 	ReductionFactor(Plan) (int64, bool)
 	String() string
@@ -32,7 +32,7 @@ func NewFieldExpression(fieldName string) FieldExpression {
 	}
 }
 
-func (e FieldExpression) Value() (interface{}, ExpressionValue) {
+func (e FieldExpression) Value() (any, ExpressionValue) {
 	return e.fieldName, StringValue
 }
 
@@ -66,7 +66,7 @@ func NewScalarExpression(value Constant) ScalarExpression {
 	}
 }
 
-func (e ScalarExpression) Value() (interface{}, ExpressionValue) {
+func (e ScalarExpression) Value() (any, ExpressionValue) {
 	return e.value, ConstantValue
 }
 

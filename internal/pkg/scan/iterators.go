@@ -59,12 +59,12 @@ func ForEachField(ts Scan, call func(name string, fieldType records.FieldType) (
 // call получает в параметрах имя поля, тип поля и нетипизированное значение поля.
 // Проход по полям останавливается принудительно, когда call вернула ошибку или stop == true.
 // ForEachValue возвращает ошибку из call или nil.
-func ForEachValue(ts Scan, call func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error)) error {
+func ForEachValue(ts Scan, call func(name string, fieldType records.FieldType, value any) (stop bool, err error)) error {
 	for _, name := range ts.Schema().Fields() {
 		fieldType := ts.Schema().Type(name)
 
 		var (
-			value interface{}
+			value any
 			err   error
 		)
 

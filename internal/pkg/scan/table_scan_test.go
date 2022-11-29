@@ -327,7 +327,7 @@ func (ts *TableScanTestSuite) TestForEachAndForeachValue() {
 	f := map[string]int{}
 
 	require.NoError(t, scan.ForEach(sut, func() (stop bool, err error) {
-		require.NoError(t, scan.ForEachValue(sut, func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error) {
+		require.NoError(t, scan.ForEachValue(sut, func(name string, fieldType records.FieldType, value any) (stop bool, err error) {
 			switch name {
 			case "id":
 				assert.EqualValues(t, records.Int64Field, fieldType)
@@ -422,7 +422,7 @@ func (ts *TableScanTestSuite) TestForEachAndForEachValue_Errors() {
 	vErr := fmt.Errorf("foreach stop")
 
 	require.EqualError(t, scan.ForEach(sut, func() (stop bool, err error) {
-		err = scan.ForEachValue(sut, func(name string, fieldType records.FieldType, value interface{}) (stop bool, err error) {
+		err = scan.ForEachValue(sut, func(name string, fieldType records.FieldType, value any) (stop bool, err error) {
 			if i == int(cnt/2) {
 				return false, vErr
 			}

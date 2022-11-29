@@ -20,7 +20,7 @@ var (
 const int64Size = 8
 
 type Constant interface {
-	Value() interface{}
+	Value() any
 	Type() records.FieldType
 	CompareTo(Constant) CompResult
 	String() string
@@ -53,7 +53,7 @@ type Int64Constant struct {
 	vType records.FieldType
 }
 
-func (c Int64Constant) Value() interface{} {
+func (c Int64Constant) Value() any {
 	return c.value
 }
 
@@ -100,7 +100,7 @@ type Int8Constant struct {
 	vType records.FieldType
 }
 
-func (c Int8Constant) Value() interface{} {
+func (c Int8Constant) Value() any {
 	return c.value
 }
 
@@ -144,7 +144,7 @@ type StringConstant struct {
 	vType records.FieldType
 }
 
-func (c StringConstant) Value() interface{} {
+func (c StringConstant) Value() any {
 	return c.value
 }
 

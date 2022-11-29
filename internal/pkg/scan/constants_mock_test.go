@@ -41,7 +41,7 @@ type ConstantMock struct {
 	beforeTypeCounter uint64
 	TypeMock          mConstantMockType
 
-	funcValue          func() (p1 interface{})
+	funcValue          func() (a1 any)
 	inspectFuncValue   func()
 	afterValueCounter  uint64
 	beforeValueCounter uint64
@@ -729,7 +729,7 @@ type ConstantMockValueExpectation struct {
 
 // ConstantMockValueResults contains results of the Constant.Value
 type ConstantMockValueResults struct {
-	p1 interface{}
+	a1 any
 }
 
 // Expect sets up expected params for Constant.Value
@@ -757,7 +757,7 @@ func (mmValue *mConstantMockValue) Inspect(f func()) *mConstantMockValue {
 }
 
 // Return sets up results that will be returned by Constant.Value
-func (mmValue *mConstantMockValue) Return(p1 interface{}) *ConstantMock {
+func (mmValue *mConstantMockValue) Return(a1 any) *ConstantMock {
 	if mmValue.mock.funcValue != nil {
 		mmValue.mock.t.Fatalf("ConstantMock.Value mock is already set by Set")
 	}
@@ -765,12 +765,12 @@ func (mmValue *mConstantMockValue) Return(p1 interface{}) *ConstantMock {
 	if mmValue.defaultExpectation == nil {
 		mmValue.defaultExpectation = &ConstantMockValueExpectation{mock: mmValue.mock}
 	}
-	mmValue.defaultExpectation.results = &ConstantMockValueResults{p1}
+	mmValue.defaultExpectation.results = &ConstantMockValueResults{a1}
 	return mmValue.mock
 }
 
 //Set uses given function f to mock the Constant.Value method
-func (mmValue *mConstantMockValue) Set(f func() (p1 interface{})) *ConstantMock {
+func (mmValue *mConstantMockValue) Set(f func() (a1 any)) *ConstantMock {
 	if mmValue.defaultExpectation != nil {
 		mmValue.mock.t.Fatalf("Default expectation is already set for the Constant.Value method")
 	}
@@ -784,7 +784,7 @@ func (mmValue *mConstantMockValue) Set(f func() (p1 interface{})) *ConstantMock 
 }
 
 // Value implements Constant
-func (mmValue *ConstantMock) Value() (p1 interface{}) {
+func (mmValue *ConstantMock) Value() (a1 any) {
 	mm_atomic.AddUint64(&mmValue.beforeValueCounter, 1)
 	defer mm_atomic.AddUint64(&mmValue.afterValueCounter, 1)
 
@@ -799,7 +799,7 @@ func (mmValue *ConstantMock) Value() (p1 interface{}) {
 		if mm_results == nil {
 			mmValue.t.Fatal("No results are set for the ConstantMock.Value")
 		}
-		return (*mm_results).p1
+		return (*mm_results).a1
 	}
 	if mmValue.funcValue != nil {
 		return mmValue.funcValue()
