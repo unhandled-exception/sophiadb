@@ -39,6 +39,8 @@ func (ts *ConstantsTestSuite) TestInt64Constant() {
 	assert.Equal(t, scan.CompLess, sut.CompareTo(scan.NewInt64Constant(value+1)))
 	assert.Equal(t, scan.CompGreat, sut.CompareTo(scan.NewInt64Constant(value-1)))
 
+	assert.Equal(t, uint64(0x9634abd826beb5a9), sut.Hash())
+
 	var smallValue int8 = 123
 	sut2 := scan.NewInt64Constant(int64(smallValue))
 
@@ -64,6 +66,8 @@ func (ts *ConstantsTestSuite) TestInt8Constant() {
 	assert.Equal(t, scan.CompLess, sut.CompareTo(scan.NewInt8Constant(value+1)))
 	assert.Equal(t, scan.CompGreat, sut.CompareTo(scan.NewInt8Constant(value-1)))
 
+	assert.Equal(t, uint64(0x8b82f1d0e8b8941d), sut.Hash())
+
 	var bigValue int64 = 123
 	sut2 := scan.NewInt8Constant(int8(bigValue))
 
@@ -88,4 +92,6 @@ func (ts *ConstantsTestSuite) TestStringConstant() {
 	assert.Equal(t, scan.CompGreat, sut.CompareTo(scan.NewStringConstant(value[:len(value)-1])))
 
 	assert.Equal(t, scan.CompUncomparable, sut.CompareTo(scan.NewInt64Constant(0)))
+
+	assert.Equal(t, uint64(0x9ec9f7918d7dfc40), sut.Hash())
 }
