@@ -10,30 +10,30 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/scan"
 )
 
-type plan interface {
+type sPlan interface {
 	Open() (scan.Scan, error)
 	Schema() records.Schema
 	String() string
 }
 
-type indexInfo interface {
+type sIndexInfo interface {
 	Open() (indexes.Index, error)
+	String() string
 	DistinctValues(fieldName string) int64
 	Records() int64
 	BlocksAccessed() int64
-	String() string
 }
 
-// IndexPlan — образ сканирования для поиска по индексу
-type IndexPlan struct {
-	p     plan
-	ii    indexInfo
+// SelectPlan — план сканирования для поиска по индексу
+type SelectPlan struct {
+	p     sPlan
+	ii    sIndexInfo
 	value scan.Constant
 }
 
-// NewIndexPlan возвращает новый образ сканирования по индексу
-func NewIndexPlan(p plan, ii indexInfo, value scan.Constant) (*IndexPlan, error) {
-	ip := &IndexPlan{
+// NewSelectPlan создаёт новый план сканирования по индексу
+func NewSelectPlan(p sPlan, ii sIndexInfo, value scan.Constant) (*SelectPlan, error) {
+	ip := &SelectPlan{
 		p:     p,
 		ii:    ii,
 		value: value,
@@ -42,7 +42,7 @@ func NewIndexPlan(p plan, ii indexInfo, value scan.Constant) (*IndexPlan, error)
 	return ip, nil
 }
 
-func (ip *IndexPlan) Open() (scan.Scan, error) {
+func (ip *SelectPlan) Open() (scan.Scan, error) {
 	sc, err := ip.p.Open()
 	if err != nil {
 		return nil, errors.WithMessage(planner.ErrFailedToCreatePlan, err.Error())
@@ -61,22 +61,22 @@ func (ip *IndexPlan) Open() (scan.Scan, error) {
 	return NewIndexSelectScan(ts, idx, ip.value)
 }
 
-func (ip *IndexPlan) Schema() records.Schema {
+func (ip *SelectPlan) Schema() records.Schema {
 	return ip.p.Schema()
 }
 
-func (ip *IndexPlan) BlocksAccessed() int64 {
+func (ip *SelectPlan) BlocksAccessed() int64 {
 	return ip.ii.BlocksAccessed() + ip.ii.Records()
 }
 
-func (ip *IndexPlan) Records() int64 {
+func (ip *SelectPlan) Records() int64 {
 	return ip.ii.Records()
 }
 
-func (ip *IndexPlan) DistinctValues(fieldName string) (int64, bool) {
+func (ip *SelectPlan) DistinctValues(fieldName string) (int64, bool) {
 	return ip.ii.DistinctValues(fieldName), true
 }
 
-func (ip *IndexPlan) String() string {
-	return fmt.Sprintf("index scan on %q", ip.ii.String())
+func (ip *SelectPlan) String() string {
+	return fmt.Sprintf("index scan on %q", ip.ii)
 }

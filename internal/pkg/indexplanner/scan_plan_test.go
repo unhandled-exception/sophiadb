@@ -14,27 +14,27 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/scan"
 )
 
-var _ planner.Plan = &indexplanner.IndexPlan{}
+var _ planner.Plan = &indexplanner.SelectPlan{}
 
-type IndexScanPlanTestSuite struct {
+type ScanPlanTestSuite struct {
 	Suite
 }
 
-func TestIndexScanPlanTestSuite(t *testing.T) {
-	suite.Run(t, new(IndexScanPlanTestSuite))
+func TestScanPlanTestSuite(t *testing.T) {
+	suite.Run(t, new(ScanPlanTestSuite))
 }
 
-func (ts *IndexScanPlanTestSuite) TestScanPlan_Ok() {
+func (ts *ScanPlanTestSuite) TestScanPlan_Ok() {
 	t := ts.T()
 	mc := minimock.NewController(t)
 
 	schema := ts.testLayout().Schema
 
-	tp := indexplanner.NewPlanMock(mc).
+	tp := indexplanner.NewSPlanMock(mc).
 		SchemaMock.Return(schema).
 		OpenMock.Return(&scan.TableScan{}, nil)
 
-	idx := indexplanner.NewIndexInfoMock(mc).
+	idx := indexplanner.NewSIndexInfoMock(mc).
 		BlocksAccessedMock.Return(123).
 		RecordsMock.Return(894).
 		DistinctValuesMock.Return(6543).
@@ -43,7 +43,7 @@ func (ts *IndexScanPlanTestSuite) TestScanPlan_Ok() {
 
 	value := scan.NewInt64Constant(12345)
 
-	sut, err := indexplanner.NewIndexPlan(tp, idx, value)
+	sut, err := indexplanner.NewSelectPlan(tp, idx, value)
 	require.NoError(t, err)
 
 	assert.Equal(t, "index scan on \"table1.idx1\"", sut.String())
@@ -61,55 +61,55 @@ func (ts *IndexScanPlanTestSuite) TestScanPlan_Ok() {
 	assert.NotNil(t, is)
 }
 
-func (ts *IndexScanPlanTestSuite) TestScanPlan_FailedToOpenWrappedPlan() {
+func (ts *ScanPlanTestSuite) TestScanPlan_FailedToOpenWrappedPlan() {
 	t := ts.T()
 	mc := minimock.NewController(t)
 
-	tp := indexplanner.NewPlanMock(mc).
+	tp := indexplanner.NewSPlanMock(mc).
 		OpenMock.Return(nil, fmt.Errorf("failed to open plan"))
 
-	idx := indexplanner.NewIndexInfoMock(mc)
+	idx := indexplanner.NewSIndexInfoMock(mc)
 
 	value := scan.NewInt64Constant(12345)
 
-	sut, err := indexplanner.NewIndexPlan(tp, idx, value)
+	sut, err := indexplanner.NewSelectPlan(tp, idx, value)
 	require.NoError(t, err)
 
 	_, err = sut.Open()
 	assert.ErrorIs(t, err, planner.ErrFailedToCreatePlan)
 }
 
-func (ts *IndexScanPlanTestSuite) TestScanPlan_InvalidWrappedPlan() {
+func (ts *ScanPlanTestSuite) TestScanPlan_InvalidWrappedPlan() {
 	t := ts.T()
 	mc := minimock.NewController(t)
 
-	tp := indexplanner.NewPlanMock(mc).
+	tp := indexplanner.NewSPlanMock(mc).
 		OpenMock.Return(&scan.SelectScan{}, nil)
 
-	idx := indexplanner.NewIndexInfoMock(mc)
+	idx := indexplanner.NewSIndexInfoMock(mc)
 
 	value := scan.NewInt64Constant(12345)
 
-	sut, err := indexplanner.NewIndexPlan(tp, idx, value)
+	sut, err := indexplanner.NewSelectPlan(tp, idx, value)
 	require.NoError(t, err)
 
 	_, err = sut.Open()
 	assert.ErrorIs(t, err, planner.ErrFailedToCreatePlan)
 }
 
-func (ts *IndexScanPlanTestSuite) TestScanPlan_FailedToOpenIndex() {
+func (ts *ScanPlanTestSuite) TestScanPlan_FailedToOpenIndex() {
 	t := ts.T()
 	mc := minimock.NewController(t)
 
-	tp := indexplanner.NewPlanMock(mc).
+	tp := indexplanner.NewSPlanMock(mc).
 		OpenMock.Return(&scan.TableScan{}, nil)
 
-	idx := indexplanner.NewIndexInfoMock(mc).
+	idx := indexplanner.NewSIndexInfoMock(mc).
 		OpenMock.Return(nil, fmt.Errorf("failed to open index"))
 
 	value := scan.NewInt64Constant(12345)
 
-	sut, err := indexplanner.NewIndexPlan(tp, idx, value)
+	sut, err := indexplanner.NewSelectPlan(tp, idx, value)
 	require.NoError(t, err)
 
 	_, err = sut.Open()

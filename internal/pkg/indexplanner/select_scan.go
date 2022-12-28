@@ -6,14 +6,14 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/scan"
 )
 
-type IndexSelectScan struct {
+type SelectScan struct {
 	ts    *scan.TableScan
 	idx   indexes.Index
 	value scan.Constant
 }
 
-func NewIndexSelectScan(ts *scan.TableScan, idx indexes.Index, value scan.Constant) (*IndexSelectScan, error) {
-	s := &IndexSelectScan{
+func NewIndexSelectScan(ts *scan.TableScan, idx indexes.Index, value scan.Constant) (*SelectScan, error) {
+	s := &SelectScan{
 		ts:    ts,
 		idx:   idx,
 		value: value,
@@ -22,20 +22,20 @@ func NewIndexSelectScan(ts *scan.TableScan, idx indexes.Index, value scan.Consta
 	return s, nil
 }
 
-func (ss *IndexSelectScan) Schema() records.Schema {
+func (ss *SelectScan) Schema() records.Schema {
 	return ss.ts.Schema()
 }
 
-func (ss *IndexSelectScan) Close() {
+func (ss *SelectScan) Close() {
 	ss.idx.Close()
 	ss.ts.Close()
 }
 
-func (ss *IndexSelectScan) BeforeFirst() error {
+func (ss *SelectScan) BeforeFirst() error {
 	return ss.idx.BeforeFirst(ss.value)
 }
 
-func (ss *IndexSelectScan) Next() (bool, error) {
+func (ss *SelectScan) Next() (bool, error) {
 	ok, err := ss.idx.Next()
 	if err != nil {
 		return false, err
@@ -50,22 +50,22 @@ func (ss *IndexSelectScan) Next() (bool, error) {
 	return ok, nil
 }
 
-func (ss *IndexSelectScan) HasField(fieldName string) bool {
+func (ss *SelectScan) HasField(fieldName string) bool {
 	return ss.ts.HasField(fieldName)
 }
 
-func (ss *IndexSelectScan) GetInt64(fieldName string) (int64, error) {
+func (ss *SelectScan) GetInt64(fieldName string) (int64, error) {
 	return ss.ts.GetInt64(fieldName)
 }
 
-func (ss *IndexSelectScan) GetInt8(fieldName string) (int8, error) {
+func (ss *SelectScan) GetInt8(fieldName string) (int8, error) {
 	return ss.ts.GetInt8(fieldName)
 }
 
-func (ss *IndexSelectScan) GetString(fieldName string) (string, error) {
+func (ss *SelectScan) GetString(fieldName string) (string, error) {
 	return ss.ts.GetString(fieldName)
 }
 
-func (ss *IndexSelectScan) GetVal(fieldName string) (scan.Constant, error) {
+func (ss *SelectScan) GetVal(fieldName string) (scan.Constant, error) {
 	return ss.ts.GetVal(fieldName)
 }

@@ -35,7 +35,7 @@ linters:
     - testpackage
     - unconvert
     - wastedassign
-    - wsl
+    # - wsl
 
 linters-settings:
   govet:

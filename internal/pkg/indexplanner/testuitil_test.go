@@ -53,3 +53,11 @@ func (ts *Suite) testLayout() records.Layout {
 
 	return records.NewLayout(schema)
 }
+
+func (ts *Suite) testLayout2() records.Layout {
+	schema := records.NewSchema()
+	schema.AddInt64Field("id")
+	schema.AddStringField("job", 45)
+
+	return records.NewLayout(schema)
+}

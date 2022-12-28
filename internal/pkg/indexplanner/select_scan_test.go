@@ -14,17 +14,17 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
 )
 
-var _ scan.Scan = &indexplanner.IndexSelectScan{}
+var _ scan.Scan = &indexplanner.SelectScan{}
 
-type IndexSelectScanTestSuite struct {
+type SelectScanTestSuite struct {
 	Suite
 }
 
-func TestIndexSelectScanTestSuite(t *testing.T) {
-	suite.Run(t, new(IndexSelectScanTestSuite))
+func TestSelectScanTestSuite(t *testing.T) {
+	suite.Run(t, new(SelectScanTestSuite))
 }
 
-func (ts *IndexSelectScanTestSuite) TestIndexSelectScan_HashIndex() {
+func (ts *SelectScanTestSuite) TestIndexSelectScan_HashIndex() {
 	t := ts.T()
 
 	tm, sm := ts.newTRXManager(defaultLockTimeout, "")
@@ -40,7 +40,7 @@ func (ts *IndexSelectScanTestSuite) TestIndexSelectScan_HashIndex() {
 	ts.assertIndexedRecords(tm, tableName, indexName, indexes.HashIndexType, records, 8)
 }
 
-func (ts *IndexSelectScanTestSuite) makeTestTable(tm *transaction.TRXManager, tableName string, indexName string, idxType indexes.IndexType, recs int) {
+func (ts *SelectScanTestSuite) makeTestTable(tm *transaction.TRXManager, tableName string, indexName string, idxType indexes.IndexType, recs int) {
 	t := ts.T()
 
 	tx, err := tm.Transaction()
@@ -70,7 +70,7 @@ func (ts *IndexSelectScanTestSuite) makeTestTable(tm *transaction.TRXManager, ta
 	}
 }
 
-func (ts *IndexSelectScanTestSuite) assertIndexedRecords(tm *transaction.TRXManager, tableName string, indexName string, idxType indexes.IndexType, recs int, age int8) {
+func (ts *SelectScanTestSuite) assertIndexedRecords(tm *transaction.TRXManager, tableName string, indexName string, idxType indexes.IndexType, recs int, age int8) {
 	t := ts.T()
 
 	tx, err := tm.Transaction()

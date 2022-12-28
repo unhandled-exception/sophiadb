@@ -1,7 +1,7 @@
 go_version := "1.19"
 
 .PHONY: all
-all: build test lint
+all: build test lint vuln
 
 .PHONY: build
 build:
@@ -39,3 +39,7 @@ upgrade_deps:
 .PHONY: gen
 gen:
 	go generate ./...
+
+.PHONY: vuln
+vuln:
+	govulncheck -test ./...
