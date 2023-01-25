@@ -27,20 +27,20 @@ type jIndexInfo interface {
 }
 
 type JoinPlan struct {
-	p1, p2 jPlan
-	iiT2   jIndexInfo
-	field  string
-	schema records.Schema
+	p1, p2    jPlan
+	iiT2      jIndexInfo
+	fieldName string
+	schema    records.Schema
 }
 
 // NewJoinPlan создайт новый план сканирования для оператора объединения по индексу
-func NewJoinPlan(p1, p2 planner.Plan, iiT2 jIndexInfo, field string) (*JoinPlan, error) {
+func NewJoinPlan(p1, p2 planner.Plan, iiT2 jIndexInfo, fieldName string) (*JoinPlan, error) {
 	p := &JoinPlan{
-		p1:     p1,
-		p2:     p2,
-		iiT2:   iiT2,
-		field:  field,
-		schema: records.NewSchema(),
+		p1:        p1,
+		p2:        p2,
+		iiT2:      iiT2,
+		fieldName: fieldName,
+		schema:    records.NewSchema(),
 	}
 
 	p.schema.AddAll(p1.Schema())
@@ -70,7 +70,7 @@ func (p *JoinPlan) Open() (scan.Scan, error) {
 		return nil, errors.WithMessage(planner.ErrFailedToCreatePlan, err.Error())
 	}
 
-	return NewJoinScan(lhs, idx, p.field, rhs)
+	return NewJoinScan(lhs, idx, p.fieldName, rhs)
 }
 
 func (p *JoinPlan) Schema() records.Schema {
