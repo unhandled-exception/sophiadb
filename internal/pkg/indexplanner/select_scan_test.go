@@ -86,7 +86,7 @@ func (ts *SelectScanTestSuite) assertIndexedRecords(tm *transaction.TRXManager, 
 	idx, err := indexes.New(tx, idxType, indexName, indexes.NewIndexLayout(records.Int8Field, 0))
 	require.NoError(t, err)
 
-	sut, err := indexplanner.NewIndexSelectScan(tts, idx, scan.NewInt8Constant(age))
+	sut, err := indexplanner.NewSelectScan(tts, idx, scan.NewInt8Constant(age))
 	require.NoError(t, err)
 
 	defer sut.Close()

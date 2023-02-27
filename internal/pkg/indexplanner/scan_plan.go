@@ -58,7 +58,7 @@ func (ip *SelectPlan) Open() (scan.Scan, error) {
 		return nil, errors.WithMessage(planner.ErrFailedToCreatePlan, err.Error())
 	}
 
-	return NewIndexSelectScan(ts, idx, ip.value)
+	return NewSelectScan(ts, idx, ip.value)
 }
 
 func (ip *SelectPlan) Schema() records.Schema {

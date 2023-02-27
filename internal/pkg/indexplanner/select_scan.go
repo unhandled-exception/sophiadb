@@ -12,7 +12,7 @@ type SelectScan struct {
 	value scan.Constant
 }
 
-func NewIndexSelectScan(ts *scan.TableScan, idx indexes.Index, value scan.Constant) (*SelectScan, error) {
+func NewSelectScan(ts *scan.TableScan, idx indexes.Index, value scan.Constant) (*SelectScan, error) {
 	s := &SelectScan{
 		ts:    ts,
 		idx:   idx,
