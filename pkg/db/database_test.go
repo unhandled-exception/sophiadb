@@ -129,7 +129,7 @@ func (ts *DatabaseTestSuite) TestPlanner() {
 	sc, err := qp.Open()
 	require.NoError(t, err)
 
-	require.NoError(t, scan.ForEach(sc, func() (bool, error) {
+	require.NoError(t, scan.ForEach(sc, func() (stop bool, err error) {
 		id, err := sc.GetInt64("id")
 		assert.NoError(t, err)
 		assert.EqualValues(t, 1, id)

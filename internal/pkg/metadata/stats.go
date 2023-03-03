@@ -72,7 +72,7 @@ func (s *Stats) GetStatInfo(tableName string, layout records.Layout, trx scan.TR
 }
 
 func (s *Stats) refreshAllTablesStats(trx scan.TRXInt) error {
-	err := s.tables.ForEachTables(trx, func(tableName string) (bool, error) {
+	err := s.tables.ForEachTables(trx, func(tableName string) (stop bool, err error) {
 		si, err := s.calcTableStat(tableName, trx)
 		if err != nil {
 			return true, err
@@ -111,11 +111,11 @@ func (s *Stats) calcTableStat(tableName string, trx scan.TRXInt) (StatInfo, erro
 
 	defer ts.Close()
 
-	err = scan.ForEach(ts, func() (bool, error) {
+	err = scan.ForEach(ts, func() (stop bool, err error) {
 		si.Records++
 		si.Blocks = int64(ts.RID().BlockNumber) + 1
 
-		return false, scan.ForEachValue(ts, func(name string, fieldType records.FieldType, value interface{}) (bool, error) {
+		return false, scan.ForEachValue(ts, func(name string, fieldType records.FieldType, value any) (stop bool, err error) {
 			var (
 				verr error
 				buf  []byte

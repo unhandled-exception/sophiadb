@@ -1,9 +1,11 @@
 package scan
 
 import (
+	"encoding/binary"
 	"strconv"
 
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
+	"github.com/zeebo/xxh3"
 )
 
 type CompResult int8
@@ -15,11 +17,14 @@ var (
 	CompGreat        CompResult = 1
 )
 
+const int64Size = 8
+
 type Constant interface {
-	Value() interface{}
+	Value() any
 	Type() records.FieldType
 	CompareTo(Constant) CompResult
 	String() string
+	Hash() uint64
 }
 
 func NewInt64Constant(value int64) Int64Constant {
@@ -48,7 +53,7 @@ type Int64Constant struct {
 	vType records.FieldType
 }
 
-func (c Int64Constant) Value() interface{} {
+func (c Int64Constant) Value() any {
 	return c.value
 }
 
@@ -58,6 +63,13 @@ func (c Int64Constant) Type() records.FieldType {
 
 func (c Int64Constant) String() string {
 	return strconv.FormatInt(c.value, 10) //nolint:gomnd
+}
+
+func (c Int64Constant) Hash() uint64 {
+	buf := make([]byte, int64Size)
+	binary.PutVarint(buf, c.value)
+
+	return xxh3.Hash(buf)
 }
 
 func (c Int64Constant) CompareTo(another Constant) CompResult {
@@ -88,7 +100,7 @@ type Int8Constant struct {
 	vType records.FieldType
 }
 
-func (c Int8Constant) Value() interface{} {
+func (c Int8Constant) Value() any {
 	return c.value
 }
 
@@ -98,6 +110,10 @@ func (c Int8Constant) Type() records.FieldType {
 
 func (c Int8Constant) String() string {
 	return strconv.FormatInt(int64(c.value), 10) //nolint:gomnd
+}
+
+func (c Int8Constant) Hash() uint64 {
+	return xxh3.Hash([]byte{byte(c.value)})
 }
 
 func (c Int8Constant) CompareTo(another Constant) CompResult {
@@ -128,7 +144,7 @@ type StringConstant struct {
 	vType records.FieldType
 }
 
-func (c StringConstant) Value() interface{} {
+func (c StringConstant) Value() any {
 	return c.value
 }
 
@@ -138,6 +154,10 @@ func (c StringConstant) Type() records.FieldType {
 
 func (c StringConstant) String() string {
 	return `'` + c.value + `'`
+}
+
+func (c StringConstant) Hash() uint64 {
+	return xxh3.HashString(c.value)
 }
 
 func (c StringConstant) CompareTo(another Constant) CompResult {

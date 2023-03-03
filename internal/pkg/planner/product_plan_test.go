@@ -111,10 +111,10 @@ func (ts *ProductPlanTestSuite) TestPlan() {
 
 	i := 0
 
-	assert.NoError(t, scan.ForEach(sc, func() (bool, error) {
+	assert.NoError(t, scan.ForEach(sc, func() (stop bool, err error) {
 		i++
 
-		_, err := sc.GetInt64("id")
+		_, err = sc.GetInt64("id")
 		require.NoError(t, err)
 
 		return false, nil

@@ -510,7 +510,7 @@ func (ts *CommandsPlannerTestSuite) TestExecuteInsert_Ok() {
 
 	i := 0
 
-	require.NoError(t, scan.ForEach(sc, func() (bool, error) {
+	require.NoError(t, scan.ForEach(sc, func() (stop bool, err error) {
 		id, err := sc.GetInt64("id")
 		require.NoError(t, err)
 		require.EqualValues(t, i, id)

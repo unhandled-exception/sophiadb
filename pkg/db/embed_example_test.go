@@ -39,6 +39,11 @@ func Example() {
 		log.Fatal("create: ", err)
 	}
 
+	_, err = con.ExecContext(ctx, "create index index1 on table1 (id)")
+	if err != nil {
+		log.Fatal("create: ", err)
+	}
+
 	tx, err := con.BeginTx(ctx, nil)
 	if err != nil {
 		log.Fatal(err)

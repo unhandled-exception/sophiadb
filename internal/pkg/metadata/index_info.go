@@ -3,15 +3,10 @@ package metadata
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/indexes"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/scan"
-)
-
-const (
-	IdxSchemaBlockField = "block"
-	IdxSchemaIDField    = "id"
-	IdxSchemaValueField = "dataval"
 )
 
 type IndexInfo struct {
@@ -55,28 +50,19 @@ func (ii *IndexInfo) String() string {
 }
 
 func (ii *IndexInfo) Open() (indexes.Index, error) {
-	switch ii.idxType {
-	case indexes.HashIndexType:
-		return indexes.NewHashIndex(ii.trx, ii.idxName, ii.idxLayout)
-	case indexes.BTreeIndexType:
-		return indexes.NewBTreeIndex(ii.trx, ii.idxName, ii.idxLayout)
+	idx, err := indexes.New(ii.trx, ii.idxType, ii.idxName, ii.idxLayout)
+	if err != nil {
+		return nil, errors.WithMessage(ErrFailedToOpenIndex, err.Error())
 	}
 
-	return nil, ErrUnknownIndexType
+	return idx, nil
 }
 
 func (ii *IndexInfo) BlocksAccessed() int64 {
 	recordsPerBlock := int64(ii.trx.BlockSize() / ii.idxLayout.SlotSize)
 	blocks := ii.si.Records / recordsPerBlock
 
-	switch ii.idxType {
-	case indexes.HashIndexType:
-		return indexes.HashIndexSearchCost(blocks, recordsPerBlock)
-	case indexes.BTreeIndexType:
-		return indexes.BTreeIndexSearchCost(blocks, recordsPerBlock)
-	}
-
-	return -1
+	return indexes.SearchCost(ii.idxType, blocks, recordsPerBlock)
 }
 
 func (ii *IndexInfo) Records() int64 {
@@ -99,19 +85,5 @@ func (ii *IndexInfo) DistinctValues(fieldName string) int64 {
 }
 
 func (ii *IndexInfo) createIndexLayout() records.Layout {
-	schema := records.NewSchema()
-	schema.AddInt64Field(IdxSchemaBlockField)
-	schema.AddInt64Field(IdxSchemaIDField)
-
-	//nolint:exhaustive
-	switch ii.schema.Type(ii.fieldName) {
-	case records.Int64Field:
-		schema.AddInt64Field(IdxSchemaValueField)
-	case records.Int8Field:
-		schema.AddInt8Field(IdxSchemaValueField)
-	case records.StringField:
-		schema.AddStringField(IdxSchemaValueField, ii.schema.Length(ii.fieldName))
-	}
-
-	return records.NewLayout(schema)
+	return indexes.NewIndexLayout(ii.schema.Type(ii.fieldName), ii.schema.Length(ii.fieldName))
 }

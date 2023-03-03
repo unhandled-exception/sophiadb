@@ -87,7 +87,7 @@ func (ts *ExpressionsTestSuite) TestScalarExpression_Evaluate() {
 
 	defer rts.Close()
 
-	assert.NoError(t, scan.ForEach(rts, func() (bool, error) {
+	assert.NoError(t, scan.ForEach(rts, func() (stop bool, err error) {
 		c, err := sut.Evaluate(rts)
 		require.NoError(t, err)
 		require.Equal(t, scan.CompEqual, c.CompareTo(scalar))
@@ -167,7 +167,7 @@ func (ts *ExpressionsTestSuite) TestFieldExpression_Evaluate() {
 
 	i := 0
 
-	assert.NoError(t, scan.ForEach(rts, func() (bool, error) {
+	assert.NoError(t, scan.ForEach(rts, func() (stop bool, err error) {
 		c, err := sut.Evaluate(rts)
 		require.NoError(t, err)
 		require.NotEqual(t, scan.CompEqual, c.CompareTo(scan.NewInt64Constant(int64(i))))

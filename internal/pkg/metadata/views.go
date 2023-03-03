@@ -48,7 +48,7 @@ func newViewsCatalogLayout() records.Layout {
 	return records.NewLayout(schema)
 }
 
-func (v *Views) ViewExists(viewName string, trx scan.TRXInt) (bool, error) {
+func (v *Views) ViewExists(viewName string, trx scan.TRXInt) (stop bool, err error) {
 	found := false
 
 	vcat, err := v.newViewCatalogTableScan(trx)
@@ -58,7 +58,7 @@ func (v *Views) ViewExists(viewName string, trx scan.TRXInt) (bool, error) {
 
 	defer vcat.Close()
 
-	if err := scan.ForEach(vcat, func() (bool, error) {
+	if err := scan.ForEach(vcat, func() (stop bool, err error) {
 		name, err := vcat.GetString(VcatViewNameField)
 		if err != nil {
 			return true, err
@@ -95,9 +95,7 @@ func (v *Views) CreateView(viewName string, viewDef string, trx scan.TRXInt) err
 		return v.wrapError(err, viewName, nil)
 	}
 
-	if err := scan.ForEachField(vcat, func(name string, fieldType records.FieldType) (bool, error) {
-		var err error
-
+	if err := scan.ForEachField(vcat, func(name string, fieldType records.FieldType) (stop bool, err error) {
 		switch name {
 		case VcatViewNameField:
 			err = vcat.SetString(VcatViewNameField, viewName)
@@ -125,7 +123,7 @@ func (v *Views) ViewDef(viewName string, trx scan.TRXInt) (string, error) {
 
 	defer vcat.Close()
 
-	if err := scan.ForEach(vcat, func() (bool, error) {
+	if err := scan.ForEach(vcat, func() (stop bool, err error) {
 		name, err := vcat.GetString(VcatViewNameField)
 		if err != nil {
 			return true, err

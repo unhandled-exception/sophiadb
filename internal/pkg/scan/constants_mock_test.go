@@ -23,6 +23,12 @@ type ConstantMock struct {
 	beforeCompareToCounter uint64
 	CompareToMock          mConstantMockCompareTo
 
+	funcHash          func() (u1 uint64)
+	inspectFuncHash   func()
+	afterHashCounter  uint64
+	beforeHashCounter uint64
+	HashMock          mConstantMockHash
+
 	funcString          func() (s1 string)
 	inspectFuncString   func()
 	afterStringCounter  uint64
@@ -35,7 +41,7 @@ type ConstantMock struct {
 	beforeTypeCounter uint64
 	TypeMock          mConstantMockType
 
-	funcValue          func() (p1 interface{})
+	funcValue          func() (a1 any)
 	inspectFuncValue   func()
 	afterValueCounter  uint64
 	beforeValueCounter uint64
@@ -51,6 +57,8 @@ func NewConstantMock(t minimock.Tester) *ConstantMock {
 
 	m.CompareToMock = mConstantMockCompareTo{mock: m}
 	m.CompareToMock.callArgs = []*ConstantMockCompareToParams{}
+
+	m.HashMock = mConstantMockHash{mock: m}
 
 	m.StringMock = mConstantMockString{mock: m}
 
@@ -273,6 +281,149 @@ func (m *ConstantMock) MinimockCompareToInspect() {
 	// if func was set then invocations count should be greater than zero
 	if m.funcCompareTo != nil && mm_atomic.LoadUint64(&m.afterCompareToCounter) < 1 {
 		m.t.Error("Expected call to ConstantMock.CompareTo")
+	}
+}
+
+type mConstantMockHash struct {
+	mock               *ConstantMock
+	defaultExpectation *ConstantMockHashExpectation
+	expectations       []*ConstantMockHashExpectation
+}
+
+// ConstantMockHashExpectation specifies expectation struct of the Constant.Hash
+type ConstantMockHashExpectation struct {
+	mock *ConstantMock
+
+	results *ConstantMockHashResults
+	Counter uint64
+}
+
+// ConstantMockHashResults contains results of the Constant.Hash
+type ConstantMockHashResults struct {
+	u1 uint64
+}
+
+// Expect sets up expected params for Constant.Hash
+func (mmHash *mConstantMockHash) Expect() *mConstantMockHash {
+	if mmHash.mock.funcHash != nil {
+		mmHash.mock.t.Fatalf("ConstantMock.Hash mock is already set by Set")
+	}
+
+	if mmHash.defaultExpectation == nil {
+		mmHash.defaultExpectation = &ConstantMockHashExpectation{}
+	}
+
+	return mmHash
+}
+
+// Inspect accepts an inspector function that has same arguments as the Constant.Hash
+func (mmHash *mConstantMockHash) Inspect(f func()) *mConstantMockHash {
+	if mmHash.mock.inspectFuncHash != nil {
+		mmHash.mock.t.Fatalf("Inspect function is already set for ConstantMock.Hash")
+	}
+
+	mmHash.mock.inspectFuncHash = f
+
+	return mmHash
+}
+
+// Return sets up results that will be returned by Constant.Hash
+func (mmHash *mConstantMockHash) Return(u1 uint64) *ConstantMock {
+	if mmHash.mock.funcHash != nil {
+		mmHash.mock.t.Fatalf("ConstantMock.Hash mock is already set by Set")
+	}
+
+	if mmHash.defaultExpectation == nil {
+		mmHash.defaultExpectation = &ConstantMockHashExpectation{mock: mmHash.mock}
+	}
+	mmHash.defaultExpectation.results = &ConstantMockHashResults{u1}
+	return mmHash.mock
+}
+
+//Set uses given function f to mock the Constant.Hash method
+func (mmHash *mConstantMockHash) Set(f func() (u1 uint64)) *ConstantMock {
+	if mmHash.defaultExpectation != nil {
+		mmHash.mock.t.Fatalf("Default expectation is already set for the Constant.Hash method")
+	}
+
+	if len(mmHash.expectations) > 0 {
+		mmHash.mock.t.Fatalf("Some expectations are already set for the Constant.Hash method")
+	}
+
+	mmHash.mock.funcHash = f
+	return mmHash.mock
+}
+
+// Hash implements Constant
+func (mmHash *ConstantMock) Hash() (u1 uint64) {
+	mm_atomic.AddUint64(&mmHash.beforeHashCounter, 1)
+	defer mm_atomic.AddUint64(&mmHash.afterHashCounter, 1)
+
+	if mmHash.inspectFuncHash != nil {
+		mmHash.inspectFuncHash()
+	}
+
+	if mmHash.HashMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmHash.HashMock.defaultExpectation.Counter, 1)
+
+		mm_results := mmHash.HashMock.defaultExpectation.results
+		if mm_results == nil {
+			mmHash.t.Fatal("No results are set for the ConstantMock.Hash")
+		}
+		return (*mm_results).u1
+	}
+	if mmHash.funcHash != nil {
+		return mmHash.funcHash()
+	}
+	mmHash.t.Fatalf("Unexpected call to ConstantMock.Hash.")
+	return
+}
+
+// HashAfterCounter returns a count of finished ConstantMock.Hash invocations
+func (mmHash *ConstantMock) HashAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmHash.afterHashCounter)
+}
+
+// HashBeforeCounter returns a count of ConstantMock.Hash invocations
+func (mmHash *ConstantMock) HashBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmHash.beforeHashCounter)
+}
+
+// MinimockHashDone returns true if the count of the Hash invocations corresponds
+// the number of defined expectations
+func (m *ConstantMock) MinimockHashDone() bool {
+	for _, e := range m.HashMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.HashMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterHashCounter) < 1 {
+		return false
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcHash != nil && mm_atomic.LoadUint64(&m.afterHashCounter) < 1 {
+		return false
+	}
+	return true
+}
+
+// MinimockHashInspect logs each unmet expectation
+func (m *ConstantMock) MinimockHashInspect() {
+	for _, e := range m.HashMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Error("Expected call to ConstantMock.Hash")
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.HashMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterHashCounter) < 1 {
+		m.t.Error("Expected call to ConstantMock.Hash")
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcHash != nil && mm_atomic.LoadUint64(&m.afterHashCounter) < 1 {
+		m.t.Error("Expected call to ConstantMock.Hash")
 	}
 }
 
@@ -578,7 +729,7 @@ type ConstantMockValueExpectation struct {
 
 // ConstantMockValueResults contains results of the Constant.Value
 type ConstantMockValueResults struct {
-	p1 interface{}
+	a1 any
 }
 
 // Expect sets up expected params for Constant.Value
@@ -606,7 +757,7 @@ func (mmValue *mConstantMockValue) Inspect(f func()) *mConstantMockValue {
 }
 
 // Return sets up results that will be returned by Constant.Value
-func (mmValue *mConstantMockValue) Return(p1 interface{}) *ConstantMock {
+func (mmValue *mConstantMockValue) Return(a1 any) *ConstantMock {
 	if mmValue.mock.funcValue != nil {
 		mmValue.mock.t.Fatalf("ConstantMock.Value mock is already set by Set")
 	}
@@ -614,12 +765,12 @@ func (mmValue *mConstantMockValue) Return(p1 interface{}) *ConstantMock {
 	if mmValue.defaultExpectation == nil {
 		mmValue.defaultExpectation = &ConstantMockValueExpectation{mock: mmValue.mock}
 	}
-	mmValue.defaultExpectation.results = &ConstantMockValueResults{p1}
+	mmValue.defaultExpectation.results = &ConstantMockValueResults{a1}
 	return mmValue.mock
 }
 
 //Set uses given function f to mock the Constant.Value method
-func (mmValue *mConstantMockValue) Set(f func() (p1 interface{})) *ConstantMock {
+func (mmValue *mConstantMockValue) Set(f func() (a1 any)) *ConstantMock {
 	if mmValue.defaultExpectation != nil {
 		mmValue.mock.t.Fatalf("Default expectation is already set for the Constant.Value method")
 	}
@@ -633,7 +784,7 @@ func (mmValue *mConstantMockValue) Set(f func() (p1 interface{})) *ConstantMock 
 }
 
 // Value implements Constant
-func (mmValue *ConstantMock) Value() (p1 interface{}) {
+func (mmValue *ConstantMock) Value() (a1 any) {
 	mm_atomic.AddUint64(&mmValue.beforeValueCounter, 1)
 	defer mm_atomic.AddUint64(&mmValue.afterValueCounter, 1)
 
@@ -648,7 +799,7 @@ func (mmValue *ConstantMock) Value() (p1 interface{}) {
 		if mm_results == nil {
 			mmValue.t.Fatal("No results are set for the ConstantMock.Value")
 		}
-		return (*mm_results).p1
+		return (*mm_results).a1
 	}
 	if mmValue.funcValue != nil {
 		return mmValue.funcValue()
@@ -710,6 +861,8 @@ func (m *ConstantMock) MinimockFinish() {
 	if !m.minimockDone() {
 		m.MinimockCompareToInspect()
 
+		m.MinimockHashInspect()
+
 		m.MinimockStringInspect()
 
 		m.MinimockTypeInspect()
@@ -739,6 +892,7 @@ func (m *ConstantMock) minimockDone() bool {
 	done := true
 	return done &&
 		m.MinimockCompareToDone() &&
+		m.MinimockHashDone() &&
 		m.MinimockStringDone() &&
 		m.MinimockTypeDone() &&
 		m.MinimockValueDone()

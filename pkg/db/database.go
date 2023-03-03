@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/indexplanner"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/metadata"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/planner" //nolint:typecheck
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
@@ -78,7 +79,7 @@ func NewDatabase(dataDir string, opts ...DatabaseOption) (*Database, error) {
 
 	db.planner = planner.NewSQLPlanner(
 		planner.NewSQLQueryPlanner(db.metadata),
-		planner.NewSQLCommandsPlanner(db.metadata),
+		indexplanner.NewIndexCommandsPlanner(db.metadata),
 	)
 
 	return db, nil

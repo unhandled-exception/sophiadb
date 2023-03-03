@@ -100,7 +100,7 @@ func (p *SQLCommandsPlanner) ExecuteDelete(stmt parse.DeleteStatement, trx scan.
 
 	rows := int64(0)
 
-	if err = scan.ForEach(us, func() (bool, error) {
+	if err = scan.ForEach(us, func() (stop bool, err error) {
 		if werr := us.Delete(); werr != nil {
 			return true, werr
 		}
@@ -145,7 +145,7 @@ func (p *SQLCommandsPlanner) ExecuteUpdate(stmt parse.UpdateStatement, trx scan.
 
 	rows := int64(0)
 
-	if err = scan.ForEach(us, func() (bool, error) {
+	if err = scan.ForEach(us, func() (stop bool, err error) {
 		for _, expr := range stmt.UpdateExpressions() {
 			if werr := us.SetVal(expr.FieldName, expr.Value); werr != nil {
 				return true, werr

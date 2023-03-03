@@ -15,7 +15,7 @@ var (
 	ErrStatsMetadata          = errors.Wrap(ErrMetadata, "stats error")
 	ErrsStatsUnknownFieldType = errors.Wrap(ErrStatsMetadata, "unknown field type")
 	ErrIndexesMetadata        = errors.Wrap(ErrMetadata, "indexes error")
-	ErrUnknownIndexType       = errors.Wrap(ErrIndexesMetadata, "unknown index type")
 	ErrIndexExists            = errors.Wrap(ErrIndexesMetadata, "index already exists")
 	ErrFieldIndexed           = errors.Wrap(ErrIndexesMetadata, "field already indexed")
+	ErrFailedToOpenIndex      = errors.Wrap(ErrIndexesMetadata, "failed to open index")
 )

@@ -10,8 +10,8 @@ import (
 type BuffersPool struct {
 	mu sync.Mutex
 
-	ring            *ring.Ring              // Буферы храним в кольце, чтобы реализовать круговую стратегию поиска свобоных буферов
-	blocksToBuffers map[types.Block]*Buffer // Для ускорения поиска блоков используем словарь с ключем BlockID.HashKey()
+	ring            *ring.Ring // Буферы храним в кольце, чтобы реализовать круговую стратегию поиска свобоных буферов
+	blocksToBuffers map[types.Block]*Buffer
 	len             int
 }
 

@@ -95,7 +95,7 @@ func (ts *SelectPlanTestSuite) TestPlan() {
 
 	var i int64 = 0
 
-	assert.NoError(t, scan.ForEach(sc, func() (bool, error) {
+	assert.NoError(t, scan.ForEach(sc, func() (stop bool, err error) {
 		i++
 
 		v, err := sc.GetInt64("id")

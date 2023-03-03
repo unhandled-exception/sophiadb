@@ -77,7 +77,7 @@ func (ts *TermsTestSuite) TestEqualTerm_isSatisfied() {
 
 	var i int64 = 0
 
-	assert.NoError(t, scan.ForEach(rts, func() (bool, error) {
+	assert.NoError(t, scan.ForEach(rts, func() (stop bool, err error) {
 		ok, err := sut.IsSatisfied(rts)
 		require.NoError(t, err)
 

@@ -22,7 +22,7 @@ func (ts *LogRecordTestSuite) TestNewLogRecordFromBytes_OK() {
 	testCases := []struct {
 		Name      string
 		RawRecord []byte
-		Record    interface{}
+		Record    any
 	}{
 		{Name: "CheckpointLogRecord", RawRecord: testRawCheckpointLogRecord, Record: testCheckpointLogRecord},
 
