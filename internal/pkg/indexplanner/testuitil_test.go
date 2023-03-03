@@ -4,8 +4,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/buffers"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/records"
+	"github.com/unhandled-exception/sophiadb/internal/pkg/scan"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/storage"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/testutil"
 	"github.com/unhandled-exception/sophiadb/internal/pkg/tx/transaction"
@@ -60,4 +62,18 @@ func (ts *Suite) testLayout2() records.Layout {
 	schema.AddStringField("job", 45)
 
 	return records.NewLayout(schema)
+}
+
+func (ts *Suite) requireRowsCount(expected int, sc scan.Scan, msgAndArgs ...any) {
+	t := ts.T()
+
+	resCnt := 0
+
+	require.NoError(t, scan.ForEach(sc, func() (stop bool, err error) {
+		resCnt++
+
+		return false, nil
+	}), msgAndArgs...)
+
+	require.EqualValues(t, expected, resCnt, msgAndArgs...)
 }
