@@ -50,6 +50,7 @@ var reservedIdentifiers = map[string]tokenType{
 	"using":   TokKeyword,
 }
 
+// Token описывает токен из потока токенов
 type Token struct {
 	Typ  tokenType
 	Pos  Pos
@@ -57,6 +58,7 @@ type Token struct {
 	Line int
 }
 
+// String форматирует токен в строку
 func (i Token) String() string {
 	switch {
 	case i.Typ == TokEOF:
@@ -72,22 +74,22 @@ func (i Token) String() string {
 	return i.Val
 }
 
-// stateFn represents the state of the scanner as a function that returns the next state.
+// stateFn представляет текущее состояние сканера в виде функци, возвращающей следующее состояние
 type stateFn func(*SQLTokenizer) stateFn
 
-// SQLTokenizer holds the state of the scanner.
+// SQLTokenizer содержит состояние сканера
 type SQLTokenizer struct {
-	Input string // the string being scanned
-	Pos   Pos    // current position in the input
-	Line  int    // 1+number of newlines seen
+	Input string // строка с потоком токенов
+	Pos   Pos    // позиция сканера в потоке
+	Line  int    // текущая строка в потоке
 
-	start     Pos   // start position of this item
-	startLine int   // start line of this item
-	atEOF     bool  // we have hit the end of input and returned eof
-	token     Token // item to return to parser
+	token     Token // последний разобранный токен в потоке
+	start     Pos   // начало текущего токена в потоке
+	startLine int   // строка с началом текущего токена
+	atEOF     bool  // признак, что мы достигли конца потока токенов
 }
 
-// NewSQLTokenizer create a new scanner
+// NewSQLTokenizer создаёт новый сканер
 func NewSQLtokenizer(input string) *SQLTokenizer {
 	l := &SQLTokenizer{
 		Input:     input,
@@ -98,13 +100,12 @@ func NewSQLtokenizer(input string) *SQLTokenizer {
 	return l
 }
 
-// CurrentToken returns the current token
+// CurrentToken последний разобранный токен
 func (l *SQLTokenizer) CurrentToken() Token {
 	return l.token
 }
 
-// NextToken returns the next item from the input.
-// Called by the parser, not in the lexing goroutine.
+// NextToken разбирает следующий токен в потоке
 func (l *SQLTokenizer) NextToken() {
 	l.token = Token{TokEOF, l.Pos, "EOF", l.startLine}
 
@@ -118,7 +119,7 @@ func (l *SQLTokenizer) NextToken() {
 	}
 }
 
-// nextRune returns the nextRune rune in the input.
+// nextRune возвращает следующую руну из потока
 func (l *SQLTokenizer) nextRune() rune {
 	if int(l.Pos) >= len(l.Input) {
 		l.atEOF = true
@@ -136,7 +137,7 @@ func (l *SQLTokenizer) nextRune() rune {
 	return r
 }
 
-// peek returns but does not consume the next rune in the input.
+// peek возвращает следующую руну не смещая указатель в потоке
 func (l *SQLTokenizer) peekRune() rune {
 	r := l.nextRune()
 	l.backup()
@@ -144,20 +145,20 @@ func (l *SQLTokenizer) peekRune() rune {
 	return r
 }
 
-// backup steps back one rune.
+// backup сдвигает указатель в потоке рун на одну позицию назад
 func (l *SQLTokenizer) backup() {
 	if !l.atEOF && l.Pos > 0 {
 		r, w := utf8.DecodeLastRuneInString(l.Input[:l.Pos])
 		l.Pos -= Pos(w)
-		// Correct newline count.
+
+		// Корректируем положение строки в потоки
 		if r == '\n' {
 			l.Line--
 		}
 	}
 }
 
-// thisToken returns the item at the current input point with the specified type
-// and advances the input.
+// thisToken создаёт токен, на который указывают start- и pos-указатели в потоке
 func (l *SQLTokenizer) thisToken(t tokenType) Token {
 	i := Token{t, l.start, l.Input[l.start:l.Pos], l.startLine}
 	l.start = l.Pos
@@ -166,12 +167,12 @@ func (l *SQLTokenizer) thisToken(t tokenType) Token {
 	return i
 }
 
-// emit passes the trailing text as an item back to the parser.
+// emit записывает в сканер последний токен
 func (l *SQLTokenizer) emit(t tokenType) stateFn {
 	return l.emitToken(l.thisToken(t))
 }
 
-// emitToken passes the trailing text as an item back to the parser.
+// emitToken записывает идентификатор в сканер
 func (l *SQLTokenizer) emitIdentifier() stateFn {
 	tok := l.thisToken(TokIdentifier)
 
@@ -184,14 +185,14 @@ func (l *SQLTokenizer) emitIdentifier() stateFn {
 	return l.emitToken(tok)
 }
 
-// emitToken passes the specified item to the parser.
+// emitToken записывает токен в сканер
 func (l *SQLTokenizer) emitToken(i Token) stateFn {
 	l.token = i
 
 	return nil
 }
 
-// accept consumes the next rune if it's from the valid set.
+// accept сдвигает позицию если в потоке есть символ из строки valid
 func (l *SQLTokenizer) accept(valid string) bool {
 	if strings.ContainsRune(valid, l.nextRune()) {
 		return true
@@ -202,15 +203,15 @@ func (l *SQLTokenizer) accept(valid string) bool {
 	return false
 }
 
-// acceptRun consumes a run of runes from the valid set.
+// acceptRun сдвигает позицию пока в потоке есть символы из строки valid
 func (l *SQLTokenizer) acceptRun(valid string) {
 	for strings.ContainsRune(valid, l.nextRune()) {
 	}
 	l.backup()
 }
 
-// errorf returns an error token and terminates the scan by passing
-// back a nil pointer that will be the next state, terminating l.nextItem.
+// errorf записывает в сканер токен с ошибкой и возвращает nil,
+// чтобы остановить сканирование потока в методе NextToken
 func (l *SQLTokenizer) errorf(format string, args ...any) stateFn {
 	l.token = Token{TokError, l.start, fmt.Sprintf(format, args...), l.startLine}
 	l.start = 0
@@ -220,7 +221,7 @@ func (l *SQLTokenizer) errorf(format string, args ...any) stateFn {
 	return nil
 }
 
-// lexSQL scans the elements inside action delimiters.
+// lexSQL основной цикл сканера
 func lexSQL(l *SQLTokenizer) stateFn {
 	switch r := l.nextRune(); {
 	case r == eof:
@@ -246,9 +247,9 @@ func lexSQL(l *SQLTokenizer) stateFn {
 	}
 }
 
-// lexLineComment scans a line comment
+// lexLineComment разбирает однострочный комментарий
 func lexLineComment(l *SQLTokenizer) stateFn {
-	// read second minus, first already scanned
+	// читаем второй минус, первый уже в сканере
 	_ = l.nextRune()
 
 	for {
@@ -261,9 +262,9 @@ func lexLineComment(l *SQLTokenizer) stateFn {
 	return lexSQL
 }
 
-// lexLineComment scans a block comment
+// lexLineComment разбирает многострочный комментарий
 func lexBlockComment(l *SQLTokenizer) stateFn {
-	// read asterisk, lead slash already scanned
+	// читаем звёздочку, ведущий слеш уже в сканере
 	_ = l.nextRune()
 
 Loop:
@@ -284,9 +285,7 @@ Loop:
 	return lexSQL
 }
 
-// lexSpace scans a run of space characters.
-// We have not consumed the first space, which is known to be present.
-// Take care if there is a trim-marked right delimiter, which starts with a space.
+// lexSpace разбирает пробельные символы (разделители). Первый символ уже в сканере
 func lexSpace(l *SQLTokenizer) stateFn {
 	for {
 		r := l.nextRune()
@@ -302,7 +301,7 @@ func lexSpace(l *SQLTokenizer) stateFn {
 	return lexSQL
 }
 
-// lexQuote scans a quoted string.
+// lexQuote разбирает строку в одинарных кавычках
 func lexString(l *SQLTokenizer) stateFn {
 Loop:
 	for {
@@ -323,10 +322,7 @@ Loop:
 	return l.emit(TokString)
 }
 
-// lexNumber scans a number: decimal, octal, hex, float, or imaginary. This
-// isn't a perfect number scanner - for instance it accepts "." and "0x0.2"
-// and "089" - but when it's wrong the input is invalid and the parser (via
-// strconv) will notice.
+// lexNumber разбирает числа
 func lexNumber(l *SQLTokenizer) stateFn {
 	if !l.scanNumber() {
 		return l.errorf("bad number syntax: %q", l.Input[l.start:l.Pos])
@@ -335,8 +331,9 @@ func lexNumber(l *SQLTokenizer) stateFn {
 	return l.emit(TokNumber)
 }
 
+// scanNumber сканирует число для lexNumber
 func (l *SQLTokenizer) scanNumber() bool {
-	// Optional leading sign.
+	// опциональный минус в начале числа
 	l.accept("-")
 
 	// Is it hex?
@@ -378,8 +375,7 @@ func (l *SQLTokenizer) scanNumber() bool {
 	return true
 }
 
-// lexVariable scans a field or variable: [.$]Alphanumeric.
-// The . or $ has been scanned.
+// lexKeyworOrIdentifier разбирает ключевые слова и идентификаторы
 func lexKeyworOrIdentifier(l *SQLTokenizer) stateFn {
 	var r rune
 
@@ -399,22 +395,22 @@ Loop:
 	return l.emitIdentifier()
 }
 
-// isQuote reports whether r is a quote character.
+// isQuote проверяет является ли руна кавычкой
 func isQuote(r rune) bool {
 	return r == '\'' || r == '"'
 }
 
-// isSpace reports whether r is a space character.
+// isSpace проверяет, что руна пробелный символ
 func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n'
 }
 
-// isAlphaNumeric reports whether r is an alphabetic, digit, or underscore.
+// isAlphanumeric проверяет является ли символ допустимым в слове
 func isAlphaNumeric(r rune) bool {
 	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
 
-// isDelimiter reports whether r is an alphabetic is delimiter
+// isDelimiter проверяет, что руна символ-разделитель
 func isDelimiter(r rune) bool {
 	return strings.ContainsRune(",=.()+-*/%", r)
 }
