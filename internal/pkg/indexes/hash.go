@@ -11,6 +11,15 @@ import (
 
 const defaultBucketsCount = 100
 
+type StaticHashIndex struct {
+	*BaseIndex
+
+	bucketsCount int64
+	searchKey    scan.Constant
+	trx          scan.TRXInt
+	ts           *scan.TableScan
+}
+
 func NewStaticHashIndex(trx scan.TRXInt, idxName string, idxLayout records.Layout) (*StaticHashIndex, error) {
 	h := &StaticHashIndex{
 		BaseIndex: &BaseIndex{
@@ -27,15 +36,6 @@ func NewStaticHashIndex(trx scan.TRXInt, idxName string, idxLayout records.Layou
 
 func HashIndexSearchCost(blocks int64, recordsPerBlock int64) int64 {
 	return blocks / defaultBucketsCount
-}
-
-type StaticHashIndex struct {
-	*BaseIndex
-
-	bucketsCount int64
-	searchKey    scan.Constant
-	trx          scan.TRXInt
-	ts           *scan.TableScan
 }
 
 func (i *StaticHashIndex) BeforeFirst(searchKey scan.Constant) error {
