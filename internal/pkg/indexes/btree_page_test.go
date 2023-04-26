@@ -82,7 +82,7 @@ func (ts *BTreePageTestSuite) TestLeafPageIsFull() {
 
 	for i := 0; i < cnt; i++ {
 		require.NoError(t, sut.InsertLeaf(
-			int32(i),
+			types.SlotID(i),
 			scan.NewInt64Constant(int64(i)),
 			types.RID{
 				BlockNumber: types.BlockID(i),
@@ -125,11 +125,11 @@ func (ts *BTreePageTestSuite) TestInt64LeafPage() {
 	assert.EqualValues(t, cnt, recs)
 
 	for i := 0; i < cnt; i++ {
-		rid, err1 := sut.GetDataRID(int32(i))
+		rid, err1 := sut.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - i - 1), Slot: types.SlotID(cnt - i - 1)}, rid)
 
-		val, err1 := sut.GetVal(int32(i))
+		val, err1 := sut.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt64Constant(int64(lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
@@ -183,7 +183,7 @@ func (ts *BTreePageTestSuite) TestSplitInt64LeafPage() {
 	}
 
 	newTestFlag := int64(defaultTestFlag + 1)
-	newBlock, err := sut1.Split(int32(splitPos), newTestFlag)
+	newBlock, err := sut1.Split(types.SlotID(splitPos), newTestFlag)
 	require.NoError(t, err)
 
 	sut2, err := indexes.NewBTreePage(trx, newBlock, layout)
@@ -206,21 +206,21 @@ func (ts *BTreePageTestSuite) TestSplitInt64LeafPage() {
 	assert.EqualValues(t, newTestFlag, flag2)
 
 	for i := 0; i < int(recs1); i++ {
-		rid, err1 := sut1.GetDataRID(int32(i))
+		rid, err1 := sut1.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - i - 1), Slot: types.SlotID(cnt - i - 1)}, rid)
 
-		val, err1 := sut1.GetVal(int32(i))
+		val, err1 := sut1.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt64Constant(int64(lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
 
 	for i := 0; i < int(recs2); i++ {
-		rid, err1 := sut2.GetDataRID(int32(i))
+		rid, err1 := sut2.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - splitPos - 1 - i), Slot: types.SlotID(cnt - splitPos - 1 - i)}, rid)
 
-		val, err1 := sut2.GetVal(int32(i))
+		val, err1 := sut2.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt64Constant(int64(lastValue-cnt+splitPos+i+1))), "%s != %d", val.String(), lastValue-cnt+splitPos+i+1)
 	}
@@ -255,11 +255,11 @@ func (ts *BTreePageTestSuite) TestInt8LeafPage() {
 	assert.EqualValues(t, cnt, recs)
 
 	for i := 0; i < cnt; i++ {
-		rid, err1 := sut.GetDataRID(int32(i))
+		rid, err1 := sut.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - i - 1), Slot: types.SlotID(cnt - i - 1)}, rid)
 
-		val, err1 := sut.GetVal(int32(i))
+		val, err1 := sut.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt8Constant(int8(lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
@@ -313,7 +313,7 @@ func (ts *BTreePageTestSuite) TestSplitInt8LeafPage() {
 	}
 
 	newTestFlag := int64(defaultTestFlag + 1)
-	newBlock, err := sut1.Split(int32(splitPos), newTestFlag)
+	newBlock, err := sut1.Split(types.SlotID(splitPos), newTestFlag)
 	require.NoError(t, err)
 
 	sut2, err := indexes.NewBTreePage(trx, newBlock, layout)
@@ -336,21 +336,21 @@ func (ts *BTreePageTestSuite) TestSplitInt8LeafPage() {
 	assert.EqualValues(t, newTestFlag, flag2)
 
 	for i := 0; i < int(recs1); i++ {
-		rid, err1 := sut1.GetDataRID(int32(i))
+		rid, err1 := sut1.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - i - 1), Slot: types.SlotID(cnt - i - 1)}, rid)
 
-		val, err1 := sut1.GetVal(int32(i))
+		val, err1 := sut1.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt8Constant(int8(lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
 
 	for i := 0; i < int(recs2); i++ {
-		rid, err1 := sut2.GetDataRID(int32(i))
+		rid, err1 := sut2.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - splitPos - 1 - i), Slot: types.SlotID(cnt - splitPos - 1 - i)}, rid)
 
-		val, err1 := sut2.GetVal(int32(i))
+		val, err1 := sut2.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt8Constant(int8(lastValue-cnt+splitPos+i+1))), "%s != %d", val.String(), lastValue-cnt+splitPos+i+1)
 	}
@@ -387,11 +387,11 @@ func (ts *BTreePageTestSuite) TestStringLeafPage() {
 	assert.EqualValues(t, cnt, recs)
 
 	for i := 0; i < cnt; i++ {
-		rid, err1 := sut.GetDataRID(int32(i))
+		rid, err1 := sut.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - i - 1), Slot: types.SlotID(cnt - i - 1)}, rid)
 
-		val, err1 := sut.GetVal(int32(i))
+		val, err1 := sut.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewStringConstant(fmt.Sprintf(valFmt, lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
@@ -447,7 +447,7 @@ func (ts *BTreePageTestSuite) TestSplitStringLeafPage() {
 	}
 
 	newTestFlag := int64(defaultTestFlag + 1)
-	newBlock, err := sut1.Split(int32(splitPos), newTestFlag)
+	newBlock, err := sut1.Split(types.SlotID(splitPos), newTestFlag)
 	require.NoError(t, err)
 
 	sut2, err := indexes.NewBTreePage(trx, newBlock, layout)
@@ -470,21 +470,21 @@ func (ts *BTreePageTestSuite) TestSplitStringLeafPage() {
 	assert.EqualValues(t, newTestFlag, flag2)
 
 	for i := 0; i < int(recs1); i++ {
-		rid, err1 := sut1.GetDataRID(int32(i))
+		rid, err1 := sut1.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - i - 1), Slot: types.SlotID(cnt - i - 1)}, rid)
 
-		val, err1 := sut1.GetVal(int32(i))
+		val, err1 := sut1.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewStringConstant(fmt.Sprintf(valFmt, lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
 
 	for i := 0; i < int(recs2); i++ {
-		rid, err1 := sut2.GetDataRID(int32(i))
+		rid, err1 := sut2.GetDataRID(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.RID{BlockNumber: types.BlockID(startBlock + cnt - splitPos - 1 - i), Slot: types.SlotID(cnt - splitPos - 1 - i)}, rid)
 
-		val, err1 := sut2.GetVal(int32(i))
+		val, err1 := sut2.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewStringConstant(fmt.Sprintf(valFmt, lastValue-cnt+splitPos+i+1))), "%s != %d", val.String(), lastValue-cnt+splitPos+i+1)
 	}
@@ -505,7 +505,7 @@ func (ts *BTreePageTestSuite) TestDirPageIsFull() {
 
 	for i := 0; i < cnt; i++ {
 		require.NoError(t, sut.InsertDir(
-			int32(i),
+			types.SlotID(i),
 			scan.NewInt64Constant(int64(i)),
 			types.BlockID(i),
 		))
@@ -542,11 +542,11 @@ func (ts *BTreePageTestSuite) TestInt64DirPage() {
 	assert.EqualValues(t, cnt, recs)
 
 	for i := 0; i < cnt; i++ {
-		blockID, err1 := sut.GetChildNum(int32(i))
+		blockID, err1 := sut.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-i-1), blockID)
 
-		val, err1 := sut.GetVal(int32(i))
+		val, err1 := sut.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt64Constant(int64(lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
@@ -597,7 +597,7 @@ func (ts *BTreePageTestSuite) TestSplitInt64DirPage() {
 	}
 
 	newTestFlag := int64(defaultTestFlag + 1)
-	newBlock, err := sut1.Split(int32(splitPos), newTestFlag)
+	newBlock, err := sut1.Split(types.SlotID(splitPos), newTestFlag)
 	require.NoError(t, err)
 
 	sut2, err := indexes.NewBTreePage(trx, newBlock, layout)
@@ -620,21 +620,21 @@ func (ts *BTreePageTestSuite) TestSplitInt64DirPage() {
 	assert.EqualValues(t, newTestFlag, flag2)
 
 	for i := 0; i < int(recs1); i++ {
-		blockID, err1 := sut1.GetChildNum(int32(i))
+		blockID, err1 := sut1.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-i-1), blockID)
 
-		val, err1 := sut1.GetVal(int32(i))
+		val, err1 := sut1.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt64Constant(int64(lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
 
 	for i := 0; i < int(recs2); i++ {
-		blockID, err1 := sut2.GetChildNum(int32(i))
+		blockID, err1 := sut2.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-splitPos-1-i), blockID)
 
-		val, err1 := sut2.GetVal(int32(i))
+		val, err1 := sut2.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt64Constant(int64(lastValue-cnt+splitPos+i+1))), "%s != %d", val.String(), lastValue-cnt+splitPos+i+1)
 	}
@@ -666,11 +666,11 @@ func (ts *BTreePageTestSuite) TestInt8DirPage() {
 	assert.EqualValues(t, cnt, recs)
 
 	for i := 0; i < cnt; i++ {
-		blockID, err1 := sut.GetChildNum(int32(i))
+		blockID, err1 := sut.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-i-1), blockID)
 
-		val, err1 := sut.GetVal(int32(i))
+		val, err1 := sut.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt8Constant(int8(lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
@@ -721,7 +721,7 @@ func (ts *BTreePageTestSuite) TestSplitInt8DirPage() {
 	}
 
 	newTestFlag := int64(defaultTestFlag + 1)
-	newBlock, err := sut1.Split(int32(splitPos), newTestFlag)
+	newBlock, err := sut1.Split(types.SlotID(splitPos), newTestFlag)
 	require.NoError(t, err)
 
 	sut2, err := indexes.NewBTreePage(trx, newBlock, layout)
@@ -744,21 +744,21 @@ func (ts *BTreePageTestSuite) TestSplitInt8DirPage() {
 	assert.EqualValues(t, newTestFlag, flag2)
 
 	for i := 0; i < int(recs1); i++ {
-		blockID, err1 := sut1.GetChildNum(int32(i))
+		blockID, err1 := sut1.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-i-1), blockID)
 
-		val, err1 := sut1.GetVal(int32(i))
+		val, err1 := sut1.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt8Constant(int8(lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
 
 	for i := 0; i < int(recs2); i++ {
-		blockID, err1 := sut2.GetChildNum(int32(i))
+		blockID, err1 := sut2.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-splitPos-1-i), blockID)
 
-		val, err1 := sut2.GetVal(int32(i))
+		val, err1 := sut2.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewInt8Constant(int8(lastValue-cnt+splitPos+i+1))), "%s != %d", val.String(), lastValue-cnt+splitPos+i+1)
 	}
@@ -792,11 +792,11 @@ func (ts *BTreePageTestSuite) TestStringDirPage() {
 	assert.EqualValues(t, cnt, recs)
 
 	for i := 0; i < cnt; i++ {
-		blockID, err1 := sut.GetChildNum(int32(i))
+		blockID, err1 := sut.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-i-1), blockID)
 
-		val, err1 := sut.GetVal(int32(i))
+		val, err1 := sut.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewStringConstant(fmt.Sprintf(valFmt, lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
@@ -849,7 +849,7 @@ func (ts *BTreePageTestSuite) TestSplitStringDirPage() {
 	}
 
 	newTestFlag := int64(defaultTestFlag + 1)
-	newBlock, err := sut1.Split(int32(splitPos), newTestFlag)
+	newBlock, err := sut1.Split(types.SlotID(splitPos), newTestFlag)
 	require.NoError(t, err)
 
 	sut2, err := indexes.NewBTreePage(trx, newBlock, layout)
@@ -872,21 +872,21 @@ func (ts *BTreePageTestSuite) TestSplitStringDirPage() {
 	assert.EqualValues(t, newTestFlag, flag2)
 
 	for i := 0; i < int(recs1); i++ {
-		blockID, err1 := sut1.GetChildNum(int32(i))
+		blockID, err1 := sut1.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-i-1), blockID)
 
-		val, err1 := sut1.GetVal(int32(i))
+		val, err1 := sut1.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewStringConstant(fmt.Sprintf(valFmt, lastValue-cnt+i+1))), "%s != %d", val.String(), lastValue-cnt+i+1)
 	}
 
 	for i := 0; i < int(recs2); i++ {
-		blockID, err1 := sut2.GetChildNum(int32(i))
+		blockID, err1 := sut2.GetChildNum(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.Equal(t, types.BlockID(startBlock+cnt-splitPos-1-i), blockID)
 
-		val, err1 := sut2.GetVal(int32(i))
+		val, err1 := sut2.GetVal(types.SlotID(i))
 		require.NoError(t, err1)
 		assert.EqualValuesf(t, scan.CompEqual, val.CompareTo(scan.NewStringConstant(fmt.Sprintf(valFmt, lastValue-cnt+splitPos+i+1))), "%s != %d", val.String(), lastValue-cnt+splitPos+i+1)
 	}
