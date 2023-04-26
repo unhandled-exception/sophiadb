@@ -22,45 +22,6 @@ const (
 	datavalFieldName = "dataval"
 )
 
-func NewBTreeDirPageLayout(datavalFieldType records.FieldType, length int64) records.Layout {
-	schema := records.NewSchema()
-	schema.AddInt64Field(blockFieldName)
-
-	//nolint:exhaustive
-	switch datavalFieldType {
-	case records.Int64Field:
-		schema.AddInt64Field(datavalFieldName)
-	case records.Int8Field:
-		schema.AddInt8Field(datavalFieldName)
-	case records.StringField:
-		schema.AddStringField(datavalFieldName, length)
-	}
-
-	layout := records.NewLayout(schema)
-
-	return layout
-}
-
-func NewBTreeLeafPageLayout(datavalFieldType records.FieldType, length int64) records.Layout {
-	schema := records.NewSchema()
-	schema.AddInt64Field(idFieldName)
-	schema.AddInt64Field(blockFieldName)
-
-	//nolint:exhaustive
-	switch datavalFieldType {
-	case records.Int64Field:
-		schema.AddInt64Field(datavalFieldName)
-	case records.Int8Field:
-		schema.AddInt8Field(datavalFieldName)
-	case records.StringField:
-		schema.AddStringField(datavalFieldName, length)
-	}
-
-	layout := records.NewLayout(schema)
-
-	return layout
-}
-
 func NewBTreePage(trx scan.TRXInt, block types.Block, layout records.Layout) (*BTreePage, error) {
 	page := &BTreePage{
 		trx:      trx,
@@ -87,15 +48,15 @@ func (p *BTreePage) Close() {
 	p.curBlock = nil
 }
 
-func (p *BTreePage) FindSlotBefore(searchKey scan.Constant) (int32, error) {
-	var slot int32 = 0
+func (p *BTreePage) FindSlotBefore(searchKey scan.Constant) (types.SlotID, error) {
+	var slot types.SlotID = 0
 
 	records, err := p.GetRecords()
 	if err != nil {
 		return 0, err
 	}
 
-	for slot < int32(records) {
+	for slot < types.SlotID(records) {
 		value, err1 := p.GetVal(slot)
 		if err1 != nil {
 			return -1, err1
@@ -117,10 +78,12 @@ func (p *BTreePage) IsFull() (bool, error) {
 		return false, err
 	}
 
-	return p.slotPos(int32(records+1)) >= int32(p.trx.BlockSize()), nil
+	pos := p.slotPos(types.SlotID(records) + 1)
+
+	return pos >= int32(p.trx.BlockSize()), nil
 }
 
-func (p *BTreePage) Split(splitPos int32, flag int64) (types.Block, error) {
+func (p *BTreePage) Split(splitPos types.SlotID, flag int64) (types.Block, error) {
 	block, err := p.AppendNewBlock(flag)
 	if err != nil {
 		return types.Block{}, err
@@ -216,7 +179,7 @@ func (p *BTreePage) GetRecords() (int64, error) {
 	return p.trx.GetInt64(*p.curBlock, p.recordsCountOffset)
 }
 
-func (p *BTreePage) InsertDir(slot int32, value scan.Constant, blockID types.BlockID) error {
+func (p *BTreePage) InsertDir(slot types.SlotID, value scan.Constant, blockID types.BlockID) error {
 	if err := p.Insert(slot); err != nil {
 		return err
 	}
@@ -232,13 +195,13 @@ func (p *BTreePage) InsertDir(slot int32, value scan.Constant, blockID types.Blo
 	return nil
 }
 
-func (p *BTreePage) GetChildNum(slot int32) (types.BlockID, error) {
+func (p *BTreePage) GetChildNum(slot types.SlotID) (types.BlockID, error) {
 	block, err := p.getInt64(slot, blockFieldName)
 
 	return types.BlockID(block), err
 }
 
-func (p *BTreePage) GetDataRID(slot int32) (types.RID, error) {
+func (p *BTreePage) GetDataRID(slot types.SlotID) (types.RID, error) {
 	blockID, err := p.getInt64(slot, blockFieldName)
 	if err != nil {
 		return types.RID{}, err
@@ -255,7 +218,7 @@ func (p *BTreePage) GetDataRID(slot int32) (types.RID, error) {
 	}, nil
 }
 
-func (p *BTreePage) InsertLeaf(slot int32, value scan.Constant, rid types.RID) error {
+func (p *BTreePage) InsertLeaf(slot types.SlotID, value scan.Constant, rid types.RID) error {
 	if err := p.Insert(slot); err != nil {
 		return err
 	}
@@ -275,14 +238,14 @@ func (p *BTreePage) InsertLeaf(slot int32, value scan.Constant, rid types.RID) e
 	return nil
 }
 
-func (p *BTreePage) Delete(slot int32) error {
+func (p *BTreePage) Delete(slot types.SlotID) error {
 	records, err := p.GetRecords()
 	if err != nil {
 		return err
 	}
 
-	for i := slot + 1; i < int32(records); i++ {
-		if err = p.copyRecord(i, i-1); err != nil {
+	for i := int32(slot) + 1; i < int32(records); i++ {
+		if err = p.copyRecord(types.SlotID(i), types.SlotID(i-1)); err != nil {
 			return err
 		}
 	}
@@ -294,14 +257,14 @@ func (p *BTreePage) Delete(slot int32) error {
 	return nil
 }
 
-func (p *BTreePage) Insert(slot int32) error {
+func (p *BTreePage) Insert(slot types.SlotID) error {
 	records, err := p.GetRecords()
 	if err != nil {
 		return err
 	}
 
-	for i := int32(records); i > slot; i-- {
-		if err = p.copyRecord(i-1, i); err != nil {
+	for i := int32(records); i > int32(slot); i-- {
+		if err = p.copyRecord(types.SlotID(i-1), types.SlotID(i)); err != nil {
 			return err
 		}
 	}
@@ -309,11 +272,11 @@ func (p *BTreePage) Insert(slot int32) error {
 	return p.setRecords(records + 1)
 }
 
-func (p *BTreePage) GetVal(slot int32) (scan.Constant, error) {
+func (p *BTreePage) GetVal(slot types.SlotID) (scan.Constant, error) {
 	return p.getVal(slot, datavalFieldName)
 }
 
-func (p *BTreePage) SetVal(slot int32, field string, value scan.Constant) error {
+func (p *BTreePage) SetVal(slot types.SlotID, field string, value scan.Constant) error {
 	//nolint:exhaustive
 	switch p.layout.Schema.Type(field) {
 	case records.Int64Field:
@@ -337,19 +300,19 @@ func (p *BTreePage) setRecords(records int64) error {
 	return p.trx.SetInt64(*p.curBlock, p.recordsCountOffset, records, true)
 }
 
-func (p *BTreePage) getInt64(slot int32, field string) (int64, error) {
+func (p *BTreePage) getInt64(slot types.SlotID, field string) (int64, error) {
 	return p.trx.GetInt64(*p.curBlock, uint32(p.fieldPos(slot, field)))
 }
 
-func (p *BTreePage) getInt8(slot int32, field string) (int8, error) {
+func (p *BTreePage) getInt8(slot types.SlotID, field string) (int8, error) {
 	return p.trx.GetInt8(*p.curBlock, uint32(p.fieldPos(slot, field)))
 }
 
-func (p *BTreePage) getString(slot int32, field string) (string, error) {
+func (p *BTreePage) getString(slot types.SlotID, field string) (string, error) {
 	return p.trx.GetString(*p.curBlock, uint32(p.fieldPos(slot, field)))
 }
 
-func (p *BTreePage) getVal(slot int32, field string) (scan.Constant, error) {
+func (p *BTreePage) getVal(slot types.SlotID, field string) (scan.Constant, error) {
 	//nolint:exhaustive
 	switch p.layout.Schema.Type(field) {
 	case records.Int64Field:
@@ -378,19 +341,19 @@ func (p *BTreePage) getVal(slot int32, field string) (scan.Constant, error) {
 	}
 }
 
-func (p *BTreePage) setInt64(slot int32, field string, value int64) error {
+func (p *BTreePage) setInt64(slot types.SlotID, field string, value int64) error {
 	return p.trx.SetInt64(*p.curBlock, uint32(p.fieldPos(slot, field)), value, true)
 }
 
-func (p *BTreePage) setInt8(slot int32, field string, value int8) error {
+func (p *BTreePage) setInt8(slot types.SlotID, field string, value int8) error {
 	return p.trx.SetInt8(*p.curBlock, uint32(p.fieldPos(slot, field)), value, true)
 }
 
-func (p *BTreePage) setString(slot int32, field string, value string) error {
+func (p *BTreePage) setString(slot types.SlotID, field string, value string) error {
 	return p.trx.SetString(*p.curBlock, uint32(p.fieldPos(slot, field)), value, true)
 }
 
-func (p *BTreePage) copyRecord(from, to int32) error {
+func (p *BTreePage) copyRecord(from, to types.SlotID) error {
 	for _, fieldName := range p.layout.Schema.Fields() {
 		value, err := p.getVal(from, fieldName)
 		if err != nil {
@@ -405,16 +368,16 @@ func (p *BTreePage) copyRecord(from, to int32) error {
 	return nil
 }
 
-func (p *BTreePage) fieldPos(slot int32, field string) int32 {
+func (p *BTreePage) fieldPos(slot types.SlotID, field string) int32 {
 	return p.slotPos(slot) + int32(p.layout.Offset(field))
 }
 
-func (p *BTreePage) slotPos(slot int32) int32 {
-	return int32(p.dataOffset) + (slot * int32(p.layout.SlotSize))
+func (p *BTreePage) slotPos(slot types.SlotID) int32 {
+	return int32(p.dataOffset) + (int32(slot) * int32(p.layout.SlotSize))
 }
 
-func (p *BTreePage) transferRecords(splitPos int32, dest *BTreePage) error {
-	var destSlot int32 = 0
+func (p *BTreePage) transferRecords(splitPos types.SlotID, dest *BTreePage) error {
+	var destSlot types.SlotID = 0
 
 	schema := p.layout.Schema
 
@@ -424,7 +387,7 @@ func (p *BTreePage) transferRecords(splitPos int32, dest *BTreePage) error {
 			return err
 		}
 
-		if int32(records) <= splitPos {
+		if types.SlotID(records) <= splitPos {
 			break
 		}
 
