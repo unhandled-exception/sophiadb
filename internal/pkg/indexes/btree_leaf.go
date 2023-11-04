@@ -68,15 +68,17 @@ func (l *BTreeLeaf) Next() (bool, error) {
 		return false, err
 	}
 
-	if records > int64(l.currentSlot) {
-		dataval, err1 := l.contents.GetVal(l.currentSlot)
-		if err1 != nil {
-			return false, err1
-		}
+	if int64(l.currentSlot) >= records {
+		return l.tryOverflow()
+	}
 
-		if dataval.CompareTo(l.searchKey) == scan.CompEqual {
-			return true, nil
-		}
+	dataval, err1 := l.contents.GetVal(l.currentSlot)
+	if err1 != nil {
+		return false, err1
+	}
+
+	if dataval.CompareTo(l.searchKey) == scan.CompEqual {
+		return true, nil
 	}
 
 	return l.tryOverflow()
@@ -114,7 +116,7 @@ func (l *BTreeLeaf) Insert(dataRID types.RID) (*BTreeDirEntry, error) {
 		return nil, err
 	}
 
-	// Если блок ссылается на блок переполнения и ключи меньше первого в блоке,
+	// Если блок ссылается на блок переполнения и ключ меньше первого в блоке,
 	// то текущий блок целиком отщепляем в новый и возвращаем каталожную запись для нового блока
 	// dataRID вставляем в текущую страницу
 	if flag >= 0 && firstKey.CompareTo(l.searchKey) == scan.CompGreat {
@@ -141,14 +143,17 @@ func (l *BTreeLeaf) Insert(dataRID types.RID) (*BTreeDirEntry, error) {
 
 	l.currentSlot++
 
+	if err1 := l.contents.InsertLeaf(l.currentSlot, l.searchKey, dataRID); err1 != nil {
+		return nil, err
+	}
+
 	full, err := l.contents.IsFull()
 	if err != nil {
 		return nil, err
 	}
 
-	// Если в блоке есть место, то вставляем запись
 	if !full {
-		return nil, l.contents.InsertLeaf(l.currentSlot, l.searchKey, dataRID)
+		return nil, nil //nolint:nilnil
 	}
 
 	// Если в блоке нет места, то расщепляем
@@ -228,7 +233,7 @@ func (l *BTreeLeaf) Insert(dataRID types.RID) (*BTreeDirEntry, error) {
 }
 
 func (l *BTreeLeaf) tryOverflow() (bool, error) {
-	firstKey, err := l.contents.GetVal(l.currentSlot)
+	firstKey, err := l.contents.GetVal(0)
 	if err != nil {
 		return false, err
 	}
