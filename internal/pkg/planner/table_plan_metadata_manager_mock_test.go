@@ -122,7 +122,7 @@ func (mmGetStatInfo *mTablePlanMetadataManagerMockGetStatInfo) Return(s1 metadat
 	return mmGetStatInfo.mock
 }
 
-//Set uses given function f to mock the tablePlanMetadataManager.GetStatInfo method
+// Set uses given function f to mock the tablePlanMetadataManager.GetStatInfo method
 func (mmGetStatInfo *mTablePlanMetadataManagerMockGetStatInfo) Set(f func(tableName string, layout records.Layout, trx scan.TRXInt) (s1 metadata.StatInfo, err error)) *TablePlanMetadataManagerMock {
 	if mmGetStatInfo.defaultExpectation != nil {
 		mmGetStatInfo.mock.t.Fatalf("Default expectation is already set for the tablePlanMetadataManager.GetStatInfo method")
@@ -339,7 +339,7 @@ func (mmLayout *mTablePlanMetadataManagerMockLayout) Return(l1 records.Layout, e
 	return mmLayout.mock
 }
 
-//Set uses given function f to mock the tablePlanMetadataManager.Layout method
+// Set uses given function f to mock the tablePlanMetadataManager.Layout method
 func (mmLayout *mTablePlanMetadataManagerMockLayout) Set(f func(tableName string, trx scan.TRXInt) (l1 records.Layout, err error)) *TablePlanMetadataManagerMock {
 	if mmLayout.defaultExpectation != nil {
 		mmLayout.mock.t.Fatalf("Default expectation is already set for the tablePlanMetadataManager.Layout method")

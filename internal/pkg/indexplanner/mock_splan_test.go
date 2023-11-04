@@ -109,7 +109,7 @@ func (mmOpen *mSPlanMockOpen) Return(s1 scan.Scan, err error) *SPlanMock {
 	return mmOpen.mock
 }
 
-//Set uses given function f to mock the sPlan.Open method
+// Set uses given function f to mock the sPlan.Open method
 func (mmOpen *mSPlanMockOpen) Set(f func() (s1 scan.Scan, err error)) *SPlanMock {
 	if mmOpen.defaultExpectation != nil {
 		mmOpen.mock.t.Fatalf("Default expectation is already set for the sPlan.Open method")
@@ -252,7 +252,7 @@ func (mmSchema *mSPlanMockSchema) Return(s1 records.Schema) *SPlanMock {
 	return mmSchema.mock
 }
 
-//Set uses given function f to mock the sPlan.Schema method
+// Set uses given function f to mock the sPlan.Schema method
 func (mmSchema *mSPlanMockSchema) Set(f func() (s1 records.Schema)) *SPlanMock {
 	if mmSchema.defaultExpectation != nil {
 		mmSchema.mock.t.Fatalf("Default expectation is already set for the sPlan.Schema method")
@@ -395,7 +395,7 @@ func (mmString *mSPlanMockString) Return(s1 string) *SPlanMock {
 	return mmString.mock
 }
 
-//Set uses given function f to mock the sPlan.String method
+// Set uses given function f to mock the sPlan.String method
 func (mmString *mSPlanMockString) Set(f func() (s1 string)) *SPlanMock {
 	if mmString.defaultExpectation != nil {
 		mmString.mock.t.Fatalf("Default expectation is already set for the sPlan.String method")

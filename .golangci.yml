@@ -71,3 +71,6 @@ linters-settings:
       - Statement$
       - Scan
       - Plan
+
+  goconst:
+    min-occurrences: 5

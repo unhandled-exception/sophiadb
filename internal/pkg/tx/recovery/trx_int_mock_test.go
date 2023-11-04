@@ -152,7 +152,7 @@ func (mmPin *mTrxIntMockPin) Return(err error) *TrxIntMock {
 	return mmPin.mock
 }
 
-//Set uses given function f to mock the trxInt.Pin method
+// Set uses given function f to mock the trxInt.Pin method
 func (mmPin *mTrxIntMockPin) Set(f func(block types.Block) (err error)) *TrxIntMock {
 	if mmPin.defaultExpectation != nil {
 		mmPin.mock.t.Fatalf("Default expectation is already set for the trxInt.Pin method")
@@ -370,7 +370,7 @@ func (mmSetInt64 *mTrxIntMockSetInt64) Return(err error) *TrxIntMock {
 	return mmSetInt64.mock
 }
 
-//Set uses given function f to mock the trxInt.SetInt64 method
+// Set uses given function f to mock the trxInt.SetInt64 method
 func (mmSetInt64 *mTrxIntMockSetInt64) Set(f func(block types.Block, offset uint32, value int64, okToLog bool) (err error)) *TrxIntMock {
 	if mmSetInt64.defaultExpectation != nil {
 		mmSetInt64.mock.t.Fatalf("Default expectation is already set for the trxInt.SetInt64 method")
@@ -588,7 +588,7 @@ func (mmSetInt8 *mTrxIntMockSetInt8) Return(err error) *TrxIntMock {
 	return mmSetInt8.mock
 }
 
-//Set uses given function f to mock the trxInt.SetInt8 method
+// Set uses given function f to mock the trxInt.SetInt8 method
 func (mmSetInt8 *mTrxIntMockSetInt8) Set(f func(block types.Block, offset uint32, value int8, okToLog bool) (err error)) *TrxIntMock {
 	if mmSetInt8.defaultExpectation != nil {
 		mmSetInt8.mock.t.Fatalf("Default expectation is already set for the trxInt.SetInt8 method")
@@ -806,7 +806,7 @@ func (mmSetString *mTrxIntMockSetString) Return(err error) *TrxIntMock {
 	return mmSetString.mock
 }
 
-//Set uses given function f to mock the trxInt.SetString method
+// Set uses given function f to mock the trxInt.SetString method
 func (mmSetString *mTrxIntMockSetString) Set(f func(block types.Block, offset uint32, value string, okToLog bool) (err error)) *TrxIntMock {
 	if mmSetString.defaultExpectation != nil {
 		mmSetString.mock.t.Fatalf("Default expectation is already set for the trxInt.SetString method")
@@ -1006,7 +1006,7 @@ func (mmTXNum *mTrxIntMockTXNum) Return(t1 types.TRX) *TrxIntMock {
 	return mmTXNum.mock
 }
 
-//Set uses given function f to mock the trxInt.TXNum method
+// Set uses given function f to mock the trxInt.TXNum method
 func (mmTXNum *mTrxIntMockTXNum) Set(f func() (t1 types.TRX)) *TrxIntMock {
 	if mmTXNum.defaultExpectation != nil {
 		mmTXNum.mock.t.Fatalf("Default expectation is already set for the trxInt.TXNum method")
@@ -1159,7 +1159,7 @@ func (mmUnpin *mTrxIntMockUnpin) Return() *TrxIntMock {
 	return mmUnpin.mock
 }
 
-//Set uses given function f to mock the trxInt.Unpin method
+// Set uses given function f to mock the trxInt.Unpin method
 func (mmUnpin *mTrxIntMockUnpin) Set(f func(block types.Block)) *TrxIntMock {
 	if mmUnpin.defaultExpectation != nil {
 		mmUnpin.mock.t.Fatalf("Default expectation is already set for the trxInt.Unpin method")

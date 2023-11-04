@@ -161,7 +161,7 @@ func (mmBeforeFirst *mScanMockBeforeFirst) Return(err error) *ScanMock {
 	return mmBeforeFirst.mock
 }
 
-//Set uses given function f to mock the Scan.BeforeFirst method
+// Set uses given function f to mock the Scan.BeforeFirst method
 func (mmBeforeFirst *mScanMockBeforeFirst) Set(f func() (err error)) *ScanMock {
 	if mmBeforeFirst.defaultExpectation != nil {
 		mmBeforeFirst.mock.t.Fatalf("Default expectation is already set for the Scan.BeforeFirst method")
@@ -298,7 +298,7 @@ func (mmClose *mScanMockClose) Return() *ScanMock {
 	return mmClose.mock
 }
 
-//Set uses given function f to mock the Scan.Close method
+// Set uses given function f to mock the Scan.Close method
 func (mmClose *mScanMockClose) Set(f func()) *ScanMock {
 	if mmClose.defaultExpectation != nil {
 		mmClose.mock.t.Fatalf("Default expectation is already set for the Scan.Close method")
@@ -455,7 +455,7 @@ func (mmGetInt64 *mScanMockGetInt64) Return(i1 int64, err error) *ScanMock {
 	return mmGetInt64.mock
 }
 
-//Set uses given function f to mock the Scan.GetInt64 method
+// Set uses given function f to mock the Scan.GetInt64 method
 func (mmGetInt64 *mScanMockGetInt64) Set(f func(fieldName string) (i1 int64, err error)) *ScanMock {
 	if mmGetInt64.defaultExpectation != nil {
 		mmGetInt64.mock.t.Fatalf("Default expectation is already set for the Scan.GetInt64 method")
@@ -671,7 +671,7 @@ func (mmGetInt8 *mScanMockGetInt8) Return(i1 int8, err error) *ScanMock {
 	return mmGetInt8.mock
 }
 
-//Set uses given function f to mock the Scan.GetInt8 method
+// Set uses given function f to mock the Scan.GetInt8 method
 func (mmGetInt8 *mScanMockGetInt8) Set(f func(fieldName string) (i1 int8, err error)) *ScanMock {
 	if mmGetInt8.defaultExpectation != nil {
 		mmGetInt8.mock.t.Fatalf("Default expectation is already set for the Scan.GetInt8 method")
@@ -887,7 +887,7 @@ func (mmGetString *mScanMockGetString) Return(s1 string, err error) *ScanMock {
 	return mmGetString.mock
 }
 
-//Set uses given function f to mock the Scan.GetString method
+// Set uses given function f to mock the Scan.GetString method
 func (mmGetString *mScanMockGetString) Set(f func(fieldName string) (s1 string, err error)) *ScanMock {
 	if mmGetString.defaultExpectation != nil {
 		mmGetString.mock.t.Fatalf("Default expectation is already set for the Scan.GetString method")
@@ -1103,7 +1103,7 @@ func (mmGetVal *mScanMockGetVal) Return(c1 Constant, err error) *ScanMock {
 	return mmGetVal.mock
 }
 
-//Set uses given function f to mock the Scan.GetVal method
+// Set uses given function f to mock the Scan.GetVal method
 func (mmGetVal *mScanMockGetVal) Set(f func(fieldName string) (c1 Constant, err error)) *ScanMock {
 	if mmGetVal.defaultExpectation != nil {
 		mmGetVal.mock.t.Fatalf("Default expectation is already set for the Scan.GetVal method")
@@ -1318,7 +1318,7 @@ func (mmHasField *mScanMockHasField) Return(b1 bool) *ScanMock {
 	return mmHasField.mock
 }
 
-//Set uses given function f to mock the Scan.HasField method
+// Set uses given function f to mock the Scan.HasField method
 func (mmHasField *mScanMockHasField) Set(f func(fieldName string) (b1 bool)) *ScanMock {
 	if mmHasField.defaultExpectation != nil {
 		mmHasField.mock.t.Fatalf("Default expectation is already set for the Scan.HasField method")
@@ -1519,7 +1519,7 @@ func (mmNext *mScanMockNext) Return(b1 bool, err error) *ScanMock {
 	return mmNext.mock
 }
 
-//Set uses given function f to mock the Scan.Next method
+// Set uses given function f to mock the Scan.Next method
 func (mmNext *mScanMockNext) Set(f func() (b1 bool, err error)) *ScanMock {
 	if mmNext.defaultExpectation != nil {
 		mmNext.mock.t.Fatalf("Default expectation is already set for the Scan.Next method")
@@ -1662,7 +1662,7 @@ func (mmSchema *mScanMockSchema) Return(s1 records.Schema) *ScanMock {
 	return mmSchema.mock
 }
 
-//Set uses given function f to mock the Scan.Schema method
+// Set uses given function f to mock the Scan.Schema method
 func (mmSchema *mScanMockSchema) Set(f func() (s1 records.Schema)) *ScanMock {
 	if mmSchema.defaultExpectation != nil {
 		mmSchema.mock.t.Fatalf("Default expectation is already set for the Scan.Schema method")
