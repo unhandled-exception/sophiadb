@@ -134,7 +134,7 @@ func (mmBlocksAccessed *mJPlanMockBlocksAccessed) Return(i1 int64) *JPlanMock {
 	return mmBlocksAccessed.mock
 }
 
-//Set uses given function f to mock the jPlan.BlocksAccessed method
+// Set uses given function f to mock the jPlan.BlocksAccessed method
 func (mmBlocksAccessed *mJPlanMockBlocksAccessed) Set(f func() (i1 int64)) *JPlanMock {
 	if mmBlocksAccessed.defaultExpectation != nil {
 		mmBlocksAccessed.mock.t.Fatalf("Default expectation is already set for the jPlan.BlocksAccessed method")
@@ -293,7 +293,7 @@ func (mmDistinctValues *mJPlanMockDistinctValues) Return(i1 int64, b1 bool) *JPl
 	return mmDistinctValues.mock
 }
 
-//Set uses given function f to mock the jPlan.DistinctValues method
+// Set uses given function f to mock the jPlan.DistinctValues method
 func (mmDistinctValues *mJPlanMockDistinctValues) Set(f func(fieldName string) (i1 int64, b1 bool)) *JPlanMock {
 	if mmDistinctValues.defaultExpectation != nil {
 		mmDistinctValues.mock.t.Fatalf("Default expectation is already set for the jPlan.DistinctValues method")
@@ -494,7 +494,7 @@ func (mmOpen *mJPlanMockOpen) Return(s1 scan.Scan, err error) *JPlanMock {
 	return mmOpen.mock
 }
 
-//Set uses given function f to mock the jPlan.Open method
+// Set uses given function f to mock the jPlan.Open method
 func (mmOpen *mJPlanMockOpen) Set(f func() (s1 scan.Scan, err error)) *JPlanMock {
 	if mmOpen.defaultExpectation != nil {
 		mmOpen.mock.t.Fatalf("Default expectation is already set for the jPlan.Open method")
@@ -637,7 +637,7 @@ func (mmRecords *mJPlanMockRecords) Return(i1 int64) *JPlanMock {
 	return mmRecords.mock
 }
 
-//Set uses given function f to mock the jPlan.Records method
+// Set uses given function f to mock the jPlan.Records method
 func (mmRecords *mJPlanMockRecords) Set(f func() (i1 int64)) *JPlanMock {
 	if mmRecords.defaultExpectation != nil {
 		mmRecords.mock.t.Fatalf("Default expectation is already set for the jPlan.Records method")
@@ -780,7 +780,7 @@ func (mmSchema *mJPlanMockSchema) Return(s1 records.Schema) *JPlanMock {
 	return mmSchema.mock
 }
 
-//Set uses given function f to mock the jPlan.Schema method
+// Set uses given function f to mock the jPlan.Schema method
 func (mmSchema *mJPlanMockSchema) Set(f func() (s1 records.Schema)) *JPlanMock {
 	if mmSchema.defaultExpectation != nil {
 		mmSchema.mock.t.Fatalf("Default expectation is already set for the jPlan.Schema method")
@@ -923,7 +923,7 @@ func (mmString *mJPlanMockString) Return(s1 string) *JPlanMock {
 	return mmString.mock
 }
 
-//Set uses given function f to mock the jPlan.String method
+// Set uses given function f to mock the jPlan.String method
 func (mmString *mJPlanMockString) Set(f func() (s1 string)) *JPlanMock {
 	if mmString.defaultExpectation != nil {
 		mmString.mock.t.Fatalf("Default expectation is already set for the jPlan.String method")

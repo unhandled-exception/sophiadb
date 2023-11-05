@@ -108,7 +108,7 @@ func (mmDistinctValues *mPlanMockDistinctValues) Return(i1 int64, b1 bool) *Plan
 	return mmDistinctValues.mock
 }
 
-//Set uses given function f to mock the Plan.DistinctValues method
+// Set uses given function f to mock the Plan.DistinctValues method
 func (mmDistinctValues *mPlanMockDistinctValues) Set(f func(s1 string) (i1 int64, b1 bool)) *PlanMock {
 	if mmDistinctValues.defaultExpectation != nil {
 		mmDistinctValues.mock.t.Fatalf("Default expectation is already set for the Plan.DistinctValues method")

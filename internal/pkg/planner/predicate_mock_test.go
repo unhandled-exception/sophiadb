@@ -174,7 +174,7 @@ func (mmConjoinWith *mPredicateMockConjoinWith) Return() *PredicateMock {
 	return mmConjoinWith.mock
 }
 
-//Set uses given function f to mock the Predicate.ConjoinWith method
+// Set uses given function f to mock the Predicate.ConjoinWith method
 func (mmConjoinWith *mPredicateMockConjoinWith) Set(f func(p1 mm_scan.Predicate)) *PredicateMock {
 	if mmConjoinWith.defaultExpectation != nil {
 		mmConjoinWith.mock.t.Fatalf("Default expectation is already set for the Predicate.ConjoinWith method")
@@ -367,7 +367,7 @@ func (mmEquatesWithConstant *mPredicateMockEquatesWithConstant) Return(c1 mm_sca
 	return mmEquatesWithConstant.mock
 }
 
-//Set uses given function f to mock the Predicate.EquatesWithConstant method
+// Set uses given function f to mock the Predicate.EquatesWithConstant method
 func (mmEquatesWithConstant *mPredicateMockEquatesWithConstant) Set(f func(s1 string) (c1 mm_scan.Constant, b1 bool)) *PredicateMock {
 	if mmEquatesWithConstant.defaultExpectation != nil {
 		mmEquatesWithConstant.mock.t.Fatalf("Default expectation is already set for the Predicate.EquatesWithConstant method")
@@ -583,7 +583,7 @@ func (mmEquatesWithField *mPredicateMockEquatesWithField) Return(s2 string, b1 b
 	return mmEquatesWithField.mock
 }
 
-//Set uses given function f to mock the Predicate.EquatesWithField method
+// Set uses given function f to mock the Predicate.EquatesWithField method
 func (mmEquatesWithField *mPredicateMockEquatesWithField) Set(f func(s1 string) (s2 string, b1 bool)) *PredicateMock {
 	if mmEquatesWithField.defaultExpectation != nil {
 		mmEquatesWithField.mock.t.Fatalf("Default expectation is already set for the Predicate.EquatesWithField method")
@@ -799,7 +799,7 @@ func (mmIsSatisfied *mPredicateMockIsSatisfied) Return(b1 bool, err error) *Pred
 	return mmIsSatisfied.mock
 }
 
-//Set uses given function f to mock the Predicate.IsSatisfied method
+// Set uses given function f to mock the Predicate.IsSatisfied method
 func (mmIsSatisfied *mPredicateMockIsSatisfied) Set(f func(s1 mm_scan.Scan) (b1 bool, err error)) *PredicateMock {
 	if mmIsSatisfied.defaultExpectation != nil {
 		mmIsSatisfied.mock.t.Fatalf("Default expectation is already set for the Predicate.IsSatisfied method")
@@ -1015,7 +1015,7 @@ func (mmJoinSubPred *mPredicateMockJoinSubPred) Return(p1 mm_scan.Predicate) *Pr
 	return mmJoinSubPred.mock
 }
 
-//Set uses given function f to mock the Predicate.JoinSubPred method
+// Set uses given function f to mock the Predicate.JoinSubPred method
 func (mmJoinSubPred *mPredicateMockJoinSubPred) Set(f func(s1 records.Schema, s2 records.Schema) (p1 mm_scan.Predicate)) *PredicateMock {
 	if mmJoinSubPred.defaultExpectation != nil {
 		mmJoinSubPred.mock.t.Fatalf("Default expectation is already set for the Predicate.JoinSubPred method")
@@ -1231,7 +1231,7 @@ func (mmReductionFactor *mPredicateMockReductionFactor) Return(i1 int64, b1 bool
 	return mmReductionFactor.mock
 }
 
-//Set uses given function f to mock the Predicate.ReductionFactor method
+// Set uses given function f to mock the Predicate.ReductionFactor method
 func (mmReductionFactor *mPredicateMockReductionFactor) Set(f func(p1 mm_scan.Plan) (i1 int64, b1 bool)) *PredicateMock {
 	if mmReductionFactor.defaultExpectation != nil {
 		mmReductionFactor.mock.t.Fatalf("Default expectation is already set for the Predicate.ReductionFactor method")
@@ -1446,7 +1446,7 @@ func (mmSelectSubPred *mPredicateMockSelectSubPred) Return(p1 mm_scan.Predicate)
 	return mmSelectSubPred.mock
 }
 
-//Set uses given function f to mock the Predicate.SelectSubPred method
+// Set uses given function f to mock the Predicate.SelectSubPred method
 func (mmSelectSubPred *mPredicateMockSelectSubPred) Set(f func(s1 records.Schema) (p1 mm_scan.Predicate)) *PredicateMock {
 	if mmSelectSubPred.defaultExpectation != nil {
 		mmSelectSubPred.mock.t.Fatalf("Default expectation is already set for the Predicate.SelectSubPred method")
@@ -1646,7 +1646,7 @@ func (mmString *mPredicateMockString) Return(s1 string) *PredicateMock {
 	return mmString.mock
 }
 
-//Set uses given function f to mock the Predicate.String method
+// Set uses given function f to mock the Predicate.String method
 func (mmString *mPredicateMockString) Set(f func() (s1 string)) *PredicateMock {
 	if mmString.defaultExpectation != nil {
 		mmString.mock.t.Fatalf("Default expectation is already set for the Predicate.String method")
@@ -1789,7 +1789,7 @@ func (mmTerms *mPredicateMockTerms) Return(ta1 []mm_scan.Term) *PredicateMock {
 	return mmTerms.mock
 }
 
-//Set uses given function f to mock the Predicate.Terms method
+// Set uses given function f to mock the Predicate.Terms method
 func (mmTerms *mPredicateMockTerms) Set(f func() (ta1 []mm_scan.Term)) *PredicateMock {
 	if mmTerms.defaultExpectation != nil {
 		mmTerms.mock.t.Fatalf("Default expectation is already set for the Predicate.Terms method")

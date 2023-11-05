@@ -125,7 +125,7 @@ func (mmBlocksAccessed *mSIndexInfoMockBlocksAccessed) Return(i1 int64) *SIndexI
 	return mmBlocksAccessed.mock
 }
 
-//Set uses given function f to mock the sIndexInfo.BlocksAccessed method
+// Set uses given function f to mock the sIndexInfo.BlocksAccessed method
 func (mmBlocksAccessed *mSIndexInfoMockBlocksAccessed) Set(f func() (i1 int64)) *SIndexInfoMock {
 	if mmBlocksAccessed.defaultExpectation != nil {
 		mmBlocksAccessed.mock.t.Fatalf("Default expectation is already set for the sIndexInfo.BlocksAccessed method")
@@ -283,7 +283,7 @@ func (mmDistinctValues *mSIndexInfoMockDistinctValues) Return(i1 int64) *SIndexI
 	return mmDistinctValues.mock
 }
 
-//Set uses given function f to mock the sIndexInfo.DistinctValues method
+// Set uses given function f to mock the sIndexInfo.DistinctValues method
 func (mmDistinctValues *mSIndexInfoMockDistinctValues) Set(f func(fieldName string) (i1 int64)) *SIndexInfoMock {
 	if mmDistinctValues.defaultExpectation != nil {
 		mmDistinctValues.mock.t.Fatalf("Default expectation is already set for the sIndexInfo.DistinctValues method")
@@ -484,7 +484,7 @@ func (mmOpen *mSIndexInfoMockOpen) Return(i1 indexes.Index, err error) *SIndexIn
 	return mmOpen.mock
 }
 
-//Set uses given function f to mock the sIndexInfo.Open method
+// Set uses given function f to mock the sIndexInfo.Open method
 func (mmOpen *mSIndexInfoMockOpen) Set(f func() (i1 indexes.Index, err error)) *SIndexInfoMock {
 	if mmOpen.defaultExpectation != nil {
 		mmOpen.mock.t.Fatalf("Default expectation is already set for the sIndexInfo.Open method")
@@ -627,7 +627,7 @@ func (mmRecords *mSIndexInfoMockRecords) Return(i1 int64) *SIndexInfoMock {
 	return mmRecords.mock
 }
 
-//Set uses given function f to mock the sIndexInfo.Records method
+// Set uses given function f to mock the sIndexInfo.Records method
 func (mmRecords *mSIndexInfoMockRecords) Set(f func() (i1 int64)) *SIndexInfoMock {
 	if mmRecords.defaultExpectation != nil {
 		mmRecords.mock.t.Fatalf("Default expectation is already set for the sIndexInfo.Records method")
@@ -770,7 +770,7 @@ func (mmString *mSIndexInfoMockString) Return(s1 string) *SIndexInfoMock {
 	return mmString.mock
 }
 
-//Set uses given function f to mock the sIndexInfo.String method
+// Set uses given function f to mock the sIndexInfo.String method
 func (mmString *mSIndexInfoMockString) Set(f func() (s1 string)) *SIndexInfoMock {
 	if mmString.defaultExpectation != nil {
 		mmString.mock.t.Fatalf("Default expectation is already set for the sIndexInfo.String method")

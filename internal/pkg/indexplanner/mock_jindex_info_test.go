@@ -115,7 +115,7 @@ func (mmBlocksAccessed *mJIndexInfoMockBlocksAccessed) Return(i1 int64) *JIndexI
 	return mmBlocksAccessed.mock
 }
 
-//Set uses given function f to mock the jIndexInfo.BlocksAccessed method
+// Set uses given function f to mock the jIndexInfo.BlocksAccessed method
 func (mmBlocksAccessed *mJIndexInfoMockBlocksAccessed) Set(f func() (i1 int64)) *JIndexInfoMock {
 	if mmBlocksAccessed.defaultExpectation != nil {
 		mmBlocksAccessed.mock.t.Fatalf("Default expectation is already set for the jIndexInfo.BlocksAccessed method")
@@ -259,7 +259,7 @@ func (mmOpen *mJIndexInfoMockOpen) Return(i1 indexes.Index, err error) *JIndexIn
 	return mmOpen.mock
 }
 
-//Set uses given function f to mock the jIndexInfo.Open method
+// Set uses given function f to mock the jIndexInfo.Open method
 func (mmOpen *mJIndexInfoMockOpen) Set(f func() (i1 indexes.Index, err error)) *JIndexInfoMock {
 	if mmOpen.defaultExpectation != nil {
 		mmOpen.mock.t.Fatalf("Default expectation is already set for the jIndexInfo.Open method")
@@ -402,7 +402,7 @@ func (mmRecords *mJIndexInfoMockRecords) Return(i1 int64) *JIndexInfoMock {
 	return mmRecords.mock
 }
 
-//Set uses given function f to mock the jIndexInfo.Records method
+// Set uses given function f to mock the jIndexInfo.Records method
 func (mmRecords *mJIndexInfoMockRecords) Set(f func() (i1 int64)) *JIndexInfoMock {
 	if mmRecords.defaultExpectation != nil {
 		mmRecords.mock.t.Fatalf("Default expectation is already set for the jIndexInfo.Records method")
@@ -545,7 +545,7 @@ func (mmString *mJIndexInfoMockString) Return(s1 string) *JIndexInfoMock {
 	return mmString.mock
 }
 
-//Set uses given function f to mock the jIndexInfo.String method
+// Set uses given function f to mock the jIndexInfo.String method
 func (mmString *mJIndexInfoMockString) Set(f func() (s1 string)) *JIndexInfoMock {
 	if mmString.defaultExpectation != nil {
 		mmString.mock.t.Fatalf("Default expectation is already set for the jIndexInfo.String method")

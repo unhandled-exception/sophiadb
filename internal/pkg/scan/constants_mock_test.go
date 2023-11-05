@@ -140,7 +140,7 @@ func (mmCompareTo *mConstantMockCompareTo) Return(c2 CompResult) *ConstantMock {
 	return mmCompareTo.mock
 }
 
-//Set uses given function f to mock the Constant.CompareTo method
+// Set uses given function f to mock the Constant.CompareTo method
 func (mmCompareTo *mConstantMockCompareTo) Set(f func(c1 Constant) (c2 CompResult)) *ConstantMock {
 	if mmCompareTo.defaultExpectation != nil {
 		mmCompareTo.mock.t.Fatalf("Default expectation is already set for the Constant.CompareTo method")
@@ -340,7 +340,7 @@ func (mmHash *mConstantMockHash) Return(u1 uint64) *ConstantMock {
 	return mmHash.mock
 }
 
-//Set uses given function f to mock the Constant.Hash method
+// Set uses given function f to mock the Constant.Hash method
 func (mmHash *mConstantMockHash) Set(f func() (u1 uint64)) *ConstantMock {
 	if mmHash.defaultExpectation != nil {
 		mmHash.mock.t.Fatalf("Default expectation is already set for the Constant.Hash method")
@@ -483,7 +483,7 @@ func (mmString *mConstantMockString) Return(s1 string) *ConstantMock {
 	return mmString.mock
 }
 
-//Set uses given function f to mock the Constant.String method
+// Set uses given function f to mock the Constant.String method
 func (mmString *mConstantMockString) Set(f func() (s1 string)) *ConstantMock {
 	if mmString.defaultExpectation != nil {
 		mmString.mock.t.Fatalf("Default expectation is already set for the Constant.String method")
@@ -626,7 +626,7 @@ func (mmType *mConstantMockType) Return(f1 records.FieldType) *ConstantMock {
 	return mmType.mock
 }
 
-//Set uses given function f to mock the Constant.Type method
+// Set uses given function f to mock the Constant.Type method
 func (mmType *mConstantMockType) Set(f func() (f1 records.FieldType)) *ConstantMock {
 	if mmType.defaultExpectation != nil {
 		mmType.mock.t.Fatalf("Default expectation is already set for the Constant.Type method")
@@ -769,7 +769,7 @@ func (mmValue *mConstantMockValue) Return(a1 any) *ConstantMock {
 	return mmValue.mock
 }
 
-//Set uses given function f to mock the Constant.Value method
+// Set uses given function f to mock the Constant.Value method
 func (mmValue *mConstantMockValue) Set(f func() (a1 any)) *ConstantMock {
 	if mmValue.defaultExpectation != nil {
 		mmValue.mock.t.Fatalf("Default expectation is already set for the Constant.Value method")
