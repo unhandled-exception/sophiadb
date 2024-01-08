@@ -7,8 +7,8 @@ github.com/davecgh/go-spew/spew
 # github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140
 ## explicit
 github.com/dgryski/go-metro
-# github.com/gojuno/minimock/v3 v3.1.3
-## explicit; go 1.18
+# github.com/gojuno/minimock/v3 v3.3.6
+## explicit; go 1.19
 github.com/gojuno/minimock/v3
 # github.com/klauspost/cpuid/v2 v2.2.4
 ## explicit; go 1.15

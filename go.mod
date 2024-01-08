@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc
-	github.com/gojuno/minimock/v3 v3.1.3
+	github.com/gojuno/minimock/v3 v3.3.6
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4
 	github.com/zeebo/xxh3 v1.0.2
