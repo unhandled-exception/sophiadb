@@ -62,7 +62,7 @@ func (c Int64Constant) Type() records.FieldType {
 }
 
 func (c Int64Constant) String() string {
-	return strconv.FormatInt(c.value, 10) //nolint:gomnd
+	return strconv.FormatInt(c.value, 10) //nolint:mnd
 }
 
 func (c Int64Constant) Hash() uint64 {
@@ -109,7 +109,7 @@ func (c Int8Constant) Type() records.FieldType {
 }
 
 func (c Int8Constant) String() string {
-	return strconv.FormatInt(int64(c.value), 10) //nolint:gomnd
+	return strconv.FormatInt(int64(c.value), 10) //nolint:mnd
 }
 
 func (c Int8Constant) Hash() uint64 {

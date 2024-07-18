@@ -101,7 +101,7 @@ func fetchPositionalArgs(args []driver.NamedValue) []driver.Value {
 func serializeValue(value driver.Value) ([]byte, error) {
 	switch v := value.(type) {
 	case int64:
-		return []byte(strconv.FormatInt(v, 10)), nil //nolint:gomnd
+		return []byte(strconv.FormatInt(v, 10)), nil //nolint:mnd
 	case string:
 		return []byte("'" + strings.ReplaceAll(v, "'", `\'`) + "'"), nil
 	}

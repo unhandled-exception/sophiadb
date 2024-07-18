@@ -144,7 +144,6 @@ func (s *Stats) calcTableStat(tableName string, trx scan.TRXInt) (StatInfo, erro
 			return false, nil
 		})
 	})
-
 	if err != nil {
 		return StatInfo{}, s.wrapError(err, tableName, nil)
 	}

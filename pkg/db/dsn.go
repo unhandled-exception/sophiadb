@@ -37,7 +37,7 @@ func parseEmbedDSN(dsn string) (embedDSN, error) {
 
 	// Вручную разбиваем строку на путь и параметры,
 	// потомучто url.Parse не умеет работать с путями Windows
-	parts := strings.SplitN(dsn, "?", 2) //nolint:gomnd
+	parts := strings.SplitN(dsn, "?", 2) //nolint:mnd
 	if len(parts) == 0 || strings.TrimSpace(parts[0]) == "" {
 		return d, errors.WithMessage(ErrBadDSN, "empty path")
 	}
@@ -56,7 +56,7 @@ func parseEmbedDSN(dsn string) (embedDSN, error) {
 	for name, values := range opts {
 		switch name {
 		case optBlockSize:
-			v, err1 := strconv.ParseUint(values[0], 10, 32) //nolint:gomnd
+			v, err1 := strconv.ParseUint(values[0], 10, 32) //nolint:mnd
 			if err1 != nil {
 				return d, errors.WithMessagef(ErrBadDSN, "bad uint32 value: %s", err1)
 			}
@@ -65,7 +65,7 @@ func parseEmbedDSN(dsn string) (embedDSN, error) {
 		case optLogFilename:
 			d.LogFileName = values[0]
 		case optBuffersPoolLen:
-			v, err1 := strconv.ParseInt(values[0], 10, 32) //nolint:gomnd
+			v, err1 := strconv.ParseInt(values[0], 10, 32) //nolint:mnd
 			if err1 != nil {
 				return d, errors.WithMessagef(ErrBadDSN, "bad int value: %s", err1)
 			}
