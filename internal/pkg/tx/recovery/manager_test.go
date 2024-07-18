@@ -32,7 +32,7 @@ func TestRecoveryManagerTestsuite(t *testing.T) {
 	suite.Run(t, new(RecoveryManagerTestSuite))
 }
 
-func (ts *RecoveryManagerTestSuite) newRecoveryManager(mc minimock.Tester, txNum *types.TRX) (*recovery.Manager, *recovery.TrxIntMock, *wal.Manager, *buffers.Manager) {
+func (ts *RecoveryManagerTestSuite) newRecoveryManager(mc minimock.Tester, txNum *types.TRX, skipPinMocks bool) (*recovery.Manager, *recovery.TrxIntMock, *wal.Manager, *buffers.Manager) {
 	path := ts.CreateTestTemporaryDir()
 
 	fm, err := storage.NewFileManager(path, defaultTestBlockSize)
@@ -52,9 +52,11 @@ func (ts *RecoveryManagerTestSuite) newRecoveryManager(mc minimock.Tester, txNum
 		txNum = &newTxNum
 	}
 
-	trx.TXNumMock.Return(*txNum).
-		PinMock.Return(nil).
-		UnpinMock.Return()
+	trx.TXNumMock.Return(*txNum)
+	if !skipPinMocks {
+		trx.PinMock.Return(nil).
+			UnpinMock.Return()
+	}
 
 	rm, _ := recovery.NewManager(trx, wal, bm)
 
@@ -84,7 +86,7 @@ func (ts *RecoveryManagerTestSuite) TestCommit_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, _ := ts.newRecoveryManager(mc, nil)
+	sut, _, wal, _ := ts.newRecoveryManager(mc, nil, true)
 
 	defer wal.StorageManager().Close()
 
@@ -104,7 +106,7 @@ func (ts *RecoveryManagerTestSuite) TestSetInt64_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, bm := ts.newRecoveryManager(mc, nil)
+	sut, _, wal, bm := ts.newRecoveryManager(mc, nil, true)
 
 	defer wal.StorageManager().Close()
 
@@ -143,7 +145,7 @@ func (ts *RecoveryManagerTestSuite) TestSetString_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, bm := ts.newRecoveryManager(mc, nil)
+	sut, _, wal, bm := ts.newRecoveryManager(mc, nil, true)
 
 	defer wal.StorageManager().Close()
 
@@ -182,7 +184,7 @@ func (ts *RecoveryManagerTestSuite) TestRollback_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, _ := ts.newRecoveryManager(mc, nil)
+	sut, _, wal, _ := ts.newRecoveryManager(mc, nil, true)
 
 	defer wal.StorageManager().Close()
 
@@ -202,7 +204,7 @@ func (ts *RecoveryManagerTestSuite) TestRollback_RollbackDataOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, trx, wal, bm := ts.newRecoveryManager(mc, nil)
+	sut, trx, wal, bm := ts.newRecoveryManager(mc, nil, false)
 
 	defer wal.StorageManager().Close()
 
@@ -259,7 +261,7 @@ func (ts *RecoveryManagerTestSuite) TestRecovery_LogOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, _, wal, _ := ts.newRecoveryManager(mc, nil)
+	sut, _, wal, _ := ts.newRecoveryManager(mc, nil, true)
 
 	defer wal.StorageManager().Close()
 
@@ -281,7 +283,7 @@ func (ts *RecoveryManagerTestSuite) TestRecovery_RecoveryDataOk() {
 	t := ts.T()
 
 	mc := minimock.NewController(t)
-	sut, trx, wal, bm := ts.newRecoveryManager(mc, nil)
+	sut, trx, wal, bm := ts.newRecoveryManager(mc, nil, false)
 
 	defer wal.StorageManager().Close()
 

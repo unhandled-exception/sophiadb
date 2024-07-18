@@ -16,7 +16,6 @@ linters:
     - mnd
     - goprintffuncname
     - gosec
-    # - ifshort
     - ireturn
     - makezero
     - nakedret

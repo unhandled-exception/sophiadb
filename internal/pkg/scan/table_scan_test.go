@@ -204,7 +204,7 @@ func (ts *TableScanTestSuite) TestGetAndSetConstants() {
 	require.ErrorIs(t, sut.SetVal("age", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrScan)
 	require.ErrorIs(t, sut.SetVal("name", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrScan)
 
-	require.ErrorIs(t, sut.SetVal("unknown", scan.NewConstantMock(mc).ValueMock.Return(struct{}{})), scan.ErrScan)
+	require.ErrorIs(t, sut.SetVal("unknown", scan.NewConstantMock(mc)), scan.ErrScan)
 
 	require.NoError(t, sut.BeforeFirst())
 
