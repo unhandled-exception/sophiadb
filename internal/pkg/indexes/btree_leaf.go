@@ -182,7 +182,7 @@ func (l *BTreeLeaf) Insert(dataRID types.RID) (*BTreeDirEntry, error) {
 	}
 
 	// Расщепляем блок
-	splitPos := types.SlotID(records / 2) //nolint:gomnd
+	splitPos := types.SlotID(records / 2) //nolint:mnd
 
 	splitKey, err := l.contents.GetVal(splitPos)
 	if err != nil {

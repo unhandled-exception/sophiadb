@@ -30,7 +30,7 @@ func NewBTreePage(trx scan.TRXInt, block types.Block, layout records.Layout) (*B
 
 		recordsCountOffset: types.Int64Size,
 		flagOffset:         0,
-		dataOffset:         2 * types.Int64Size, //nolint:gomnd
+		dataOffset:         2 * types.Int64Size, //nolint:mnd
 	}
 
 	if err := trx.Pin(block); err != nil {

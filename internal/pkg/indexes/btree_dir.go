@@ -190,7 +190,7 @@ func (d *BTreeDir) insertEntry(e *BTreeDirEntry) (*BTreeDirEntry, error) {
 		return nil, err
 	}
 
-	splitPos := types.SlotID(records / 2) //nolint:gomnd
+	splitPos := types.SlotID(records / 2) //nolint:mnd
 	splitVal, err := d.contents.GetVal(splitPos)
 	if err != nil {
 		return nil, err
