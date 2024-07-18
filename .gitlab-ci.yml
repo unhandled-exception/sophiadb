@@ -1,0 +1,49 @@
+variables:
+  GOLANGCI_VERSION: "latest"
+
+stages:
+  - test
+
+run-tests:
+  stage: test
+  parallel:
+    matrix:
+      - GOLANG_VERSION: ['1.22']
+  image: golang:$GOLANG_VERSION
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    CI_TESTS_DB_HOST: docker
+  script:
+    - echo "GOPATH=$GOPATH"
+    - echo "HOME=$HOME"
+    - go version
+
+    - echo "Running unit tests..."
+    - make test_ci
+    - echo "Convert coverage"
+    - cd $GOPATH
+
+    - go install github.com/boumenot/gocover-cobertura@latest
+    - cd $CI_PROJECT_DIR
+    - touch coverage.out
+    - $GOPATH/bin/gocover-cobertura < coverage.out > coverage.xml
+
+  # https://docs.gitlab.com/ee/ci/pipelines/settings.html#merge-request-test-coverage-results
+  coverage: '/^total:.+?\d+.\d+%/'
+
+  artifacts:
+    reports:
+      coverage_report:
+        # https://docs.gitlab.com/ee/user/project/merge_requests/test_coverage_visualization.html
+        coverage_format: cobertura
+        path: coverage.xml
+
+run-linters:
+  stage: test
+  image: golang:1.22
+  script:
+    - echo "Install requirements"
+    - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANGCI_VERSION
+    - echo "Running linters..."
+    - make lint_ci
