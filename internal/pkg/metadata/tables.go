@@ -161,7 +161,7 @@ func (t *Tables) CreateTable(tableName string, schema records.Schema, trx scan.T
 func (t *Tables) Layout(tableName string, trx scan.TRXInt) (records.Layout, error) {
 	layout := records.Layout{
 		Schema:  records.NewSchema(),
-		Offsets: make(map[string]uint32, 16), //nolint:gomnd
+		Offsets: make(map[string]uint32, 16), //nolint:mnd
 	}
 
 	tcat, fcat, err := t.NewCatalogTableScan(trx)

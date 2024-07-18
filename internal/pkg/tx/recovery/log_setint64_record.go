@@ -89,7 +89,7 @@ func (lr *SetInt64LogRecord) unmarshalBytes(rawRecord []byte) error {
 	lr.op = p.GetUint32(0)
 	lr.txnum = types.TRX(p.GetInt32(int32Size))
 
-	fpos := uint32(2 * int32Size) //nolint:gomnd
+	fpos := uint32(2 * int32Size) //nolint:mnd
 	blockFilename := p.GetString(fpos)
 
 	bpos := fpos + uint32(int32Size+len(blockFilename))

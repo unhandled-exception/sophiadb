@@ -13,17 +13,17 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.19.x, 1.20.x]
+        go-version: [1.21.x, 1.22.x]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
-        uses: actions/checkout@v3
-      - uses: actions/cache@v3
+        uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           path: |
             ~/go/pkg/mod              # Module download cache
@@ -45,8 +45,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.52.2
-          args: --timeout=120s --max-same-issues=0 --sort-results --go=1.19 --new=false --new-from-rev= -v
+          version: v1.59
+          args: --timeout=120s --max-same-issues=0 --sort-results --go=1.21 --new=false --new-from-rev= -v

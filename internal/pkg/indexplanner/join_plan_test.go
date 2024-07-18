@@ -40,7 +40,6 @@ func (ts *JoinPlanTestSute) TestCreatePlan_Ok() {
 		SchemaMock.Return(ts.testLayout2().Schema).
 		OpenMock.Return(&scan.TableScan{}, nil).
 		StringMock.Return("<p2 plan>").
-		RecordsMock.Return(421).
 		DistinctValuesMock.Return(50, true)
 
 	idx := indexplanner.NewJIndexInfoMock(mc).

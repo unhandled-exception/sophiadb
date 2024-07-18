@@ -13,10 +13,9 @@ linters:
     - forcetypeassert
     - goconst
     - gofumpt
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosec
-    - ifshort
     - ireturn
     - makezero
     - nakedret

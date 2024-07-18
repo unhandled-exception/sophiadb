@@ -164,8 +164,6 @@ func (ts *SelectScanTestSuite) TestFailIfWrappedScanNotImplementsUpdateScan() {
 	mc := minimock.NewController(t)
 
 	ts1 := scan.NewScanMock(mc)
-	ts1.HasFieldMock.Return(false)
-	ts1.SchemaMock.Return(ts.testLayout().Schema)
 
 	sut := scan.NewSelectScan(ts1,
 		scan.NewAndPredicate(
