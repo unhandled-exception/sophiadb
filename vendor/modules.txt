@@ -1,4 +1,4 @@
-# github.com/axiomhq/hyperloglog v0.0.0-20240507144631-af9851f82b27
+# github.com/axiomhq/hyperloglog v0.1.0
 ## explicit; go 1.12
 github.com/axiomhq/hyperloglog
 # github.com/davecgh/go-spew v1.1.1
