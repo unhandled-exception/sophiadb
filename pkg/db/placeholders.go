@@ -49,7 +49,7 @@ Loop:
 		case parse.TokText:
 			res = append(res, tok.Val)
 		case parse.TokError:
-			err = errors.WithMessagef(ErrFailedProcessPlaceholders, lexer.Token().Val)
+			err = errors.WithMessage(ErrFailedProcessPlaceholders, lexer.Token().Val)
 
 			fallthrough
 		case parse.TokEOF:

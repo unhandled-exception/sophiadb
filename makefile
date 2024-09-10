@@ -1,4 +1,4 @@
-go_version := "1.22"
+go_version := "1.23"
 
 .PHONY: all
 all: build test lint vuln
@@ -6,7 +6,7 @@ all: build test lint vuln
 .PHONY: build
 build:
 #   Strip debug symbols: -ldflags "-w"
-	go build -o bin/sophiadb -race -ldflags "-w" cmd/sophiadb.go
+	go build -o bin/sophiadb -ldflags "-w" cmd/sophiadb.go
 
 .PHONY: test
 test: gen

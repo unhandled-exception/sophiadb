@@ -2,6 +2,7 @@ linters:
   enable:
     - bidichk
     - bodyclose
+    - copyloopvar
     - containedctx
     - contextcheck
     - decorder
@@ -9,7 +10,6 @@ linters:
     - errname
     - errorlint
     - exhaustive
-    - exportloopref
     - forcetypeassert
     - goconst
     - gofumpt
@@ -70,3 +70,7 @@ linters-settings:
       - Statement$
       - Scan
       - Plan
+
+  gosec:
+    excludes:
+      - G115
