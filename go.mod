@@ -8,7 +8,7 @@ require (
 	github.com/axiomhq/hyperloglog v0.0.0-20240507144631-af9851f82b27
 	github.com/gojuno/minimock/v3 v3.3.13
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/zeebo/xxh3 v1.0.2
 )
 
