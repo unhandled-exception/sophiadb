@@ -1,17 +1,20 @@
-# github.com/axiomhq/hyperloglog v0.2.0
-## explicit; go 1.21
+# github.com/axiomhq/hyperloglog v0.2.5
+## explicit; go 1.23
 github.com/axiomhq/hyperloglog
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140
+# github.com/dgryski/go-metro v0.0.0-20250106013310-edb8663e5e33
 ## explicit
 github.com/dgryski/go-metro
-# github.com/gojuno/minimock/v3 v3.4.0
+# github.com/gojuno/minimock/v3 v3.4.5
 ## explicit; go 1.22
 github.com/gojuno/minimock/v3
-# github.com/klauspost/cpuid/v2 v2.2.8
-## explicit; go 1.15
+# github.com/kamstrup/intmap v0.5.1
+## explicit; go 1.23
+github.com/kamstrup/intmap
+# github.com/klauspost/cpuid/v2 v2.2.10
+## explicit; go 1.22
 github.com/klauspost/cpuid/v2
 # github.com/kr/pretty v0.3.1
 ## explicit; go 1.12
@@ -21,16 +24,17 @@ github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/stretchr/testify v1.9.0
+# github.com/stretchr/testify v1.10.0
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
+github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
 # github.com/zeebo/xxh3 v1.0.2
 ## explicit; go 1.17
 github.com/zeebo/xxh3
-# golang.org/x/sys v0.25.0
-## explicit; go 1.18
+# golang.org/x/sys v0.31.0
+## explicit; go 1.23.0
 golang.org/x/sys/unix
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit

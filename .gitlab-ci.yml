@@ -8,7 +8,7 @@ run-tests:
   stage: test
   parallel:
     matrix:
-      - GOLANG_VERSION: ["1.23"]
+      - GOLANG_VERSION: ['1.24']
   image: golang:$GOLANG_VERSION
   variables:
     DOCKER_HOST: tcp://docker:2375

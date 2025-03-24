@@ -5,35 +5,36 @@ linters:
     - copyloopvar
     - containedctx
     - contextcheck
+    - copyloopvar
     - decorder
     - dogsled
     - errname
     - errorlint
     - exhaustive
-    - forcetypeassert
     - goconst
     - gofumpt
-    - mnd
     - goprintffuncname
     - gosec
     - ireturn
     - makezero
+    - mnd
     - nakedret
     - nestif
     - nilerr
     - nilnil
     - nlreturn
-    # - nolintlint
-    # - nonamedreturns
     - predeclared
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
     - tagliatelle
-    - tenv
     - testpackage
     - unconvert
+    - usetesting
     - wastedassign
+    # - forcetypeassert
+    # - nolintlint
+    # - nonamedreturns
     # - wsl
 
 linters-settings:
@@ -70,7 +71,10 @@ linters-settings:
       - Statement$
       - Scan
       - Plan
-
+  
   gosec:
     excludes:
       - G115
+
+  predeclared:
+    ignore: "max"
