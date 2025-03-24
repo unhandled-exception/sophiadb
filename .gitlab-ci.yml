@@ -41,7 +41,7 @@ run-tests:
 
 run-linters:
   stage: test
-  image: golang:1.23
+  image: golang:1.24
   script:
     - echo "Install requirements"
     - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANGCI_VERSION
