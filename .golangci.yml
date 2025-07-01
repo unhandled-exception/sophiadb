@@ -1,8 +1,8 @@
+version: "2"
 linters:
   enable:
     - bidichk
     - bodyclose
-    - copyloopvar
     - containedctx
     - contextcheck
     - copyloopvar
@@ -12,7 +12,6 @@ linters:
     - errorlint
     - exhaustive
     - goconst
-    - gofumpt
     - goprintffuncname
     - gosec
     - ireturn
@@ -26,55 +25,56 @@ linters:
     - predeclared
     - rowserrcheck
     - sqlclosecheck
-    - staticcheck
     - tagliatelle
     - testpackage
     - unconvert
     - usetesting
     - wastedassign
-    # - forcetypeassert
-    # - nolintlint
-    # - nonamedreturns
-    # - wsl
-
-linters-settings:
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment
-
-  ireturn:
-    # ireturn allows using `allow` and `reject` settings at the same time.
-    # Both settings are lists of the keywords and regular expressions matched to interface or package names.
-    # keywords:
-    # - `empty` for `interface{}`
-    # - `error` for errors
-    # - `stdlib` for standard library
-    # - `anon` for anonymous interfaces
-
-    # By default, it allows using errors, empty interfaces, anonymous interfaces,
-    # and interfaces provided by the standard library.
-    allow:
-      - anon
-      - error
-      - empty
-      - stdlib
-      # You can specify idiomatic endings for interface
-      - (or|er)$
-      - Sqlmock
-      - LogRecord
-      - Index
-      - Predicate
-      - Expression
-      - Constant
-      - Term
-      - Statement$
-      - Scan
-      - Plan
-  
-  gosec:
-    excludes:
-      - G115
-
-  predeclared:
-    ignore: "max"
+  settings:
+    gosec:
+      excludes:
+        - G115
+    govet:
+      disable:
+        - fieldalignment
+      enable-all: true
+    ireturn:
+      allow:
+        - anon
+        - error
+        - empty
+        - stdlib
+        - (or|er)$
+        - Sqlmock
+        - LogRecord
+        - Index
+        - Predicate
+        - Expression
+        - Constant
+        - Term
+        - Statement$
+        - Scan
+        - Plan
+    predeclared:
+      ignore:
+        - max
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofumpt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

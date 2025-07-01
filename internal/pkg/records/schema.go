@@ -68,7 +68,7 @@ func (s Schema) Field(name string) (FieldInfo, bool) {
 }
 
 func (s Schema) Type(name string) FieldType {
-	var fieldType FieldType = NotFoundField
+	fieldType := NotFoundField
 
 	field, ok := s.info[name]
 	if ok {

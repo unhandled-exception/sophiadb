@@ -158,8 +158,8 @@ func (ts *RecoveryManagerTestSuite) TestSetString_LogOk() {
 
 	var (
 		offset   uint32 = 25
-		oldValue string = "49579274324325"
-		newValue string = "837509348275"
+		oldValue        = "49579274324325"
+		newValue        = "837509348275"
 	)
 
 	buf.Content().SetString(offset, oldValue)
