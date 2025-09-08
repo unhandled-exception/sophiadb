@@ -20,6 +20,9 @@ generate:
 	go run ./cmd/minimock/minimock.go -i ./tests.contextAccepter -o ./tests/context_accepter_mock.go
 	go run ./cmd/minimock/minimock.go -i github.com/gojuno/minimock/v3.Tester -o ./tests/package_name_specified_test.go -p tests_test
 	go run ./cmd/minimock/minimock.go -i ./tests.actor -o ./tests/actor_mock.go
+	go run ./cmd/minimock/minimock.go -i ./tests.formatterAlias -o ./tests/formatter_alias_mock.go
+	go run ./cmd/minimock/minimock.go -i ./tests.formatterType -o ./tests/formatter_type_mock.go
+	go run ./cmd/minimock/minimock.go -i ./tests.reader -o ./tests/reader_mock.go -gr
 
 ./bin:
 	mkdir ./bin
@@ -32,7 +35,7 @@ install:
 	go install ./cmd/minimock
 
 ./bin/golangci-lint: ./bin
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./bin v1.55.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./bin v1.64.8
 
 ./bin/goreleaser: ./bin
 	go install -modfile tools/go.mod github.com/goreleaser/goreleaser
