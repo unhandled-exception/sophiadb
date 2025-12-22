@@ -1,15 +1,18 @@
-# github.com/axiomhq/hyperloglog v0.0.0-20240507144631-af9851f82b27
-## explicit; go 1.12
+# github.com/axiomhq/hyperloglog v0.2.6
+## explicit; go 1.23
 github.com/axiomhq/hyperloglog
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140
+# github.com/dgryski/go-metro v0.0.0-20250106013310-edb8663e5e33
 ## explicit
 github.com/dgryski/go-metro
 # github.com/gojuno/minimock/v3 v3.3.13
 ## explicit; go 1.22
 github.com/gojuno/minimock/v3
+# github.com/kamstrup/intmap v0.5.2
+## explicit; go 1.23
+github.com/kamstrup/intmap
 # github.com/klauspost/cpuid/v2 v2.2.8
 ## explicit; go 1.15
 github.com/klauspost/cpuid/v2
