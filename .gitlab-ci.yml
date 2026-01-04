@@ -8,7 +8,7 @@ run-tests:
   stage: test
   parallel:
     matrix:
-      - GOLANG_VERSION: ['1.24']
+      - GOLANG_VERSION: ['1.25']
   image: golang:$GOLANG_VERSION
   variables:
     DOCKER_HOST: tcp://docker:2375
@@ -41,7 +41,7 @@ run-tests:
 
 run-linters:
   stage: test
-  image: golang:1.24
+  image: golang:1.25
   script:
     - echo "Install requirements"
     - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANGCI_VERSION

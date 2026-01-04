@@ -1,4 +1,4 @@
-go_version := "1.24"
+go_version := "1.25"
 
 .PHONY: all
 all: build test lint vuln
