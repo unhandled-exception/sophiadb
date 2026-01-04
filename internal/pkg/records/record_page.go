@@ -131,7 +131,7 @@ func (rp *RecordPage) Format() (int32, error) {
 
 	for rp.isValidSlot(slot) {
 		if err := rp.TRX.SetInt8(rp.Block, rp.offset(slot), EmptySlot, false); err != nil {
-			return 0, errors.WithMessagef(ErrRecordPage, err.Error())
+			return 0, errors.WithMessage(ErrRecordPage, err.Error())
 		}
 
 		slotOffset := rp.offset(slot)
@@ -153,7 +153,7 @@ func (rp *RecordPage) Format() (int32, error) {
 			}
 
 			if err != nil {
-				return 0, errors.WithMessagef(ErrRecordPage, err.Error())
+				return 0, errors.WithMessage(ErrRecordPage, err.Error())
 			}
 		}
 
@@ -201,7 +201,7 @@ func (rp *RecordPage) searchAfter(slot types.SlotID, flag SlotFlag) (types.SlotI
 	for rp.isValidSlot(slot) {
 		f, err := rp.TRX.GetInt8(rp.Block, rp.offset(slot))
 		if err != nil {
-			return -1, errors.WithMessagef(ErrRecordPage, err.Error())
+			return -1, errors.WithMessage(ErrRecordPage, err.Error())
 		}
 
 		if SlotFlag(f) == flag {

@@ -1,4 +1,4 @@
-go_version := "1.22"
+go_version := "1.24"
 
 .PHONY: all
 all: build test lint vuln
@@ -6,7 +6,7 @@ all: build test lint vuln
 .PHONY: build
 build:
 #   Strip debug symbols: -ldflags "-w"
-	go build -o bin/sophiadb -race -ldflags "-w" cmd/sophiadb.go
+	go build -o bin/sophiadb -ldflags "-w" cmd/sophiadb.go
 
 .PHONY: test
 test: gen
@@ -24,11 +24,11 @@ vendor:
 
 .PHONY: lint
 lint:
-	golangci-lint run ./... --timeout=120s --max-same-issues=0 --sort-results --go=$(go_version) --new=false --new-from-rev=
+	golangci-lint run ./... --timeout=120s --max-same-issues=0 --new=false --new-from-rev=
 
 .PHONY: lint_ci
 lint_ci:
-	golangci-lint run ./... --timeout=300s --max-same-issues=0 --sort-results --go=$(go_version) --new=false --new-from-rev= -v
+	golangci-lint run ./... --timeout=300s --max-same-issues=0 --new=false --new-from-rev= -v
 
 .PHONY: upgrade
 upgrade_deps:

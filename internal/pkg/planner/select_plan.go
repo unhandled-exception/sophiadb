@@ -51,7 +51,7 @@ func (p *SelectPlan) DistinctValues(fieldName string) (int64, bool) {
 		dv1, _ := p.plan.DistinctValues(fieldName)
 		dv2, _ := p.plan.DistinctValues(otherFieldName)
 
-		return max(dv1, dv2), true
+		return maxInt64(dv1, dv2), true
 	}
 
 	return p.plan.DistinctValues(fieldName)

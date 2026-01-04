@@ -79,7 +79,7 @@ func (ts *ConstantsTestSuite) TestInt8Constant() {
 func (ts *ConstantsTestSuite) TestStringConstant() {
 	t := ts.T()
 
-	var value string = "test"
+	value := "test"
 	sut := scan.NewStringConstant(value)
 
 	res, ok := sut.Value().(string)

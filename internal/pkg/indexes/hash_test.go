@@ -13,6 +13,8 @@ import (
 	"github.com/unhandled-exception/sophiadb/internal/pkg/types"
 )
 
+var _ indexes.Index = &indexes.StaticHashIndex{}
+
 type StaticHashIndexTestSuite struct {
 	Suite
 }

@@ -60,18 +60,18 @@ type Token struct {
 
 // String форматирует токен в строку
 func (i Token) String() string {
-	switch {
-	case i.Typ == TokEOF:
+	switch i.Typ { //nolint:exhaustive
+	case TokEOF:
 		return "{EOF}"
-	case i.Typ == TokError:
+	case TokError:
 		return fmt.Sprintf("/%s/", i.Val)
-	case i.Typ == TokKeyword:
+	case TokKeyword:
 		return fmt.Sprintf("<%s>", i.Val)
-	case i.Typ == TokIdentifier:
+	case TokIdentifier:
 		return fmt.Sprintf("[%s]", i.Val)
+	default:
+		return i.Val
 	}
-
-	return i.Val
 }
 
 // stateFn представляет текущее состояние сканера в виде функци, возвращающей следующее состояние
