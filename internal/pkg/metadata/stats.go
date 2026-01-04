@@ -116,10 +116,7 @@ func (s *Stats) calcTableStat(tableName string, trx scan.TRXInt) (StatInfo, erro
 		si.Blocks = int64(ts.RID().BlockNumber) + 1
 
 		return false, scan.ForEachValue(ts, func(name string, fieldType records.FieldType, value any) (stop bool, err error) {
-			var (
-				verr error
-				buf  []byte
-			)
+			var buf []byte
 
 			//nolint:exhaustive
 			switch fieldType {
@@ -127,16 +124,17 @@ func (s *Stats) calcTableStat(tableName string, trx scan.TRXInt) (StatInfo, erro
 				buf = make([]byte, types.Int64Size)
 				binary.LittleEndian.PutUint64(buf, uint64(value.(int64))) //nolint:forcetypeassert
 			case records.Int8Field:
-				buf = make([]byte, 1)
-				buf[0] = uint8(value.(int8)) //nolint:forcetypeassert
+				buf = []byte{
+					uint8(value.(int8)), //nolint:forcetypeassert
+				}
 			case records.StringField:
 				buf = []byte(value.(string)) //nolint:forcetypeassert
 			default:
-				verr = errors.WithMessagef(verr, "unknown field type %d for field %s", fieldType, name)
+				err = errors.Errorf("unknown field type %d for field %s", fieldType, name)
 			}
 
-			if verr != nil {
-				return true, verr
+			if err != nil {
+				return true, err
 			}
 
 			si.UpdateDistincValues(name, buf)

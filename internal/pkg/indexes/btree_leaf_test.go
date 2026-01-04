@@ -102,15 +102,17 @@ func (ts *BTreeLeafTestSuite) TestInsertWithoutOverflow() {
 		Slot:        0,
 	}
 
-	testPageData := []btreeLeafTestsPageData{
-		{
-			SearchKey: scan.NewInt64Constant(searchVal - 13),
-			Count:     25,
-			FirstRID: types.RID{
-				BlockNumber: 235,
-				Slot:        350,
-			},
+	firstPageData := btreeLeafTestsPageData{
+		SearchKey: scan.NewInt64Constant(searchVal - 13),
+		Count:     25,
+		FirstRID: types.RID{
+			BlockNumber: 235,
+			Slot:        350,
 		},
+	}
+
+	testPageData := []btreeLeafTestsPageData{
+		firstPageData,
 		{
 			SearchKey: scan.NewInt64Constant(searchVal + 13),
 			Count:     27,
@@ -154,7 +156,7 @@ func (ts *BTreeLeafTestSuite) TestInsertWithoutOverflow() {
 			BlockNumber: types.BlockID(int(firstRID.BlockNumber) + searchKeyCount - i - 1),
 			Slot:        types.SlotID(int(firstRID.Slot) + searchKeyCount - i - 1),
 		}, rid, "i = %d", i)
-		assert.EqualValues(t, testPageData[0].Count+i, sut.CurrentSlot())
+		assert.EqualValues(t, firstPageData.Count+i, sut.CurrentSlot())
 	}
 
 	ok, err := sut.Next()
